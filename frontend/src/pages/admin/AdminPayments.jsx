@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Loader2, Upload, FileText, Trash2, Download } from "lucide-react";
+import { Loader2, Upload, FileText, Trash2, Download, CheckCircle2 } from "lucide-react";
 import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,12 @@ export default function AdminPayments() {
 
   const removeInvoice = async (orderId) => { await api.delete(`/admin/payments/${orderId}/invoice`); toast.success("Fatura kaldırıldı"); load(); };
 
+  const approve = async (orderId) => {
+    if (!window.confirm("Havale ödemesi onaylanacak ve öğrencinin eğitim erişimi açılacak. Onaylıyor musunuz?")) return;
+    try { await api.post(`/admin/payments/${orderId}/mark-paid`); toast.success("Ödeme onaylandı, öğrenci kaydedildi"); load(); }
+    catch (e) { toast.error(apiError(e)); }
+  };
+
   if (loading) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
 
   return (
@@ -46,7 +52,7 @@ export default function AdminPayments() {
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        {[["all", "Tümü"], ["paid", "Ödendi"], ["pending", "Bekliyor"], ["failed", "Başarısız"]].map(([k, l]) => (
+        {[["all", "Tümü"], ["awaiting_transfer", "Havale"], ["paid", "Ödendi"], ["pending", "Bekliyor"], ["failed", "Başarısız"]].map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)} data-testid={`payment-filter-${k}`} className={`px-4 py-2 rounded-full text-sm ${filter === k ? "bg-gold text-ink" : "bg-ink-surface border border-white/10 text-muted-foreground"}`}>{l}</button>
         ))}
       </div>
@@ -61,10 +67,24 @@ export default function AdminPayments() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{o.user_name || o.user_email}</p>
                     <p className="text-xs text-muted-foreground truncate">{o.items?.map((i) => i.title).join(", ")}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">#{o.order_id} · {formatDate(o.created_at)}{o.discount_code ? ` · Kod: ${o.discount_code}` : ""}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">#{o.order_id} · {formatDate(o.created_at)}{o.discount_code ? ` · Kod: ${o.discount_code}` : ""}{o.payment_method === "transfer" ? " · Havale/EFT" : ""}</p>
+                    {o.status === "awaiting_transfer" && o.transfer_notified && (
+                      <div className="mt-2 text-[11px] bg-blue-500/10 border border-blue-500/20 rounded-lg px-2.5 py-1.5 text-blue-300" data-testid={`transfer-notification-${o.order_id}`}>
+                        <span className="font-semibold">Havale bildirimi alındı</span>
+                        {o.transfer_notification && (o.transfer_notification.sender_name || o.transfer_notification.amount || o.transfer_notification.transfer_date) && (
+                          <span> · {[o.transfer_notification.sender_name, o.transfer_notification.amount && `${o.transfer_notification.amount} ₺`, o.transfer_notification.transfer_date].filter(Boolean).join(" · ")}</span>
+                        )}
+                        {o.transfer_notification?.note && <span className="block text-blue-300/80 mt-0.5">Not: {o.transfer_notification.note}</span>}
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="text-right"><p className="font-heading font-bold text-gold">{formatPrice(o.total)} ₺</p><Badge className={`${c} mt-1`}>{t}</Badge></div>
+                    {o.status === "awaiting_transfer" && (
+                      <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white font-semibold h-8" onClick={() => approve(o.order_id)} data-testid={`approve-transfer-${o.order_id}`}>
+                        <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> Onayla
+                      </Button>
+                    )}
                     {o.status === "paid" && (
                       <div className="flex items-center gap-2">
                         <input type="file" accept="application/pdf" className="hidden" ref={(el) => (fileRefs.current[o.order_id] = el)} onChange={(e) => upload(o.order_id, e.target.files[0])} />

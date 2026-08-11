@@ -13,6 +13,7 @@ import CourseDetail from "@/pages/CourseDetail";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import PaymentResult from "@/pages/PaymentResult";
+import TransferNotify from "@/pages/TransferNotify";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import LegalPage from "@/pages/LegalPage";
@@ -39,6 +40,7 @@ function AppRouter() {
         <Route path="/iletisim" element={<Contact />} />
         <Route path="/odeme" element={<Checkout />} />
         <Route path="/odeme/sonuc" element={<PaymentResult />} />
+        <Route path="/havale-bildirimi" element={<TransferNotify />} />
         <Route path="/sozlesmeler/:type" element={<LegalPage />} />
         <Route path="/giris" element={<Login />} />
         <Route path="/kayit-ol" element={<Register />} />

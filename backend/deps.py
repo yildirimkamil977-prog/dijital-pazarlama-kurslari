@@ -277,7 +277,14 @@ DEFAULT_TEMPLATES = {
         "key": "bank_transfer",
         "name": "Havale/EFT Bilgileri",
         "subject": "Havale/EFT ödeme bilgilerin - {{site_name}}",
-        "html": "<h2>Merhaba {{name}},</h2><p><strong>{{course_title}}</strong> siparişin oluşturuldu. Ödemeni aşağıdaki hesaba havale/EFT ile yapabilirsin. Açıklama kısmına <strong>{{order_id}}</strong> yazmayı unutma.</p><p><strong>Tutar (%2 indirimli): {{amount}} TL</strong></p><div>{{bank_info}}</div><p>Ödemen onaylandığında eğitimlerine erişimin otomatik açılacaktır.</p>",
+        "html": "<h2>Merhaba {{name}},</h2><p><strong>{{course_title}}</strong> siparişin oluşturuldu. Ödemeni aşağıdaki hesaba havale/EFT ile yapabilirsin. Açıklama kısmına <strong>{{order_id}}</strong> yazmayı unutma.</p><p><strong>Tutar (indirimli): {{amount}} TL</strong></p><div>{{bank_info}}</div><p>Ödemeni yaptıktan sonra aşağıdaki butona tıklayarak bize bildirmen, kaydının daha hızlı açılmasını sağlar:</p><div style=\"margin:20px 0\"><a href=\"{{notify_url}}\" style=\"background:#FFB800;color:#07090F;padding:13px 26px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Havale/EFT Bildirimi Yap</a></div><p style=\"font-size:13px;color:#666\">Buton çalışmazsa bu adresi tarayıcına yapıştır: {{notify_url}}</p><p>Ödemen onaylandığında eğitimlerine erişimin otomatik açılacaktır.</p>",
+        "enabled": True,
+    },
+    "transfer_notified_admin": {
+        "key": "transfer_notified_admin",
+        "name": "Havale Bildirimi (Yönetici)",
+        "subject": "Yeni havale/EFT bildirimi - Sipariş {{order_id}}",
+        "html": "<h2>Yeni havale/EFT bildirimi</h2><p><strong>{{sender_name}}</strong> tarafından <strong>{{order_id}}</strong> numaralı sipariş için ödeme bildirimi yapıldı.</p><p>Eğitim: {{course_title}}<br/>Tutar: {{amount}}<br/>Gönderim tarihi: {{transfer_date}}</p><p>Not: {{note}}</p><p>Yönetim panelindeki <strong>Ödemeler &gt; Havale</strong> bölümünden ödemeyi onaylayabilirsin.</p>",
         "enabled": True,
     },
 }

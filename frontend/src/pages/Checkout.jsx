@@ -92,7 +92,8 @@ export default function Checkout() {
             </div>
           ))}
         </div>
-        <Button onClick={() => navigate("/panel")} className="w-full mt-8 bg-gold hover:bg-gold-hover text-ink font-bold h-12">Panelime Git</Button>
+        <Button onClick={() => navigate(`/havale-bildirimi?oid=${transferInfo.order_id}`)} className="w-full mt-8 bg-gold hover:bg-gold-hover text-ink font-bold h-12" data-testid="go-transfer-notify">Ödememi Bildir</Button>
+        <Button onClick={() => navigate("/panel")} variant="outline" className="w-full mt-3 border-white/15 h-12">Panelime Git</Button>
       </div>
     );
   }

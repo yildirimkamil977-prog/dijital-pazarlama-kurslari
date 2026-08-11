@@ -91,6 +91,11 @@ async def seed():
     for key, tpl in DEFAULT_TEMPLATES.items():
         if not await db.email_templates.find_one({"key": key}):
             await db.email_templates.insert_one({**tpl})
+    # Migration: ensure bank_transfer template has the notification button
+    bt = await db.email_templates.find_one({"key": "bank_transfer"})
+    if bt and "{{notify_url}}" not in bt.get("html", ""):
+        await db.email_templates.update_one({"key": "bank_transfer"},
+                                            {"$set": {"html": DEFAULT_TEMPLATES["bank_transfer"]["html"]}})
 
     # Demo courses
     if await db.courses.count_documents({}) == 0:

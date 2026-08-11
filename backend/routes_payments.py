@@ -194,6 +194,7 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
         schedule_email("bank_transfer", user["email"], {
             "name": user.get("name"), "course_title": ", ".join(i["title"] for i in items),
             "amount": f"{total:.2f}", "order_id": oid, "bank_info": _bank_html(banks),
+            "notify_url": f"{FRONTEND_URL}/havale-bildirimi?oid={oid}",
         })
         return {"status": "transfer", "order_id": oid, "total": total, "bank_accounts": banks}
 
@@ -274,6 +275,56 @@ async def paytr_callback(request: Request):
                            {"name": order.get("user_name"), "course_title": it["title"],
                             "amount": f"{order['total']:.2f}"})
     return "OK"
+
+
+class TransferNotifyIn(BaseModel):
+    order_id: str
+    sender_name: str = ""
+    amount: str = ""
+    transfer_date: str = ""
+    note: str = ""
+
+
+@router.get("/transfer-order/{order_id}")
+async def transfer_order(order_id: str):
+    o = await db.orders.find_one({"order_id": order_id}, {"_id": 0, "invoice.data": 0})
+    if not o:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    return {
+        "order_id": o["order_id"], "total": o.get("total"),
+        "items": [i["title"] for i in o.get("items", [])],
+        "status": o.get("status"), "payment_method": o.get("payment_method"),
+        "user_name": o.get("user_name", ""),
+        "already_notified": bool(o.get("transfer_notified")),
+    }
+
+
+@router.post("/transfer-notification")
+async def transfer_notification(body: TransferNotifyIn):
+    order = await db.orders.find_one({"order_id": body.order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    if order.get("payment_method") != "transfer":
+        raise HTTPException(status_code=400, detail="Bu sipariş bir havale/EFT siparişi değil")
+    notif = {
+        "sender_name": body.sender_name.strip(), "amount": body.amount.strip(),
+        "transfer_date": body.transfer_date.strip(), "note": body.note.strip(),
+        "notified_at": now_utc().isoformat(),
+    }
+    await db.orders.update_one({"order_id": body.order_id},
+                               {"$set": {"transfer_notified": True, "transfer_notification": notif}})
+    settings = await get_settings_doc()
+    admin_email = settings.get("contact_email")
+    if admin_email:
+        schedule_email("transfer_notified_admin", admin_email, {
+            "order_id": order["order_id"],
+            "sender_name": notif["sender_name"] or order.get("user_name", ""),
+            "course_title": ", ".join(i["title"] for i in order.get("items", [])),
+            "amount": notif["amount"] or f"{order.get('total', 0):.2f}",
+            "transfer_date": notif["transfer_date"] or "-",
+            "note": notif["note"] or "-",
+        })
+    return {"ok": True}
 
 
 @router.get("/order/{order_id}")

@@ -65,5 +65,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Kurs toplam süresi: zaten course_summary'de ders sürelerinin toplamı olarak otomatik hesaplanıp Kurslar/Kurs Detay'da gösteriliyor (total_seconds).
 - Test: backend 3/3 yeni + 42/42 mevcut geçti; frontend cart/checkout(guest+transfer)/admin kampanya/kurs editörü DnD %100 (iteration_3.json).
 
+## Iteration 4 (2026-06) — Havale onay akışı + bildirim sayfası
+- Havale/EFT bildirim sayfası: /havale-bildirimi (public, misafir de kullanabilir). Sipariş no ile sorgulama, gönderen/tutar/tarih/not formu → POST /api/payments/transfer-notification.
+- Havale bilgi e-postasına "Havale/EFT Bildirimi Yap" butonu eklendi ({{notify_url}} → /havale-bildirimi?oid=). Ödeme sonucu (transferInfo) ekranına da "Ödememi Bildir" butonu eklendi.
+- Bildirim yapıldığında yöneticiye e-posta (transfer_notified_admin şablonu) gider.
+- Admin Ödemeler: "Havale" filtresi (awaiting_transfer), her siparişte "Onayla" butonu (mark-paid → öğrenci kaydı + purchase e-postası) ve "Havale bildirimi alındı" rozeti (gönderen/tutar/tarih/not).
+- Yeni backend: GET /api/payments/transfer-order/{id} (public özet), POST /api/payments/transfer-notification. server.py seed: bank_transfer şablonu migration + transfer_notified_admin şablonu.
+- Test: backend uçtan uca curl ile doğrulandı (checkout→awaiting_transfer→bildirim→admin onay→paid); frontend bildirim sayfası ve admin havale filtresi/onay UI ekran görüntüsüyle doğrulandı.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
