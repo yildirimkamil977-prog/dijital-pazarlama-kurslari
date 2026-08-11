@@ -1,0 +1,39 @@
+{
+  "summary": "Iteration 2 backend + frontend E2E testing. Backend: 42/42 pytest pass (26 regression from iteration_1 + 16 new for iteration 2). All new iteration-2 backend features verified: validate-discount returns full detail (code/type/value/label incl. '%20 indirim'), PUT /auth/profile + email conflict handling, POST /auth/change-password (wrong current 400, success 200, too-short 400, re-login with new password works), GET /recommendations with bundle_pct+bundle_price and cross_sell targeting, invoice flow (admin POST /admin/payments/{order_id}/invoice multipart -> student sees has_invoice=true and GET /my/invoice/{order_id} returns the exact PDF; admin DELETE also verified), admin GET /admin/stats returns 14-day timeseries[] and top_courses[], PUT /admin/settings/tracking + testimonials + expanded general (whatsapp_number, bundle_discount_pct, promo), course editor persists lesson notes and cross_sell_ids, player exposes lesson notes to enrolled student, and BUG FIX confirmed: preview lessons expose video_url to public while non-preview stay hidden. Frontend: preview modal opens with data-testid=preview-iframe when lesson-row-* is clicked; personalized home shows hero-cta-panel and hides 'Hemen Üye Ol' for logged-in users while logged-out shows hero-cta-courses; header + footer render on /panel, /sepet, /odeme; /panel/ayarlar reached via panel-settings-btn with working profile-name/save-profile and current/new/confirm-password/save-password fields; cart cross-sell shows 4 rec-* items; admin dashboard renders recharts svg (14-day revenue) and top courses list; admin payments shows 15 upload-invoice-* buttons; admin settings tabs (campaign/tracking/testimonials) with all documented data-testids present (setting-bundle-pct, setting-whatsapp, tracking-ga/meta/gads, add-testimonial, save-testimonials).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "CourseDetail preview modal", "issues": ["Radix DialogContent missing DialogTitle -> a11y console error. Wrap a hidden DialogTitle (VisuallyHidden) inside the preview dialog for screen readers."]},
+      {"screen": "Global (Meta Pixel script)", "issues": ["Console warning: '[Meta Pixel] - Invalid PixelID: null.' Pixel loader should be guarded to only initialise when settings.tracking.meta_pixel_id is a non-empty string."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/test_iteration2.py",
+    "/app/test_reports/pytest/pytest_all.xml",
+    "/app/test_reports/pytest/pytest_iteration2.xml"
+  ],
+  "action_items": [
+    "Minor: Add VisuallyHidden DialogTitle inside CourseDetail preview modal to remove Radix a11y console error.",
+    "Minor: Guard Meta Pixel init so it does not run when meta_pixel_id is null/empty (fix 'Invalid PixelID: null' warning)."
+  ],
+  "critical_code_review_comments": [
+    "routes_courses.py L215-218: recommendations always dedupes on cart_ids but does NOT dedupe across multiple cart items merging same cross_sell_ids — that is fine because it uses a set. Good.",
+    "routes_admin.py upload_invoice stores entire PDF base64 inside the orders document. Fine for small PDFs, but consider file-size cap (currently unbounded) and separating into gridfs / attachments collection to keep orders docs lean.",
+    "routes_auth.py change_password: no rate limiting; low risk given auth-gated but consider basic throttling to prevent password brute-force from stolen session.",
+    "routes_payments.validate-discount: returns 'discount' rounded to 2 decimals but 'total' also rounded independently — small chance of 1-cent rounding drift vs the final checkout total (checkout uses same _apply_discount so consistent in practice). Consider computing total on backend at checkout only for money truthy source.",
+    "Frontend: several console errors '401' during initial home render (likely /api/auth/me before login). Consider suppressing 401 fetch errors in the auth-context probe to keep the console clean."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration2.py"
+  ],
+  "success_rate": {"backend": "100% (42/42)", "frontend": "100% on tested flows"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Student: created dynamically via /api/auth/register (test_it2_*, test_ui2_*).",
+  "seed_data_creation": "Test suite creates/cleans TEST_* courses & TEST* discount codes; leftover TEST_Manual/TEST_Dup courses are cleaned in same test. UI-registered students (test_ui2_*) remain in DB.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration-2 backend regression suite lives at /app/backend/tests/test_iteration2.py (16 tests) alongside the existing /app/backend/tests/backend_test.py (26 tests). Run all with `pytest /app/backend/tests/ -n 0 -v`. Iteration-2 tests share auth session (module-scoped student fixture), so changing that student's password inside TestProfileAndPassword is intentional — do not add tests that assume the original password after that class. WhatsApp button is intentionally hidden when settings.whatsapp_number is empty (default). PayTR still unconfigured; paid checkout returns 503. Google OAuth not automatable.",
+  "rca of the issue": "No production bugs found in iteration 2. Both reported bug fixes (free-preview video playback + discount label detail) are working end-to-end at backend and frontend."
+}

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, Tag, ShieldCheck, X } from "lucide-react";
+import { Loader2, Tag, ShieldCheck, X, MessageCircle } from "lucide-react";
 import api, { apiError, formatPrice } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
+import { useSite } from "@/context/SiteContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -12,7 +13,9 @@ import {
 
 export default function Checkout() {
   const { items, subtotal, remove, clear } = useCart();
+  const { settings } = useSite();
   const navigate = useNavigate();
+  const wa = (settings.whatsapp_number || "").replace(/\D/g, "");
   const [code, setCode] = useState("");
   const [discount, setDiscount] = useState(null);
   const [applying, setApplying] = useState(false);
@@ -87,16 +90,16 @@ export default function Checkout() {
                 {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Uygula"}
               </Button>
             </div>
-            {discount && <p className="text-xs text-green-400 mt-2">✓ {formatPrice(discount.discount)} ₺ indirim uygulandı</p>}
+            {discount && <p className="text-xs text-green-400 mt-2">✓ {discount.label || "İndirim"} uygulandı — {formatPrice(discount.discount)} ₺ ({discount.code})</p>}
           </div>
         </div>
 
-        <div className="lg:col-span-5">
-          <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-24">
+        <div className="lg:col-span-5 space-y-4">
+          <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-28">
             <h2 className="font-heading font-semibold text-lg mb-4">Sipariş Özeti</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Ara Toplam</span><span>{formatPrice(subtotal)} ₺</span></div>
-              {discount && <div className="flex justify-between text-green-400"><span>İndirim</span><span>- {formatPrice(discount.discount)} ₺</span></div>}
+              {discount && <div className="flex justify-between text-green-400"><span>{discount.label || "İndirim"}</span><span>- {formatPrice(discount.discount)} ₺</span></div>}
             </div>
             <div className="flex justify-between font-heading font-bold text-xl pt-4 mt-4 border-t border-white/5"><span>Toplam</span><span className="text-gold">{formatPrice(total)} ₺</span></div>
             <Button onClick={pay} disabled={processing} data-testid="pay-now" className="w-full mt-6 h-12 bg-gold hover:bg-gold-hover text-ink font-bold">
@@ -105,6 +108,13 @@ export default function Checkout() {
             <p className="text-xs text-muted-foreground text-center mt-4 flex items-center justify-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> PayTR güvenli ödeme altyapısı</p>
             <p className="text-[11px] text-muted-foreground text-center mt-3">Ödemeyi tamamlayarak <Link to="/sozlesmeler/mesafeli-satis" target="_blank" className="text-gold">Mesafeli Satış Sözleşmesi</Link>'ni kabul etmiş olursunuz.</p>
           </div>
+          {wa && (
+            <a href={`https://wa.me/${wa}?text=${encodeURIComponent("Ödeme adımında yardıma ihtiyacım var.")}`} target="_blank" rel="noreferrer" data-testid="checkout-whatsapp"
+              className="flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl p-4 hover:bg-[#25D366]/15 transition-colors duration-200">
+              <span className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center shrink-0"><MessageCircle className="w-5 h-5 text-white" fill="white" /></span>
+              <div><p className="text-sm font-medium">Ödeme konusunda tereddüt mü var?</p><p className="text-xs text-muted-foreground">WhatsApp'tan bize ulaş</p></div>
+            </a>
+          )}
         </div>
       </div>
 

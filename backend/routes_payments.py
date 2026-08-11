@@ -49,7 +49,7 @@ async def _apply_discount(code: Optional[str], subtotal: float):
         disc = subtotal * (doc["value"] / 100.0)
     else:
         disc = float(doc["value"])
-    return min(disc, subtotal), doc["code"]
+    return min(disc, subtotal), doc
 
 
 @router.post("/validate-discount")
@@ -57,8 +57,13 @@ async def validate_discount(body: dict, request: Request):
     await get_current_user(request)
     code = body.get("code")
     subtotal = float(body.get("subtotal", 0))
-    disc, applied = await _apply_discount(code, subtotal)
-    return {"discount": round(disc, 2), "code": applied, "total": round(subtotal - disc, 2)}
+    disc, doc = await _apply_discount(code, subtotal)
+    label = f"%{int(doc['value'])} indirim" if doc and doc["type"] == "percent" else f"{int(doc['value'])} ₺ indirim" if doc else ""
+    return {
+        "discount": round(disc, 2), "code": doc["code"] if doc else None,
+        "type": doc["type"] if doc else None, "value": doc["value"] if doc else None,
+        "label": label, "total": round(subtotal - disc, 2),
+    }
 
 
 async def _enroll_free(user, order):
@@ -91,7 +96,8 @@ async def checkout(body: CheckoutIn, request: Request):
         subtotal += price
         items.append({"course_id": c["course_id"], "title": c["title"], "price": price})
 
-    discount, applied_code = await _apply_discount(body.discount_code, subtotal)
+    discount, disc_doc = await _apply_discount(body.discount_code, subtotal)
+    applied_code = disc_doc["code"] if disc_doc else None
     total = round(subtotal - discount, 2)
 
     order = {

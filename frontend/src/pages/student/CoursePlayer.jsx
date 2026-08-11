@@ -98,6 +98,13 @@ export default function CoursePlayer() {
               </div>
             )}
 
+            {active?.notes && (
+              <div className="mt-8 bg-ink-surface border border-white/5 rounded-2xl p-6">
+                <h3 className="overline text-gold mb-3">Ders Notları</h3>
+                <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-line">{active.notes}</div>
+              </div>
+            )}
+
             {active?.resources?.length > 0 && (
               <div className="mt-8">
                 <h3 className="overline text-gold mb-3">Kaynaklar</h3>

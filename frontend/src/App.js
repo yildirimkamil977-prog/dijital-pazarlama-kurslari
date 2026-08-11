@@ -18,6 +18,7 @@ import Register from "@/pages/Register";
 import LegalPage from "@/pages/LegalPage";
 import AuthCallback from "@/pages/AuthCallback";
 import StudentPanel from "@/pages/student/StudentPanel";
+import StudentSettings from "@/pages/student/StudentSettings";
 import CoursePlayer from "@/pages/student/CoursePlayer";
 import AdminPanel from "@/pages/admin/AdminPanel";
 
@@ -37,11 +38,12 @@ function AppRouter() {
         <Route path="/sozlesmeler/:type" element={<LegalPage />} />
         <Route path="/giris" element={<Login />} />
         <Route path="/kayit-ol" element={<Register />} />
+        <Route path="/odeme" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+        <Route path="/odeme/sonuc" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
+        <Route path="/panel" element={<ProtectedRoute><StudentPanel /></ProtectedRoute>} />
+        <Route path="/panel/ayarlar" element={<ProtectedRoute><StudentSettings /></ProtectedRoute>} />
       </Route>
 
-      <Route path="/odeme" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-      <Route path="/odeme/sonuc" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
-      <Route path="/panel" element={<ProtectedRoute><StudentPanel /></ProtectedRoute>} />
       <Route path="/panel/izle/:courseId" element={<ProtectedRoute><CoursePlayer /></ProtectedRoute>} />
       <Route path="/yonetim/*" element={<AdminRoute><AdminPanel /></AdminRoute>} />
     </Routes>

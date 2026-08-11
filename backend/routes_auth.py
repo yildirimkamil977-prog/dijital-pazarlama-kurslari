@@ -11,6 +11,16 @@ from deps import (
 router = APIRouter(prefix="/auth")
 
 
+class ProfileIn(BaseModel):
+    name: str
+    email: EmailStr
+
+
+class PasswordIn(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class RegisterIn(BaseModel):
     name: str
     email: EmailStr
@@ -47,7 +57,7 @@ async def register(body: RegisterIn, response: Response):
     await db.users.insert_one(user)
     token = await create_session(user["user_id"])
     set_session_cookie(response, token)
-    await send_templated("welcome", email, {"name": user["name"]})
+    schedule_email("welcome", email, {"name": user["name"]})
     return public_user(user)
 
 
@@ -102,6 +112,33 @@ async def google_session(body: SessionIn, response: Response):
 async def me(request: Request):
     user = await get_current_user(request)
     return public_user(user)
+
+
+@router.put("/profile")
+async def update_profile(body: ProfileIn, request: Request):
+    user = await get_current_user(request)
+    email = body.email.lower().strip()
+    if email != user["email"]:
+        other = await db.users.find_one({"email": email})
+        if other:
+            raise HTTPException(status_code=400, detail="Bu e-posta başka bir hesapta kayıtlı")
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"name": body.name.strip(), "email": email}})
+    updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "password_hash": 0})
+    return public_user(updated)
+
+
+@router.post("/change-password")
+async def change_password(body: PasswordIn, request: Request):
+    user = await get_current_user(request)
+    full = await db.users.find_one({"user_id": user["user_id"]})
+    if not full.get("password_hash"):
+        raise HTTPException(status_code=400, detail="Google ile giriş yapıyorsunuz, şifre değiştirilemez")
+    if not verify_password(body.current_password, full["password_hash"]):
+        raise HTTPException(status_code=400, detail="Mevcut şifre hatalı")
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Yeni şifre en az 6 karakter olmalı")
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"password_hash": hash_password(body.new_password)}})
+    return {"ok": True}
 
 
 @router.post("/logout")

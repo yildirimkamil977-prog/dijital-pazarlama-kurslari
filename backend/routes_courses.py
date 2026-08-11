@@ -109,7 +109,8 @@ async def player(course_id: str, request: Request):
             p = prog.get(l["id"], {})
             lessons.append({
                 "id": l["id"], "title": l["title"], "video_url": l.get("video_url", ""),
-                "description": l.get("description", ""), "resources": l.get("resources", []),
+                "description": l.get("description", ""), "notes": l.get("notes", ""),
+                "resources": l.get("resources", []),
                 "duration_seconds": l.get("duration_seconds", 0),
                 "completed": p.get("completed", False),
                 "last_position": p.get("last_position", 0),
@@ -180,7 +181,53 @@ async def my_certificates(request: Request):
 @router.get("/my/payments")
 async def my_payments(request: Request):
     user = await get_current_user(request)
-    return await db.orders.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    orders = await db.orders.find({"user_id": user["user_id"]}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
+    for o in orders:
+        inv = o.get("invoice")
+        o["has_invoice"] = bool(inv)
+        o["invoice_filename"] = inv.get("filename") if inv else None
+        o.pop("invoice", None)
+    return orders
+
+
+@router.get("/my/invoice/{order_id}")
+async def download_invoice(order_id: str, request: Request):
+    import base64
+    from fastapi.responses import Response
+    user = await get_current_user(request)
+    order = await db.orders.find_one({"order_id": order_id, "user_id": user["user_id"]})
+    if not order or not order.get("invoice"):
+        raise HTTPException(status_code=404, detail="Fatura bulunamadı")
+    inv = order["invoice"]
+    data = base64.b64decode(inv["data"])
+    return Response(content=data, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{inv.get("filename", "fatura.pdf")}"'})
+
+
+@router.get("/recommendations")
+async def recommendations(request: Request, ids: str = ""):
+    """Cross-sell: given cart course ids, return recommended published courses with bundle discount."""
+    cart_ids = [x for x in ids.split(",") if x]
+    settings = await get_public_settings()
+    bundle_pct = settings.get("bundle_discount_pct", 0)
+    rec_ids = set()
+    for cid in cart_ids:
+        c = await db.courses.find_one({"course_id": cid}, {"_id": 0, "cross_sell_ids": 1})
+        for r in (c or {}).get("cross_sell_ids", []):
+            if r not in cart_ids:
+                rec_ids.add(r)
+    if not rec_ids:
+        docs = await db.courses.find({"is_published": True, "course_id": {"$nin": cart_ids}}, {"_id": 0}).sort("created_at", -1).limit(3).to_list(3)
+    else:
+        docs = await db.courses.find({"is_published": True, "course_id": {"$in": list(rec_ids)}}, {"_id": 0}).to_list(10)
+    out = []
+    for c in docs:
+        base = c.get("discount_price") if c.get("discount_price") is not None else c.get("price", 0)
+        bundle_price = round(base * (1 - bundle_pct / 100.0)) if bundle_pct else base
+        out.append({"course_id": c["course_id"], "title": c["title"], "slug": c["slug"],
+                    "thumbnail": c.get("thumbnail", ""), "subtitle": c.get("subtitle", ""),
+                    "price": base, "bundle_price": bundle_price, "bundle_pct": bundle_pct})
+    return out
 
 
 @router.get("/certificates/verify/{code}")

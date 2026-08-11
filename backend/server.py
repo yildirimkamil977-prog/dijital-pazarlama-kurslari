@@ -71,6 +71,11 @@ async def seed():
     # Settings
     if not await db.settings.find_one({"_id": "site"}):
         await db.settings.insert_one({**DEFAULT_SETTINGS})
+    else:
+        existing_s = await db.settings.find_one({"_id": "site"})
+        missing = {k: v for k, v in DEFAULT_SETTINGS.items() if k not in existing_s}
+        if missing:
+            await db.settings.update_one({"_id": "site"}, {"$set": missing})
 
     # Email templates
     for key, tpl in DEFAULT_TEMPLATES.items():

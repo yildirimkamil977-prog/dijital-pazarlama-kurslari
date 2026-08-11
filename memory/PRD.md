@@ -37,5 +37,25 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - P2: Şifre sıfırlama, öğrenci profil düzenleme, kurs yorumları/puanları
 - P2: Google OAuth uçtan uca manuel doğrulama
 
+## Iteration 2 (2026-08-11) — Büyük tasarım & özellik yükseltmesi
+- Önyüz yeniden tasarım: video odaklı hero (oynat modalı), modern kazanımlar, çıktı istatistikleri, marka marquee, video öğrenci yorumları bölümü, duyuru çubuğu
+- Kişiselleştirilmiş anasayfa: giriş yapan kullanıcı "Öğrenmeye Devam Et" görür, "Üye Ol" CTA gizlenir
+- Kurs detay: renkli gradient hero, yıldız, ücretsiz önizleme oynatma (BUG FIX), zengin müfredat
+- Sepet/Ödeme: header+footer eklendi, cross-sell kampanya önerileri (admin'den kurs bazında + Ayarlar'dan indirim %), WhatsApp CTA kartları; indirim detayı (% + tutar + kod) gösterimi (BUG FIX)
+- Öğrenci paneli yeniden tasarım: gradient hero başlık, istatistikler, fatura sütunu ("Fatura bekleniyor" → indirilebilir fatura), Hesap Ayarları
+- Öğrenci ayarları: profil düzenleme + şifre değiştirme
+- Fatura akışı: admin ödemeye PDF fatura yükler (base64, orders'ta), öğrenci indirir; invoice_ready e-postası
+- Admin dashboard: 14 günlük gelir grafiği (recharts), en popüler eğitimler, zengin kartlar
+- Kurs editörü: 100+ ders için katlanabilir bölüm/dersler, detaylı ders notu alanı, ders kopyalama, cross-sell seçimi
+- Admin ayarları sekmeleri: Genel, Kampanya (duyuru/paket %/WhatsApp), PayTR, Takip Kodları (GA/Meta Pixel/Google Ads/özel head+body — otomatik enjekte), Yorumlar (testimonials), E-posta (6 şablon)
+- E-posta şablonları: welcome, purchase, completion + payment_failed, invoice_ready, password_reset, profile_updated
+- Test: 42/42 backend geçti, frontend akışları %100
+
+## Kalan / Backlog (güncel)
+- P0: Gerçek PayTR anahtarları ile canlı ödeme testi (mağaza aktif olunca)
+- P1: Resend API anahtarı ile gerçek e-posta teslim testi
+- P1: Sertifika PDF indirme + QR doğrulama sayfası
+- P2: Şifre sıfırlama (self-service), kurs yorum/puanlama, ders sürükle-bırak sıralama
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

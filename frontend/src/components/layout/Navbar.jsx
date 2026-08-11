@@ -15,7 +15,7 @@ const navLinks = [
   { to: "/hakkimda", label: "Hakkımda" },
 ];
 
-export function Navbar() {
+export function Navbar({ promoOffset = false }) {
   const { user, logout } = useAuth();
   const { count } = useCart();
   const { settings } = useSite();
@@ -25,7 +25,7 @@ export function Navbar() {
   const handleLogout = async () => { await logout(); navigate("/"); };
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 glass border-b border-white/10">
+    <header className={`fixed ${promoOffset ? "top-[40px]" : "top-0"} inset-x-0 z-50 glass border-b border-white/10`}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 group" data-testid="navbar-logo">
           <span className="w-9 h-9 rounded-lg bg-gold flex items-center justify-center gold-glow">

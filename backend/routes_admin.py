@@ -1,10 +1,11 @@
 import re
-from fastapi import APIRouter, Request, HTTPException
+import base64
+from fastapi import APIRouter, Request, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
 from deps import (
-    db, now_utc, new_id, require_admin, fernet, get_settings_doc,
+    db, now_utc, new_id, require_admin, fernet, get_settings_doc, schedule_email,
 )
 
 router = APIRouter(prefix="/admin")
@@ -28,6 +29,7 @@ class Lesson(BaseModel):
     title: str
     video_url: str = ""
     description: str = ""
+    notes: str = ""
     duration_seconds: int = 0
     is_preview: bool = False
     resources: List[Resource] = []
@@ -52,6 +54,7 @@ class CourseIn(BaseModel):
     is_published: bool = False
     what_you_learn: List[str] = []
     requirements: List[str] = []
+    cross_sell_ids: List[str] = []
     modules: List[Module] = []
 
 
@@ -171,7 +174,37 @@ async def remove_enroll(body: ManualEnrollIn, request: Request):
 @router.get("/payments")
 async def list_payments(request: Request):
     await require_admin(request)
-    return await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    orders = await db.orders.find({}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(1000)
+    for o in orders:
+        inv = o.get("invoice")
+        o["has_invoice"] = bool(inv)
+        o["invoice_filename"] = inv.get("filename") if inv else None
+        o.pop("invoice", None)
+    return orders
+
+
+@router.post("/payments/{order_id}/invoice")
+async def upload_invoice(order_id: str, request: Request, file: UploadFile = File(...)):
+    await require_admin(request)
+    order = await db.orders.find_one({"order_id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    content = await file.read()
+    if len(content) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Dosya 8MB'den büyük olamaz")
+    b64 = base64.b64encode(content).decode()
+    await db.orders.update_one({"order_id": order_id}, {"$set": {"invoice": {
+        "filename": file.filename or "fatura.pdf", "data": b64, "uploaded_at": now_utc().isoformat()}}})
+    title = order["items"][0]["title"] if order.get("items") else ""
+    schedule_email("invoice_ready", order.get("user_email", ""), {"name": order.get("user_name", ""), "course_title": title})
+    return {"ok": True}
+
+
+@router.delete("/payments/{order_id}/invoice")
+async def delete_invoice(order_id: str, request: Request):
+    await require_admin(request)
+    await db.orders.update_one({"order_id": order_id}, {"$unset": {"invoice": ""}})
+    return {"ok": True}
 
 
 # ---------------- Discount codes ----------------
@@ -231,6 +264,12 @@ async def admin_get_settings(request: Request):
         "hero_title": doc.get("hero_title"), "hero_subtitle": doc.get("hero_subtitle"),
         "about_text": doc.get("about_text"), "students_count": doc.get("students_count"),
         "email_enabled": doc.get("email_enabled", True),
+        "hero_video_url": doc.get("hero_video_url", ""), "hero_poster": doc.get("hero_poster", ""),
+        "whatsapp_number": doc.get("whatsapp_number", ""), "whatsapp_message": doc.get("whatsapp_message", ""),
+        "bundle_discount_pct": doc.get("bundle_discount_pct", 0),
+        "promo_enabled": doc.get("promo_enabled", False), "promo_text": doc.get("promo_text", ""),
+        "testimonials": doc.get("testimonials", []),
+        "tracking": doc.get("tracking", {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": ""}),
         "paytr": {
             "merchant_id": p.get("merchant_id", ""),
             "has_key": bool(p.get("merchant_key_enc")),
@@ -252,12 +291,50 @@ class GeneralSettingsIn(BaseModel):
     about_text: str = ""
     students_count: str = ""
     email_enabled: bool = True
+    hero_video_url: str = ""
+    hero_poster: str = ""
+    whatsapp_number: str = ""
+    whatsapp_message: str = ""
+    bundle_discount_pct: float = 0
+    promo_enabled: bool = False
+    promo_text: str = ""
 
 
 @router.put("/settings/general")
 async def update_general(body: GeneralSettingsIn, request: Request):
     await require_admin(request)
     await db.settings.update_one({"_id": "site"}, {"$set": body.model_dump()})
+    return {"ok": True}
+
+
+class TrackingIn(BaseModel):
+    head_code: str = ""
+    body_code: str = ""
+    ga_id: str = ""
+    meta_pixel_id: str = ""
+    google_ads_id: str = ""
+
+
+@router.put("/settings/tracking")
+async def update_tracking(body: TrackingIn, request: Request):
+    await require_admin(request)
+    await db.settings.update_one({"_id": "site"}, {"$set": {"tracking": body.model_dump()}})
+    return {"ok": True}
+
+
+class Testimonial(BaseModel):
+    name: str
+    role: str = ""
+    quote: str = ""
+    video_url: str = ""
+    thumbnail: str = ""
+    rating: int = 5
+
+
+@router.put("/settings/testimonials")
+async def update_testimonials(body: List[Testimonial], request: Request):
+    await require_admin(request)
+    await db.settings.update_one({"_id": "site"}, {"$set": {"testimonials": [t.model_dump() for t in body]}})
     return {"ok": True}
 
 
@@ -313,13 +390,43 @@ async def stats(request: Request):
     total_students = await db.users.count_documents({"role": "student"})
     total_courses = await db.courses.count_documents({})
     published = await db.courses.count_documents({"is_published": True})
-    paid_orders = await db.orders.find({"status": "paid"}, {"_id": 0}).to_list(5000)
+    paid_orders = await db.orders.find({"status": "paid"}, {"_id": 0, "invoice.data": 0}).to_list(5000)
     revenue = round(sum(o.get("total", 0) for o in paid_orders), 2)
     total_enrollments = await db.enrollments.count_documents({})
-    recent_orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(8)
+    recent_orders = await db.orders.find({}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(8)
+
+    # Last 14 days revenue + sales timeseries
+    from datetime import timedelta
+    days = []
+    today = now_utc().date()
+    buckets = {}
+    for i in range(13, -1, -1):
+        d = today - timedelta(days=i)
+        buckets[d.isoformat()] = {"date": d.strftime("%d.%m"), "revenue": 0, "sales": 0}
+    for o in paid_orders:
+        try:
+            ds = o.get("created_at", "")[:10]
+            if ds in buckets:
+                buckets[ds]["revenue"] += o.get("total", 0)
+                buckets[ds]["sales"] += 1
+        except Exception:
+            pass
+    timeseries = list(buckets.values())
+
+    # Top courses by enrollment
+    pipeline = [{"$group": {"_id": "$course_id", "count": {"$sum": 1}}}, {"$sort": {"count": -1}}, {"$limit": 5}]
+    top_raw = await db.enrollments.aggregate(pipeline).to_list(5)
+    top_courses = []
+    for t in top_raw:
+        c = await db.courses.find_one({"course_id": t["_id"]}, {"_id": 0, "title": 1})
+        if c:
+            top_courses.append({"title": c["title"], "enrollments": t["count"]})
+
+    pending_count = await db.orders.count_documents({"status": "pending"})
     return {
         "total_students": total_students, "total_courses": total_courses,
         "published_courses": published, "revenue": revenue,
         "total_sales": len(paid_orders), "total_enrollments": total_enrollments,
-        "recent_orders": recent_orders,
+        "pending_count": pending_count,
+        "recent_orders": recent_orders, "timeseries": timeseries, "top_courses": top_courses,
     }

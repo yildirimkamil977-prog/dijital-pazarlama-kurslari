@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Save, CreditCard, Mail, Globe, ShieldCheck, AlertTriangle, Info } from "lucide-react";
+import { Loader2, Save, CreditCard, Mail, Globe, ShieldCheck, AlertTriangle, Info, Code, Star, Plus, Trash2, Megaphone } from "lucide-react";
 import api, { apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,62 +10,48 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
+const gKeys = ["site_name", "tagline", "contact_email", "support_phone", "hero_title", "hero_subtitle", "about_text", "students_count", "email_enabled", "hero_video_url", "hero_poster", "whatsapp_number", "whatsapp_message", "bundle_discount_pct", "promo_enabled", "promo_text"];
+
 export default function AdminSettings() {
-  const [settings, setSettings] = useState(null);
+  const [s, setS] = useState(null);
   const [templates, setTemplates] = useState([]);
-  const [savingG, setSavingG] = useState(false);
-  const [savingP, setSavingP] = useState(false);
   const [paytr, setPaytr] = useState({ merchant_id: "", merchant_key: "", merchant_salt: "", notification_url: "", test_mode: true });
+  const [tracking, setTracking] = useState({ head_code: "", body_code: "", ga_id: "", meta_pixel_id: "", google_ads_id: "" });
+  const [testimonials, setTestimonials] = useState([]);
+  const [busy, setBusy] = useState("");
   const callbackUrl = `${process.env.REACT_APP_BACKEND_URL}/api/payments/paytr/callback`;
 
-  useEffect(() => {
-    document.title = "Yönetim - Ayarlar";
-    api.get("/admin/settings").then(({ data }) => {
-      setSettings(data);
-      setPaytr({
-        merchant_id: data.paytr.merchant_id || "", merchant_key: "", merchant_salt: "",
-        notification_url: data.paytr.notification_url || callbackUrl, test_mode: data.paytr.test_mode,
-      });
-    });
-    api.get("/admin/email-templates").then(({ data }) => setTemplates(data));
-    // eslint-disable-next-line
-  }, []);
+  const loadSettings = () => api.get("/admin/settings").then(({ data }) => {
+    setS(data);
+    setPaytr({ merchant_id: data.paytr.merchant_id || "", merchant_key: "", merchant_salt: "", notification_url: data.paytr.notification_url || callbackUrl, test_mode: data.paytr.test_mode });
+    setTracking(data.tracking || tracking);
+    setTestimonials(data.testimonials || []);
+  });
 
-  const saveGeneral = async () => {
-    setSavingG(true);
-    try {
-      const { paytr: _p, paytr_conf, ...g } = settings;
-      await api.put("/admin/settings/general", {
-        site_name: settings.site_name, tagline: settings.tagline, contact_email: settings.contact_email,
-        support_phone: settings.support_phone, hero_title: settings.hero_title, hero_subtitle: settings.hero_subtitle,
-        about_text: settings.about_text, students_count: settings.students_count, email_enabled: settings.email_enabled,
-      });
-      toast.success("Genel ayarlar kaydedildi");
-    } catch (e) { toast.error(apiError(e)); } finally { setSavingG(false); }
-  };
+  useEffect(() => { document.title = "Yönetim - Ayarlar"; loadSettings(); api.get("/admin/email-templates").then(({ data }) => setTemplates(data)); /* eslint-disable-next-line */ }, []);
+
+  const g = (v) => setS({ ...s, ...v });
+  const generalPayload = () => Object.fromEntries(gKeys.map((k) => [k, k === "bundle_discount_pct" ? Number(s[k]) || 0 : s[k]]));
+
+  const saveGeneral = async () => { setBusy("g"); try { await api.put("/admin/settings/general", generalPayload()); toast.success("Ayarlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
 
   const savePaytr = async () => {
-    setSavingP(true);
+    setBusy("p");
     try {
       const payload = { merchant_id: paytr.merchant_id, notification_url: paytr.notification_url, test_mode: paytr.test_mode };
       if (paytr.merchant_key) payload.merchant_key = paytr.merchant_key;
       if (paytr.merchant_salt) payload.merchant_salt = paytr.merchant_salt;
       const { data } = await api.put("/admin/settings/paytr", payload);
-      toast.success(data.configured ? "PayTR ayarları kaydedildi ve aktif" : "Kaydedildi (eksik bilgi: pasif)");
-      const { data: s } = await api.get("/admin/settings");
-      setSettings(s);
-      setPaytr((p) => ({ ...p, merchant_key: "", merchant_salt: "" }));
-    } catch (e) { toast.error(apiError(e)); } finally { setSavingP(false); }
+      toast.success(data.configured ? "PayTR aktif" : "Kaydedildi (eksik bilgi: pasif)");
+      loadSettings(); setPaytr((p) => ({ ...p, merchant_key: "", merchant_salt: "" }));
+    } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); }
   };
 
-  const saveTemplate = async (tpl) => {
-    try {
-      await api.put(`/admin/email-templates/${tpl.key}`, { subject: tpl.subject, html: tpl.html, enabled: tpl.enabled });
-      toast.success("Şablon kaydedildi");
-    } catch (e) { toast.error(apiError(e)); }
-  };
+  const saveTracking = async () => { setBusy("t"); try { await api.put("/admin/settings/tracking", tracking); toast.success("Takip kodları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
+  const saveTestimonials = async () => { setBusy("tt"); try { await api.put("/admin/settings/testimonials", testimonials); toast.success("Yorumlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
+  const saveTemplate = async (tpl) => { try { await api.put(`/admin/email-templates/${tpl.key}`, { subject: tpl.subject, html: tpl.html, enabled: tpl.enabled }); toast.success("Şablon kaydedildi"); } catch (e) { toast.error(apiError(e)); } };
 
-  if (!settings) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
+  if (!s) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   const inputCls = "bg-ink border-white/10 mt-1.5";
 
   return (
@@ -74,7 +60,10 @@ export default function AdminSettings() {
       <Tabs defaultValue="general">
         <TabsList className="bg-ink-surface border border-white/5 flex-wrap h-auto">
           <TabsTrigger value="general" data-testid="settings-tab-general"><Globe className="w-4 h-4 mr-2" /> Genel</TabsTrigger>
+          <TabsTrigger value="campaign" data-testid="settings-tab-campaign"><Megaphone className="w-4 h-4 mr-2" /> Kampanya</TabsTrigger>
           <TabsTrigger value="paytr" data-testid="settings-tab-paytr"><CreditCard className="w-4 h-4 mr-2" /> PayTR</TabsTrigger>
+          <TabsTrigger value="tracking" data-testid="settings-tab-tracking"><Code className="w-4 h-4 mr-2" /> Takip Kodları</TabsTrigger>
+          <TabsTrigger value="testimonials" data-testid="settings-tab-testimonials"><Star className="w-4 h-4 mr-2" /> Yorumlar</TabsTrigger>
           <TabsTrigger value="email" data-testid="settings-tab-email"><Mail className="w-4 h-4 mr-2" /> E-posta</TabsTrigger>
         </TabsList>
 
@@ -83,74 +72,123 @@ export default function AdminSettings() {
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
             <h2 className="font-heading font-semibold">Site Bilgileri</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div><Label>Site Adı</Label><Input value={settings.site_name || ""} onChange={(e) => setSettings({ ...settings, site_name: e.target.value })} className={inputCls} data-testid="setting-site-name" /></div>
-              <div><Label>Slogan</Label><Input value={settings.tagline || ""} onChange={(e) => setSettings({ ...settings, tagline: e.target.value })} className={inputCls} /></div>
-              <div><Label>İletişim E-postası</Label><Input value={settings.contact_email || ""} onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })} className={inputCls} /></div>
-              <div><Label>Destek Telefonu</Label><Input value={settings.support_phone || ""} onChange={(e) => setSettings({ ...settings, support_phone: e.target.value })} className={inputCls} /></div>
-              <div><Label>Öğrenci Sayısı (gösterim)</Label><Input value={settings.students_count || ""} onChange={(e) => setSettings({ ...settings, students_count: e.target.value })} className={inputCls} /></div>
+              <div><Label>Site Adı</Label><Input value={s.site_name || ""} onChange={(e) => g({ site_name: e.target.value })} className={inputCls} data-testid="setting-site-name" /></div>
+              <div><Label>Slogan</Label><Input value={s.tagline || ""} onChange={(e) => g({ tagline: e.target.value })} className={inputCls} /></div>
+              <div><Label>İletişim E-postası</Label><Input value={s.contact_email || ""} onChange={(e) => g({ contact_email: e.target.value })} className={inputCls} /></div>
+              <div><Label>Destek Telefonu</Label><Input value={s.support_phone || ""} onChange={(e) => g({ support_phone: e.target.value })} className={inputCls} /></div>
+              <div><Label>Öğrenci Sayısı (gösterim)</Label><Input value={s.students_count || ""} onChange={(e) => g({ students_count: e.target.value })} className={inputCls} /></div>
             </div>
           </section>
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
-            <h2 className="font-heading font-semibold">Anasayfa & Hakkımda</h2>
-            <div><Label>Hero Başlık</Label><Input value={settings.hero_title || ""} onChange={(e) => setSettings({ ...settings, hero_title: e.target.value })} className={inputCls} /></div>
-            <div><Label>Hero Alt Metin</Label><Textarea value={settings.hero_subtitle || ""} onChange={(e) => setSettings({ ...settings, hero_subtitle: e.target.value })} className={inputCls} rows={3} /></div>
-            <div><Label>Hakkımda Metni</Label><Textarea value={settings.about_text || ""} onChange={(e) => setSettings({ ...settings, about_text: e.target.value })} className={inputCls} rows={4} /></div>
+            <h2 className="font-heading font-semibold">Anasayfa (Hero) & Hakkımda</h2>
+            <div><Label>Hero Başlık</Label><Input value={s.hero_title || ""} onChange={(e) => g({ hero_title: e.target.value })} className={inputCls} /></div>
+            <div><Label>Hero Alt Metin</Label><Textarea value={s.hero_subtitle || ""} onChange={(e) => g({ hero_subtitle: e.target.value })} className={inputCls} rows={3} /></div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div><Label>Hero Video (embed linki)</Label><Input value={s.hero_video_url || ""} onChange={(e) => g({ hero_video_url: e.target.value })} className={inputCls} placeholder="https://www.youtube.com/embed/..." data-testid="setting-hero-video" /></div>
+              <div><Label>Hero Kapak Görseli (URL)</Label><Input value={s.hero_poster || ""} onChange={(e) => g({ hero_poster: e.target.value })} className={inputCls} /></div>
+            </div>
+            <div><Label>Hakkımda Metni</Label><Textarea value={s.about_text || ""} onChange={(e) => g({ about_text: e.target.value })} className={inputCls} rows={4} /></div>
           </section>
-          <Button onClick={saveGeneral} disabled={savingG} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-general">{savingG ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+          <Button onClick={saveGeneral} disabled={busy === "g"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-general">{busy === "g" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+        </TabsContent>
+
+        {/* CAMPAIGN */}
+        <TabsContent value="campaign" className="mt-6 space-y-6">
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
+            <h2 className="font-heading font-semibold">Duyuru Çubuğu</h2>
+            <div className="flex items-center justify-between"><div><Label>Üst Duyuru Çubuğu</Label><p className="text-xs text-muted-foreground">Sitenin en üstünde gösterilir</p></div>
+              <Switch checked={s.promo_enabled} onCheckedChange={(v) => g({ promo_enabled: v })} data-testid="setting-promo-enabled" /></div>
+            <div><Label>Duyuru Metni</Label><Input value={s.promo_text || ""} onChange={(e) => g({ promo_text: e.target.value })} className={inputCls} /></div>
+          </section>
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
+            <h2 className="font-heading font-semibold">Sepet Kampanyası (Cross-sell)</h2>
+            <p className="text-sm text-muted-foreground">Öğrenci sepetteyken, kurslara tanımladığın "Birlikte Önerilen Eğitimler" bu indirim oranıyla teklif edilir.</p>
+            <div className="max-w-xs"><Label>Paket İndirim Oranı (%)</Label><Input type="number" value={s.bundle_discount_pct ?? 0} onChange={(e) => g({ bundle_discount_pct: e.target.value })} className={inputCls} data-testid="setting-bundle-pct" /></div>
+          </section>
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
+            <h2 className="font-heading font-semibold">WhatsApp Destek</h2>
+            <p className="text-sm text-muted-foreground">Numara girilince site genelinde ve sepet/ödeme sayfalarında WhatsApp butonu görünür.</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div><Label>WhatsApp Numarası</Label><Input value={s.whatsapp_number || ""} onChange={(e) => g({ whatsapp_number: e.target.value })} className={inputCls} placeholder="905XXXXXXXXX" data-testid="setting-whatsapp" /></div>
+              <div><Label>Varsayılan Mesaj</Label><Input value={s.whatsapp_message || ""} onChange={(e) => g({ whatsapp_message: e.target.value })} className={inputCls} /></div>
+            </div>
+          </section>
+          <Button onClick={saveGeneral} disabled={busy === "g"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-campaign">{busy === "g" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
         </TabsContent>
 
         {/* PAYTR */}
         <TabsContent value="paytr" className="mt-6 space-y-6">
           <div className="flex items-center gap-3">
-            {settings.paytr.configured ? (
-              <Badge className="bg-green-500/15 text-green-400 border-green-500/20"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Aktif</Badge>
-            ) : (
-              <Badge className="bg-gold/15 text-gold border-gold/20"><AlertTriangle className="w-3.5 h-3.5 mr-1" /> Yapılandırılmadı</Badge>
-            )}
-            <Badge className="bg-secondary">{settings.paytr.test_mode ? "Test Modu" : "Canlı Mod"}</Badge>
+            {s.paytr.configured ? <Badge className="bg-green-500/15 text-green-400 border-green-500/20"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Aktif</Badge> : <Badge className="bg-gold/15 text-gold border-gold/20"><AlertTriangle className="w-3.5 h-3.5 mr-1" /> Yapılandırılmadı</Badge>}
+            <Badge className="bg-secondary">{s.paytr.test_mode ? "Test Modu" : "Canlı Mod"}</Badge>
           </div>
-
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-3 text-sm text-muted-foreground">
             <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-            <p>PayTR Mağaza Paneli → Bilgi sayfasından Mağaza No, API Anahtarı ve Gizli Anahtarı alın. <strong>Bildirim URL'sini</strong> PayTR panelinize aşağıdaki adres olarak tanımlayın. Mağazanız aktif olduğunda bu bilgileri girip kaydedin; ödeme anında çalışır.</p>
+            <p>PayTR Mağaza Paneli → Bilgi sayfasından Mağaza No, API Anahtarı ve Gizli Anahtarı alın. Bildirim URL'sini PayTR panelinize aşağıdaki adres olarak tanımlayın. Mağazanız aktif olunca bu bilgileri girip kaydedin.</p>
           </div>
-
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
             <div><Label>Mağaza No (Merchant ID)</Label><Input value={paytr.merchant_id} onChange={(e) => setPaytr({ ...paytr, merchant_id: e.target.value })} className={inputCls} data-testid="paytr-merchant-id" /></div>
-            <div><Label>API Anahtarı (Merchant Key) {settings.paytr.has_key && <span className="text-xs text-green-400">· kayıtlı</span>}</Label>
-              <Input type="password" value={paytr.merchant_key} onChange={(e) => setPaytr({ ...paytr, merchant_key: e.target.value })} className={inputCls} placeholder={settings.paytr.has_key ? "•••••• (değiştirmek için yaz)" : "Merchant Key"} data-testid="paytr-merchant-key" /></div>
-            <div><Label>Gizli Anahtar (Merchant Salt) {settings.paytr.has_salt && <span className="text-xs text-green-400">· kayıtlı</span>}</Label>
-              <Input type="password" value={paytr.merchant_salt} onChange={(e) => setPaytr({ ...paytr, merchant_salt: e.target.value })} className={inputCls} placeholder={settings.paytr.has_salt ? "•••••• (değiştirmek için yaz)" : "Merchant Salt"} data-testid="paytr-merchant-salt" /></div>
-            <div><Label>Bildirim URL'si (PayTR paneline tanımlayın)</Label>
-              <Input value={paytr.notification_url} onChange={(e) => setPaytr({ ...paytr, notification_url: e.target.value })} className={inputCls} data-testid="paytr-notification-url" />
-              <button type="button" onClick={() => { navigator.clipboard?.writeText(callbackUrl); setPaytr({ ...paytr, notification_url: callbackUrl }); toast.success("Kopyalandı"); }} className="text-xs text-gold mt-2 hover:underline">Önerilen adresi kullan: {callbackUrl}</button>
-            </div>
-            <div className="flex items-center justify-between pt-2">
-              <div><Label>Test Modu</Label><p className="text-xs text-muted-foreground">Gerçek ödeme almadan test etmek için açık bırakın</p></div>
-              <Switch checked={paytr.test_mode} onCheckedChange={(v) => setPaytr({ ...paytr, test_mode: v })} data-testid="paytr-test-mode" />
-            </div>
+            <div><Label>API Anahtarı (Merchant Key) {s.paytr.has_key && <span className="text-xs text-green-400">· kayıtlı</span>}</Label><Input type="password" value={paytr.merchant_key} onChange={(e) => setPaytr({ ...paytr, merchant_key: e.target.value })} className={inputCls} placeholder={s.paytr.has_key ? "•••••• (değiştirmek için yaz)" : "Merchant Key"} data-testid="paytr-merchant-key" /></div>
+            <div><Label>Gizli Anahtar (Merchant Salt) {s.paytr.has_salt && <span className="text-xs text-green-400">· kayıtlı</span>}</Label><Input type="password" value={paytr.merchant_salt} onChange={(e) => setPaytr({ ...paytr, merchant_salt: e.target.value })} className={inputCls} placeholder={s.paytr.has_salt ? "•••••• (değiştirmek için yaz)" : "Merchant Salt"} data-testid="paytr-merchant-salt" /></div>
+            <div><Label>Bildirim URL'si</Label><Input value={paytr.notification_url} onChange={(e) => setPaytr({ ...paytr, notification_url: e.target.value })} className={inputCls} data-testid="paytr-notification-url" />
+              <button type="button" onClick={() => { navigator.clipboard?.writeText(callbackUrl); setPaytr({ ...paytr, notification_url: callbackUrl }); toast.success("Kopyalandı"); }} className="text-xs text-gold mt-2 hover:underline break-all">Önerilen adresi kullan: {callbackUrl}</button></div>
+            <div className="flex items-center justify-between pt-2"><div><Label>Test Modu</Label><p className="text-xs text-muted-foreground">Gerçek ödeme almadan test etmek için açık bırakın</p></div>
+              <Switch checked={paytr.test_mode} onCheckedChange={(v) => setPaytr({ ...paytr, test_mode: v })} data-testid="paytr-test-mode" /></div>
           </section>
-          <Button onClick={savePaytr} disabled={savingP} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-paytr">{savingP ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> PayTR Ayarlarını Kaydet</>}</Button>
+          <Button onClick={savePaytr} disabled={busy === "p"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-paytr">{busy === "p" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> PayTR Ayarlarını Kaydet</>}</Button>
+        </TabsContent>
+
+        {/* TRACKING */}
+        <TabsContent value="tracking" className="mt-6 space-y-6">
+          <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-3 text-sm text-muted-foreground">
+            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" /><p>Dönüşüm takibi ve reklam optimizasyonu için ölçüm kodlarını buraya ekle. ID'ler otomatik entegre edilir; özel kodlar &lt;head&gt; ve &lt;body&gt; alanlarına eklenir.</p>
+          </div>
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div><Label>Google Analytics ID</Label><Input value={tracking.ga_id} onChange={(e) => setTracking({ ...tracking, ga_id: e.target.value })} className={inputCls} placeholder="G-XXXXXXX" data-testid="tracking-ga" /></div>
+              <div><Label>Meta Pixel ID</Label><Input value={tracking.meta_pixel_id} onChange={(e) => setTracking({ ...tracking, meta_pixel_id: e.target.value })} className={inputCls} placeholder="1234567890" data-testid="tracking-meta" /></div>
+              <div><Label>Google Ads ID</Label><Input value={tracking.google_ads_id} onChange={(e) => setTracking({ ...tracking, google_ads_id: e.target.value })} className={inputCls} placeholder="AW-XXXXXXX" data-testid="tracking-gads" /></div>
+            </div>
+            <div><Label>Özel &lt;head&gt; Kodu</Label><Textarea value={tracking.head_code} onChange={(e) => setTracking({ ...tracking, head_code: e.target.value })} className={`${inputCls} font-mono text-xs`} rows={4} placeholder="<script>...</script>" data-testid="tracking-head" /></div>
+            <div><Label>Özel &lt;body&gt; Kodu</Label><Textarea value={tracking.body_code} onChange={(e) => setTracking({ ...tracking, body_code: e.target.value })} className={`${inputCls} font-mono text-xs`} rows={4} placeholder="<noscript>...</noscript>" /></div>
+          </section>
+          <Button onClick={saveTracking} disabled={busy === "t"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-tracking">{busy === "t" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+        </TabsContent>
+
+        {/* TESTIMONIALS */}
+        <TabsContent value="testimonials" className="mt-6 space-y-4">
+          {testimonials.map((t, i) => (
+            <section key={i} className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-3">
+              <div className="flex items-center justify-between"><h3 className="font-heading font-semibold text-sm">Yorum #{i + 1}</h3>
+                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setTestimonials(testimonials.filter((_, j) => j !== i))}><Trash2 className="w-4 h-4" /></Button></div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div><Label>İsim</Label><Input value={t.name} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={inputCls} data-testid={`testimonial-name-${i}`} /></div>
+                <div><Label>Ünvan / Rol</Label><Input value={t.role} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} className={inputCls} /></div>
+                <div><Label>Video (embed linki)</Label><Input value={t.video_url} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, video_url: e.target.value } : x))} className={inputCls} /></div>
+                <div><Label>Kapak Görseli (URL)</Label><Input value={t.thumbnail} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, thumbnail: e.target.value } : x))} className={inputCls} /></div>
+              </div>
+              <div><Label>Yorum</Label><Textarea value={t.quote} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, quote: e.target.value } : x))} className={inputCls} rows={2} /></div>
+            </section>
+          ))}
+          <div className="flex gap-2">
+            <Button variant="outline" className="border-white/15" onClick={() => setTestimonials([...testimonials, { name: "", role: "", quote: "", video_url: "", thumbnail: "", rating: 5 }])} data-testid="add-testimonial"><Plus className="w-4 h-4 mr-2" /> Yorum Ekle</Button>
+            <Button onClick={saveTestimonials} disabled={busy === "tt"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-testimonials">{busy === "tt" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+          </div>
         </TabsContent>
 
         {/* EMAIL */}
         <TabsContent value="email" className="mt-6 space-y-6">
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 flex items-center justify-between">
             <div><h2 className="font-heading font-semibold">E-posta Bildirimleri</h2><p className="text-sm text-muted-foreground mt-1">Tüm otomatik e-postaları aç/kapat</p></div>
-            <Switch checked={settings.email_enabled} onCheckedChange={async (v) => { setSettings({ ...settings, email_enabled: v }); await api.put("/admin/settings/general", { ...pickGeneral(settings), email_enabled: v }); toast.success(v ? "E-postalar açıldı" : "E-postalar kapatıldı"); }} data-testid="toggle-email" />
+            <Switch checked={s.email_enabled} onCheckedChange={async (v) => { g({ email_enabled: v }); await api.put("/admin/settings/general", { ...generalPayload(), email_enabled: v }); toast.success(v ? "E-postalar açıldı" : "E-postalar kapatıldı"); }} data-testid="toggle-email" />
           </section>
-
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-3 text-sm text-muted-foreground">
-            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-            <p>Şablonlarda <code className="text-gold">{"{{name}}"}</code>, <code className="text-gold">{"{{course_title}}"}</code>, <code className="text-gold">{"{{amount}}"}</code>, <code className="text-gold">{"{{certificate_code}}"}</code>, <code className="text-gold">{"{{site_name}}"}</code> değişkenlerini kullanabilirsiniz.</p>
+            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" /><p>Değişkenler: <code className="text-gold">{"{{name}}"}</code>, <code className="text-gold">{"{{course_title}}"}</code>, <code className="text-gold">{"{{amount}}"}</code>, <code className="text-gold">{"{{certificate_code}}"}</code>, <code className="text-gold">{"{{new_password}}"}</code>, <code className="text-gold">{"{{site_name}}"}</code></p>
           </div>
-
           {templates.map((t, i) => (
             <section key={t.key} className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-heading font-semibold">{t.name}</h3>
-                <Switch checked={t.enabled} onCheckedChange={(v) => setTemplates(templates.map((x, j) => j === i ? { ...x, enabled: v } : x))} />
-              </div>
+              <div className="flex items-center justify-between"><h3 className="font-heading font-semibold">{t.name}</h3>
+                <Switch checked={t.enabled} onCheckedChange={(v) => setTemplates(templates.map((x, j) => j === i ? { ...x, enabled: v } : x))} /></div>
               <div><Label>Konu</Label><Input value={t.subject} onChange={(e) => setTemplates(templates.map((x, j) => j === i ? { ...x, subject: e.target.value } : x))} className={inputCls} data-testid={`template-subject-${t.key}`} /></div>
               <div><Label>İçerik (HTML)</Label><Textarea value={t.html} onChange={(e) => setTemplates(templates.map((x, j) => j === i ? { ...x, html: e.target.value } : x))} className={`${inputCls} font-mono text-xs`} rows={5} /></div>
               <Button onClick={() => saveTemplate(t)} variant="outline" size="sm" className="border-white/15" data-testid={`save-template-${t.key}`}><Save className="w-4 h-4 mr-2" /> Şablonu Kaydet</Button>
@@ -160,11 +198,4 @@ export default function AdminSettings() {
       </Tabs>
     </div>
   );
-}
-
-function pickGeneral(s) {
-  return {
-    site_name: s.site_name, tagline: s.tagline, contact_email: s.contact_email, support_phone: s.support_phone,
-    hero_title: s.hero_title, hero_subtitle: s.hero_subtitle, about_text: s.about_text, students_count: s.students_count,
-  };
 }
