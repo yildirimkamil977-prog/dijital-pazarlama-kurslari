@@ -26,7 +26,6 @@ export default function About() {
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-6">
-          <span className="overline text-gold">Hakkımda</span>
           <h1 className="mt-4 font-heading font-black text-4xl sm:text-5xl tracking-tighter leading-none">Merhaba, ben Kamil Yıldırım.</h1>
           <p className="mt-6 text-muted-foreground leading-relaxed text-lg">{settings.about_text}</p>
           <div className="mt-8 space-y-3">

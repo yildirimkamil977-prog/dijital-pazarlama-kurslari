@@ -175,7 +175,25 @@ async def save_progress(body: ProgressIn, request: Request):
 @router.get("/my/certificates")
 async def my_certificates(request: Request):
     user = await get_current_user(request)
-    return await db.certificates.find({"user_id": user["user_id"]}, {"_id": 0}).sort("issued_at", -1).to_list(100)
+    certs = await db.certificates.find({"user_id": user["user_id"]}, {"_id": 0, "file.data": 0}).sort("issued_at", -1).to_list(100)
+    for c in certs:
+        c["has_file"] = bool(c.get("file"))
+        c["file_name"] = c.get("file", {}).get("filename") if c.get("file") else None
+        c.pop("file", None)
+    return certs
+
+
+@router.get("/my/certificate-file/{cert_id}")
+async def download_certificate(cert_id: str, request: Request):
+    import base64
+    from fastapi.responses import Response
+    user = await get_current_user(request)
+    cert = await db.certificates.find_one({"certificate_id": cert_id, "user_id": user["user_id"]})
+    if not cert or not cert.get("file"):
+        raise HTTPException(status_code=404, detail="Sertifika dosyası bulunamadı")
+    f = cert["file"]
+    return Response(content=base64.b64decode(f["data"]), media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{f.get("filename", "sertifika.pdf")}"'})
 
 
 @router.get("/my/payments")

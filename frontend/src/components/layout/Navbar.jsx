@@ -13,6 +13,7 @@ const navLinks = [
   { to: "/", label: "Anasayfa" },
   { to: "/kurslar", label: "Kurslar" },
   { to: "/hakkimda", label: "Hakkımda" },
+  { to: "/iletisim", label: "İletişim" },
 ];
 
 export function Navbar({ promoOffset = false }) {

@@ -11,8 +11,16 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {promo && (
-        <div className="relative bg-gradient-to-r from-gold via-amber-400 to-gold text-ink text-center text-xs sm:text-sm font-semibold py-2 px-4 flex items-center justify-center gap-2" data-testid="promo-bar">
-          <Sparkles className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{settings.promo_text}</span>
+        <div className="relative bg-gradient-to-r from-gold via-amber-400 to-gold text-ink text-xs sm:text-sm font-semibold py-2 overflow-hidden" data-testid="promo-bar">
+          <div className="flex w-max animate-marquee">
+            {[0, 1].map((group) => (
+              <div key={group} className="flex shrink-0" aria-hidden={group === 1}>
+                {[0, 1, 2, 3].map((k) => (
+                  <span key={k} className="flex items-center gap-2 whitespace-nowrap px-8"><Sparkles className="w-3.5 h-3.5 shrink-0" /> {settings.promo_text}</span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
       <Navbar promoOffset={!!promo} />

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Mail, Phone } from "lucide-react";
+import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
 import { useSite } from "@/context/SiteContext";
 
 const legal = [
@@ -33,6 +33,9 @@ export function Footer() {
             {settings.support_phone && (
               <span className="flex items-center gap-2"><Phone className="w-4 h-4" /> {settings.support_phone}</span>
             )}
+            {settings.address && (
+              <span className="flex items-start gap-2"><MapPin className="w-4 h-4 shrink-0 mt-0.5" /> {settings.address}</span>
+            )}
           </div>
         </div>
 
@@ -59,7 +62,7 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-6 text-xs text-muted-foreground flex flex-col sm:flex-row justify-between gap-2">
           <span>© {new Date().getFullYear()} {settings.site_name}. Tüm hakları saklıdır.</span>
-          <span>Güvenli ödeme altyapısı PayTR ile sağlanmaktadır.</span>
+          <div className="flex gap-4"><Link to="/iletisim" className="hover:text-gold">İletişim</Link><span>Güvenli ödeme: PayTR & Havale/EFT</span></div>
         </div>
       </div>
     </footer>

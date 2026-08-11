@@ -1,11 +1,12 @@
 import re
 import base64
+import secrets
 from fastapi import APIRouter, Request, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
 from deps import (
-    db, now_utc, new_id, require_admin, fernet, get_settings_doc, schedule_email,
+    db, now_utc, new_id, require_admin, fernet, get_settings_doc, schedule_email, hash_password,
 )
 
 router = APIRouter(prefix="/admin")
@@ -123,14 +124,81 @@ async def delete_course(course_id: str, request: Request):
 
 # ---------------- Students ----------------
 @router.get("/students")
-async def list_students(request: Request):
+async def list_students(request: Request, search: str = "", page: int = 1, limit: int = 10):
     await require_admin(request)
-    users = await db.users.find({"role": "student"}, {"_id": 0, "password_hash": 0}).sort("created_at", -1).to_list(1000)
+    q = {"role": "student"}
+    if search:
+        rx = {"$regex": re.escape(search), "$options": "i"}
+        q["$or"] = [{"name": rx}, {"email": rx}, {"phone": rx}]
+    total = await db.users.count_documents(q)
+    skip = max(0, (page - 1) * limit)
+    users = await db.users.find(q, {"_id": 0, "password_hash": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     for u in users:
         u["enrollment_count"] = await db.enrollments.count_documents({"user_id": u["user_id"]})
-        paid = await db.orders.find({"user_id": u["user_id"], "status": "paid"}, {"_id": 0}).to_list(500)
+        paid = await db.orders.find({"user_id": u["user_id"], "status": "paid"}, {"_id": 0, "invoice.data": 0}).to_list(500)
         u["total_spent"] = round(sum(o.get("total", 0) for o in paid), 2)
-    return users
+    return {"items": users, "total": total, "page": page, "pages": max(1, (total + limit - 1) // limit)}
+
+
+@router.get("/students/{user_id}")
+async def student_detail(user_id: str, request: Request):
+    await require_admin(request)
+    u = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+    if not u:
+        raise HTTPException(status_code=404, detail="Öğrenci bulunamadı")
+    enrolls = await db.enrollments.find({"user_id": user_id}, {"_id": 0}).to_list(200)
+    courses = []
+    for e in enrolls:
+        c = await db.courses.find_one({"course_id": e["course_id"]}, {"_id": 0})
+        if not c:
+            continue
+        total = sum(len(m.get("lessons", [])) for m in c.get("modules", []))
+        done = await db.progress.count_documents({"user_id": user_id, "course_id": e["course_id"], "completed": True})
+        courses.append({"course_id": e["course_id"], "title": c["title"], "source": e.get("source"),
+                        "enrolled_at": e.get("enrolled_at"), "lesson_count": total,
+                        "completed_lessons": done, "progress_pct": round(100 * done / total) if total else 0})
+    payments = await db.orders.find({"user_id": user_id}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
+    for p in payments:
+        p["has_invoice"] = bool(p.get("invoice")); p.pop("invoice", None)
+    certs = await db.certificates.find({"user_id": user_id}, {"_id": 0, "file.data": 0}).to_list(100)
+    for c in certs:
+        c["has_file"] = bool(c.get("file")); c.pop("file", None)
+    return {"user": u, "courses": courses, "payments": payments, "certificates": certs}
+
+
+@router.post("/students/{user_id}/reset-password")
+async def reset_password(user_id: str, request: Request):
+    await require_admin(request)
+    u = await db.users.find_one({"user_id": user_id})
+    if not u:
+        raise HTTPException(status_code=404, detail="Öğrenci bulunamadı")
+    new_pw = secrets.token_urlsafe(8)
+    await db.users.update_one({"user_id": user_id}, {"$set": {"password_hash": hash_password(new_pw)}})
+    schedule_email("password_reset", u["email"], {"name": u.get("name", ""), "new_password": new_pw})
+    return {"ok": True, "new_password": new_pw}
+
+
+@router.post("/students/{user_id}/certificate")
+async def upload_certificate(user_id: str, request: Request, course_id: str = "", file: UploadFile = File(...)):
+    await require_admin(request)
+    u = await db.users.find_one({"user_id": user_id})
+    if not u:
+        raise HTTPException(status_code=404, detail="Öğrenci bulunamadı")
+    content = await file.read()
+    if len(content) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Dosya 8MB'den büyük olamaz")
+    c = await db.courses.find_one({"course_id": course_id}, {"_id": 0}) if course_id else None
+    existing = await db.certificates.find_one({"user_id": user_id, "course_id": course_id})
+    fileobj = {"filename": file.filename or "sertifika.pdf", "data": base64.b64encode(content).decode()}
+    if existing:
+        await db.certificates.update_one({"certificate_id": existing["certificate_id"]}, {"$set": {"file": fileobj}})
+    else:
+        await db.certificates.insert_one({
+            "certificate_id": new_id("cert"), "code": new_id("CERT").upper(),
+            "user_id": user_id, "user_name": u.get("name"), "course_id": course_id,
+            "course_title": c["title"] if c else "", "issued_at": now_utc().isoformat(), "file": fileobj,
+        })
+    return {"ok": True}
 
 
 @router.get("/students/{user_id}/enrollments")
@@ -207,6 +275,28 @@ async def delete_invoice(order_id: str, request: Request):
     return {"ok": True}
 
 
+@router.post("/payments/{order_id}/mark-paid")
+async def mark_paid(order_id: str, request: Request):
+    await require_admin(request)
+    order = await db.orders.find_one({"order_id": order_id})
+    if not order:
+        raise HTTPException(status_code=404, detail="Sipariş bulunamadı")
+    if order.get("status") == "paid":
+        return {"ok": True}
+    await db.orders.update_one({"order_id": order_id}, {"$set": {"status": "paid", "updated_at": now_utc().isoformat()}})
+    if order.get("discount_code"):
+        await db.discount_codes.update_one({"code": order["discount_code"]}, {"$inc": {"used_count": 1}})
+    for it in order["items"]:
+        if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
+            await db.enrollments.insert_one({
+                "enrollment_id": new_id("enr"), "user_id": order["user_id"], "course_id": it["course_id"],
+                "source": "purchase", "order_id": order_id, "enrolled_at": now_utc().isoformat(),
+            })
+        schedule_email("purchase", order["user_email"], {"name": order.get("user_name"),
+                       "course_title": it["title"], "amount": f"{order.get('total', 0):.2f}"})
+    return {"ok": True}
+
+
 # ---------------- Discount codes ----------------
 class DiscountIn(BaseModel):
     code: str
@@ -269,6 +359,9 @@ async def admin_get_settings(request: Request):
         "bundle_discount_pct": doc.get("bundle_discount_pct", 0),
         "promo_enabled": doc.get("promo_enabled", False), "promo_text": doc.get("promo_text", ""),
         "testimonials": doc.get("testimonials", []),
+        "address": doc.get("address", ""),
+        "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
+        "bank_accounts": doc.get("bank_accounts", []),
         "tracking": doc.get("tracking", {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": ""}),
         "paytr": {
             "merchant_id": p.get("merchant_id", ""),
@@ -291,6 +384,8 @@ class GeneralSettingsIn(BaseModel):
     about_text: str = ""
     students_count: str = ""
     email_enabled: bool = True
+    address: str = ""
+    transfer_discount_pct: float = 0
     hero_video_url: str = ""
     hero_poster: str = ""
     whatsapp_number: str = ""
@@ -303,7 +398,7 @@ class GeneralSettingsIn(BaseModel):
 @router.put("/settings/general")
 async def update_general(body: GeneralSettingsIn, request: Request):
     await require_admin(request)
-    await db.settings.update_one({"_id": "site"}, {"$set": body.model_dump()})
+    await db.settings.update_one({"_id": "site"}, {"$set": body.model_dump(exclude_unset=True)})
     return {"ok": True}
 
 
@@ -319,6 +414,20 @@ class TrackingIn(BaseModel):
 async def update_tracking(body: TrackingIn, request: Request):
     await require_admin(request)
     await db.settings.update_one({"_id": "site"}, {"$set": {"tracking": body.model_dump()}})
+    return {"ok": True}
+
+
+class BankAccount(BaseModel):
+    bank_name: str = ""
+    holder: str = ""
+    iban: str = ""
+    branch: str = ""
+
+
+@router.put("/settings/bank-accounts")
+async def update_bank_accounts(body: List[BankAccount], request: Request):
+    await require_admin(request)
+    await db.settings.update_one({"_id": "site"}, {"$set": {"bank_accounts": [b.model_dump() for b in body]}})
     return {"ok": True}
 
 

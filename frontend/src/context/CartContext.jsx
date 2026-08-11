@@ -18,7 +18,7 @@ export function CartProvider({ children }) {
       const price = course.discount_price != null ? course.discount_price : course.price;
       return [...prev, {
         course_id: course.course_id, title: course.title, slug: course.slug,
-        thumbnail: course.thumbnail, price,
+        thumbnail: course.thumbnail, price, original_price: course.price,
       }];
     });
   };

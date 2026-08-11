@@ -76,6 +76,16 @@ async def seed():
         missing = {k: v for k, v in DEFAULT_SETTINGS.items() if k not in existing_s}
         if missing:
             await db.settings.update_one({"_id": "site"}, {"$set": missing})
+    # One-time contact info update (v2)
+    sdoc = await db.settings.find_one({"_id": "site"})
+    if not sdoc.get("contact_v2"):
+        await db.settings.update_one({"_id": "site"}, {"$set": {
+            "site_name": "Dijital Pazarlama Kursları",
+            "contact_email": "destek@dijitalpazarlamakurslari.com",
+            "support_phone": "0(850) 305 7034",
+            "address": "Atatürk Mah. Ertuğrul Gazi Sok. Metropol İstanbul Sitesi Ataşehir /İstanbul ATAŞEHİR",
+            "contact_v2": True,
+        }})
 
     # Email templates
     for key, tpl in DEFAULT_TEMPLATES.items():

@@ -57,5 +57,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - P1: Sertifika PDF indirme + QR doğrulama sayfası
 - P2: Şifre sıfırlama (self-service), kurs yorum/puanlama, ders sürükle-bırak sıralama
 
+## Iteration 3 (2026-06) — Fork devam: DnD + Havale oranı + bug fix
+- BUG FIX (kritik): Cart.jsx tanımsız değişkenler (originalTotal/savings/savingsPct) + dosya sonu bozuk JSX → frontend derlenmiyordu. Yeniden yazıldı, artık derleniyor.
+- BUG FIX: Havale/EFT indirim oranı sepette/ödemede %0 görünüyordu. Kök neden: admin genel ayar kaydı transfer_discount_pct'yi varsayılan 0 ile eziyordu. Çözüm: backend update_general artık body.model_dump(exclude_unset=True) kullanıyor; panelde Ayarlar>Kampanya'ya "Havale/EFT İndirim Oranı (%)" alanı (setting-transfer-pct) eklendi.
+- Promo bar (duyuru çubuğu) mobilde kayan yazı (marquee) — iki özdeş grup + animate-marquee -50%, overflow-hidden; metin artık kesilmiyor, akıcı kayıyor.
+- Admin Kurs Editörü: bölüm ve ders sürükle-bırak sıralama (@hello-pangea/dnd). Tutamaçlar: module-drag-<mi>, lesson-drag-<mi>-<li>. Dersler bölümler arası taşınabilir.
+- Kurs toplam süresi: zaten course_summary'de ders sürelerinin toplamı olarak otomatik hesaplanıp Kurslar/Kurs Detay'da gösteriliyor (total_seconds).
+- Test: backend 3/3 yeni + 42/42 mevcut geçti; frontend cart/checkout(guest+transfer)/admin kampanya/kurs editörü DnD %100 (iteration_3.json).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

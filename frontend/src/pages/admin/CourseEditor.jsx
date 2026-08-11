@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
@@ -63,6 +64,28 @@ export default function CourseEditor() {
       <Button type="button" variant="outline" size="sm" className="border-white/15" onClick={() => set(key, [...form[key], ""])}><Plus className="w-4 h-4 mr-1" /> Ekle</Button>
     </div>
   );
+
+  const onDragEnd = (result) => {
+    const { source, destination, type } = result;
+    if (!destination) return;
+    if (type === "MODULE") {
+      if (source.index === destination.index) return;
+      setForm((f) => { const modules = [...f.modules]; const [moved] = modules.splice(source.index, 1); modules.splice(destination.index, 0, moved); return { ...f, modules }; });
+      return;
+    }
+    const srcMid = source.droppableId.replace("lessons-", "");
+    const dstMid = destination.droppableId.replace("lessons-", "");
+    if (srcMid === dstMid && source.index === destination.index) return;
+    setForm((f) => {
+      const modules = f.modules.map((m) => ({ ...m, lessons: [...m.lessons] }));
+      const srcM = modules.find((m) => m.id === srcMid);
+      const dstM = modules.find((m) => m.id === dstMid);
+      if (!srcM || !dstM) return f;
+      const [moved] = srcM.lessons.splice(source.index, 1);
+      dstM.lessons.splice(destination.index, 0, moved);
+      return { ...f, modules };
+    });
+  };
 
   const save = async () => {
     if (!form.title.trim()) { toast.error("Kurs başlığı zorunlu"); return; }
@@ -124,67 +147,91 @@ export default function CourseEditor() {
             <h2 className="font-heading font-semibold">Müfredat <span className="text-sm text-muted-foreground font-normal">({totalLessons} ders)</span></h2>
             <Button type="button" onClick={addModule} data-testid="add-module" variant="outline" size="sm" className="border-white/15"><Plus className="w-4 h-4 mr-1" /> Bölüm Ekle</Button>
           </div>
-          <div className="space-y-3">
-            {form.modules.map((m, mi) => {
-              const isOpen = openModules[m.id] !== false;
-              return (
-                <div key={m.id} className="border border-white/10 rounded-xl bg-ink/40 overflow-hidden">
-                  <div className="flex items-center gap-2 p-3">
-                    <button type="button" onClick={() => toggleModule(m.id)} className="text-muted-foreground shrink-0">{isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}</button>
-                    <span className="w-6 h-6 rounded bg-gold/10 text-gold text-xs flex items-center justify-center font-bold shrink-0">{mi + 1}</span>
-                    <Input value={m.title} onChange={(e) => updModule(mi, "title", e.target.value)} className="bg-ink border-white/10 font-medium h-9" placeholder="Bölüm başlığı" />
-                    <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{m.lessons.length} ders</span>
-                    <Button type="button" variant="outline" size="sm" className="border-white/15 text-destructive shrink-0 h-9" onClick={() => delModule(mi)}><Trash2 className="w-4 h-4" /></Button>
-                  </div>
-                  {isOpen && (
-                    <div className="px-3 pb-3 space-y-2">
-                      {m.lessons.map((l, li) => {
-                        const lOpen = openLessons[l.id];
-                        return (
-                          <div key={l.id} className="border border-white/5 rounded-lg bg-ink-surface">
-                            <div className="flex items-center gap-2 p-2.5">
-                              <button type="button" onClick={() => toggleLesson(l.id)} className="text-muted-foreground shrink-0">{lOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}</button>
-                              <GripVertical className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-                              <Input value={l.title} onChange={(e) => updLesson(mi, li, "title", e.target.value)} className="bg-ink border-white/10 text-sm h-8" placeholder="Ders başlığı" data-testid={`lesson-title-${mi}-${li}`} />
-                              {l.is_preview && <span className="text-[10px] text-gold shrink-0">Önizleme</span>}
-                              <span className="text-[11px] text-muted-foreground shrink-0 hidden sm:block">{formatDuration(l.duration_seconds)}</span>
-                              <button type="button" onClick={() => dupLesson(mi, li)} className="text-muted-foreground hover:text-foreground shrink-0 p-1" title="Kopyala"><Copy className="w-3.5 h-3.5" /></button>
-                              <button type="button" onClick={() => delLesson(mi, li)} className="text-destructive shrink-0 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+          <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1.5"><GripVertical className="w-3.5 h-3.5" /> Bölümleri ve dersleri tutamaçtan sürükleyerek sıralayabilirsin.</p>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="modules" type="MODULE">
+              {(mp) => (
+                <div ref={mp.innerRef} {...mp.droppableProps} className="space-y-3">
+                  {form.modules.map((m, mi) => {
+                    const isOpen = openModules[m.id] !== false;
+                    return (
+                      <Draggable key={m.id} draggableId={m.id} index={mi}>
+                        {(mprov, msnap) => (
+                          <div ref={mprov.innerRef} {...mprov.draggableProps} data-testid={`module-${mi}`}
+                            className={`border rounded-xl bg-ink/40 overflow-hidden ${msnap.isDragging ? "border-gold/50 shadow-xl" : "border-white/10"}`}>
+                            <div className="flex items-center gap-2 p-3">
+                              <span {...mprov.dragHandleProps} className="text-muted-foreground/60 hover:text-gold cursor-grab active:cursor-grabbing shrink-0" data-testid={`module-drag-${mi}`} title="Sürükle"><GripVertical className="w-4 h-4" /></span>
+                              <button type="button" onClick={() => toggleModule(m.id)} className="text-muted-foreground shrink-0">{isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}</button>
+                              <span className="w-6 h-6 rounded bg-gold/10 text-gold text-xs flex items-center justify-center font-bold shrink-0">{mi + 1}</span>
+                              <Input value={m.title} onChange={(e) => updModule(mi, "title", e.target.value)} className="bg-ink border-white/10 font-medium h-9" placeholder="Bölüm başlığı" />
+                              <span className="text-xs text-muted-foreground shrink-0 hidden sm:block">{m.lessons.length} ders</span>
+                              <Button type="button" variant="outline" size="sm" className="border-white/15 text-destructive shrink-0 h-9" onClick={() => delModule(mi)}><Trash2 className="w-4 h-4" /></Button>
                             </div>
-                            {lOpen && (
-                              <div className="px-3 pb-3 space-y-2 border-t border-white/5 pt-3">
-                                <Input value={l.video_url} onChange={(e) => updLesson(mi, li, "video_url", e.target.value)} className="bg-ink border-white/10 text-sm" placeholder="Video embed linki (örn: https://www.youtube.com/embed/XXXX)" />
-                                <Textarea value={l.description} onChange={(e) => updLesson(mi, li, "description", e.target.value)} className="bg-ink border-white/10 text-sm" rows={2} placeholder="Kısa ders açıklaması" />
-                                <div><Label className="text-xs text-muted-foreground">Detaylı Ders Notu</Label>
-                                  <Textarea value={l.notes} onChange={(e) => updLesson(mi, li, "notes", e.target.value)} className="bg-ink border-white/10 text-sm mt-1" rows={4} placeholder="Öğrencinin ders altında göreceği detaylı notlar, adımlar, ipuçları..." data-testid={`lesson-notes-${mi}-${li}`} /></div>
-                                <div className="flex items-center gap-4 flex-wrap">
-                                  <div className="flex items-center gap-2"><Label className="text-xs">Süre (sn)</Label><Input type="number" value={l.duration_seconds} onChange={(e) => updLesson(mi, li, "duration_seconds", Number(e.target.value))} className="bg-ink border-white/10 h-8 w-24 text-sm" /></div>
-                                  <label className="flex items-center gap-2 text-xs cursor-pointer"><Switch checked={l.is_preview} onCheckedChange={(v) => updLesson(mi, li, "is_preview", v)} /> Ücretsiz önizleme</label>
-                                </div>
-                                <div className="pt-1">
-                                  <p className="text-xs text-muted-foreground mb-1">Kaynaklar (PDF vb.)</p>
-                                  {l.resources.map((r, ri) => (
-                                    <div key={ri} className="flex gap-2 mb-2">
-                                      <Input value={r.name} onChange={(e) => updResource(mi, li, ri, "name", e.target.value)} className="bg-ink border-white/10 h-8 text-sm" placeholder="Dosya adı" />
-                                      <Input value={r.url} onChange={(e) => updResource(mi, li, ri, "url", e.target.value)} className="bg-ink border-white/10 h-8 text-sm" placeholder="Dosya URL" />
-                                      <Button type="button" variant="outline" size="sm" className="border-white/15 shrink-0 h-8" onClick={() => delResource(mi, li, ri)}><X className="w-3.5 h-3.5" /></Button>
-                                    </div>
-                                  ))}
-                                  <Button type="button" variant="ghost" size="sm" className="text-xs h-7" onClick={() => addResource(mi, li)}><Plus className="w-3 h-3 mr-1" /> Kaynak Ekle</Button>
-                                </div>
-                              </div>
+                            {isOpen && (
+                              <Droppable droppableId={`lessons-${m.id}`} type="LESSON">
+                                {(lp, lsnap) => (
+                                  <div ref={lp.innerRef} {...lp.droppableProps} className={`px-3 pb-3 space-y-2 min-h-[8px] ${lsnap.isDraggingOver ? "bg-gold/5" : ""}`}>
+                                    {m.lessons.map((l, li) => {
+                                      const lOpen = openLessons[l.id];
+                                      return (
+                                        <Draggable key={l.id} draggableId={l.id} index={li}>
+                                          {(lprov, lsnap2) => (
+                                            <div ref={lprov.innerRef} {...lprov.draggableProps}
+                                              className={`border rounded-lg bg-ink-surface ${lsnap2.isDragging ? "border-gold/50 shadow-lg" : "border-white/5"}`}>
+                                              <div className="flex items-center gap-2 p-2.5">
+                                                <span {...lprov.dragHandleProps} className="text-muted-foreground/50 hover:text-gold cursor-grab active:cursor-grabbing shrink-0" data-testid={`lesson-drag-${mi}-${li}`} title="Sürükle"><GripVertical className="w-3.5 h-3.5" /></span>
+                                                <button type="button" onClick={() => toggleLesson(l.id)} className="text-muted-foreground shrink-0">{lOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}</button>
+                                                <Input value={l.title} onChange={(e) => updLesson(mi, li, "title", e.target.value)} className="bg-ink border-white/10 text-sm h-8" placeholder="Ders başlığı" data-testid={`lesson-title-${mi}-${li}`} />
+                                                {l.is_preview && <span className="text-[10px] text-gold shrink-0">Önizleme</span>}
+                                                <span className="text-[11px] text-muted-foreground shrink-0 hidden sm:block">{formatDuration(l.duration_seconds)}</span>
+                                                <button type="button" onClick={() => dupLesson(mi, li)} className="text-muted-foreground hover:text-foreground shrink-0 p-1" title="Kopyala"><Copy className="w-3.5 h-3.5" /></button>
+                                                <button type="button" onClick={() => delLesson(mi, li)} className="text-destructive shrink-0 p-1"><Trash2 className="w-3.5 h-3.5" /></button>
+                                              </div>
+                                              {lOpen && (
+                                                <div className="px-3 pb-3 space-y-2 border-t border-white/5 pt-3">
+                                                  <Input value={l.video_url} onChange={(e) => updLesson(mi, li, "video_url", e.target.value)} className="bg-ink border-white/10 text-sm" placeholder="Video embed linki (örn: https://www.youtube.com/embed/XXXX)" />
+                                                  <Textarea value={l.description} onChange={(e) => updLesson(mi, li, "description", e.target.value)} className="bg-ink border-white/10 text-sm" rows={2} placeholder="Kısa ders açıklaması" />
+                                                  <div><Label className="text-xs text-muted-foreground">Detaylı Ders Notu</Label>
+                                                    <Textarea value={l.notes} onChange={(e) => updLesson(mi, li, "notes", e.target.value)} className="bg-ink border-white/10 text-sm mt-1" rows={4} placeholder="Öğrencinin ders altında göreceği detaylı notlar, adımlar, ipuçları..." data-testid={`lesson-notes-${mi}-${li}`} /></div>
+                                                  <div className="flex items-center gap-4 flex-wrap">
+                                                    <div className="flex items-center gap-2"><Label className="text-xs">Süre (sn)</Label><Input type="number" value={l.duration_seconds} onChange={(e) => updLesson(mi, li, "duration_seconds", Number(e.target.value))} className="bg-ink border-white/10 h-8 w-24 text-sm" /></div>
+                                                    <label className="flex items-center gap-2 text-xs cursor-pointer"><Switch checked={l.is_preview} onCheckedChange={(v) => updLesson(mi, li, "is_preview", v)} /> Ücretsiz önizleme</label>
+                                                  </div>
+                                                  <div className="pt-1">
+                                                    <p className="text-xs text-muted-foreground mb-1">Kaynaklar (PDF vb.)</p>
+                                                    {l.resources.map((r, ri) => (
+                                                      <div key={ri} className="flex gap-2 mb-2">
+                                                        <Input value={r.name} onChange={(e) => updResource(mi, li, ri, "name", e.target.value)} className="bg-ink border-white/10 h-8 text-sm" placeholder="Dosya adı" />
+                                                        <Input value={r.url} onChange={(e) => updResource(mi, li, ri, "url", e.target.value)} className="bg-ink border-white/10 h-8 text-sm" placeholder="Dosya URL" />
+                                                        <Button type="button" variant="outline" size="sm" className="border-white/15 shrink-0 h-8" onClick={() => delResource(mi, li, ri)}><X className="w-3.5 h-3.5" /></Button>
+                                                      </div>
+                                                    ))}
+                                                    <Button type="button" variant="ghost" size="sm" className="text-xs h-7" onClick={() => addResource(mi, li)}><Plus className="w-3 h-3 mr-1" /> Kaynak Ekle</Button>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </Draggable>
+                                      );
+                                    })}
+                                    {lp.placeholder}
+                                    <Button type="button" onClick={() => addLesson(mi)} variant="ghost" size="sm" className="text-gold text-sm" data-testid={`add-lesson-${mi}`}><Plus className="w-4 h-4 mr-1" /> Ders Ekle</Button>
+                                  </div>
+                                )}
+                              </Droppable>
                             )}
                           </div>
-                        );
-                      })}
-                      <Button type="button" onClick={() => addLesson(mi)} variant="ghost" size="sm" className="text-gold text-sm" data-testid={`add-lesson-${mi}`}><Plus className="w-4 h-4 mr-1" /> Ders Ekle</Button>
-                    </div>
-                  )}
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {mp.placeholder}
+                  {form.modules.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Henüz bölüm yok. "Bölüm Ekle" ile başla.</p>}
                 </div>
-              );
-            })}
-            {form.modules.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Henüz bölüm yok. "Bölüm Ekle" ile başla.</p>}
-          </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </section>
 
         {/* Cross-sell campaign */}

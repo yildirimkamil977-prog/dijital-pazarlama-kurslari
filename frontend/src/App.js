@@ -16,6 +16,7 @@ import PaymentResult from "@/pages/PaymentResult";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import LegalPage from "@/pages/LegalPage";
+import Contact from "@/pages/Contact";
 import AuthCallback from "@/pages/AuthCallback";
 import StudentPanel from "@/pages/student/StudentPanel";
 import StudentSettings from "@/pages/student/StudentSettings";
@@ -35,11 +36,12 @@ function AppRouter() {
         <Route path="/kurslar" element={<Courses />} />
         <Route path="/kurslar/:slug" element={<CourseDetail />} />
         <Route path="/sepet" element={<Cart />} />
+        <Route path="/iletisim" element={<Contact />} />
+        <Route path="/odeme" element={<Checkout />} />
+        <Route path="/odeme/sonuc" element={<PaymentResult />} />
         <Route path="/sozlesmeler/:type" element={<LegalPage />} />
         <Route path="/giris" element={<Login />} />
         <Route path="/kayit-ol" element={<Register />} />
-        <Route path="/odeme" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-        <Route path="/odeme/sonuc" element={<ProtectedRoute><PaymentResult /></ProtectedRoute>} />
         <Route path="/panel" element={<ProtectedRoute><StudentPanel /></ProtectedRoute>} />
         <Route path="/panel/ayarlar" element={<ProtectedRoute><StudentSettings /></ProtectedRoute>} />
       </Route>

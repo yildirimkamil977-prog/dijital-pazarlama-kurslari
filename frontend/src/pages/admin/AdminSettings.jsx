@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
-const gKeys = ["site_name", "tagline", "contact_email", "support_phone", "hero_title", "hero_subtitle", "about_text", "students_count", "email_enabled", "hero_video_url", "hero_poster", "whatsapp_number", "whatsapp_message", "bundle_discount_pct", "promo_enabled", "promo_text"];
+const gKeys = ["site_name", "tagline", "contact_email", "support_phone", "hero_title", "hero_subtitle", "about_text", "students_count", "email_enabled", "hero_video_url", "hero_poster", "whatsapp_number", "whatsapp_message", "bundle_discount_pct", "transfer_discount_pct", "promo_enabled", "promo_text"];
+const numKeys = ["bundle_discount_pct", "transfer_discount_pct"];
 
 export default function AdminSettings() {
   const [s, setS] = useState(null);
@@ -31,7 +32,7 @@ export default function AdminSettings() {
   useEffect(() => { document.title = "Yönetim - Ayarlar"; loadSettings(); api.get("/admin/email-templates").then(({ data }) => setTemplates(data)); /* eslint-disable-next-line */ }, []);
 
   const g = (v) => setS({ ...s, ...v });
-  const generalPayload = () => Object.fromEntries(gKeys.map((k) => [k, k === "bundle_discount_pct" ? Number(s[k]) || 0 : s[k]]));
+  const generalPayload = () => Object.fromEntries(gKeys.map((k) => [k, numKeys.includes(k) ? Number(s[k]) || 0 : s[k]]));
 
   const saveGeneral = async () => { setBusy("g"); try { await api.put("/admin/settings/general", generalPayload()); toast.success("Ayarlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
 
@@ -104,6 +105,11 @@ export default function AdminSettings() {
             <h2 className="font-heading font-semibold">Sepet Kampanyası (Cross-sell)</h2>
             <p className="text-sm text-muted-foreground">Öğrenci sepetteyken, kurslara tanımladığın "Birlikte Önerilen Eğitimler" bu indirim oranıyla teklif edilir.</p>
             <div className="max-w-xs"><Label>Paket İndirim Oranı (%)</Label><Input type="number" value={s.bundle_discount_pct ?? 0} onChange={(e) => g({ bundle_discount_pct: e.target.value })} className={inputCls} data-testid="setting-bundle-pct" /></div>
+          </section>
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
+            <h2 className="font-heading font-semibold">Havale / EFT İndirimi</h2>
+            <p className="text-sm text-muted-foreground">Müşteri ödeme adımında Havale/EFT seçtiğinde uygulanacak indirim oranı. Sepet ve ödeme özetinde otomatik gösterilir.</p>
+            <div className="max-w-xs"><Label>Havale/EFT İndirim Oranı (%)</Label><Input type="number" value={s.transfer_discount_pct ?? 0} onChange={(e) => g({ transfer_discount_pct: e.target.value })} className={inputCls} data-testid="setting-transfer-pct" /></div>
           </section>
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
             <h2 className="font-heading font-semibold">WhatsApp Destek</h2>

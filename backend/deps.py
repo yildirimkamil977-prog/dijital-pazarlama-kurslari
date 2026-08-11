@@ -152,6 +152,11 @@ DEFAULT_SETTINGS = {
         {"name": "Zeynep Arslan", "role": "Marka Yöneticisi", "quote": "SEO eğitimi ile web sitemizin organik trafiğini 6 ayda 3 katına çıkardık.", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "thumbnail": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg", "rating": 5},
     ],
     "tracking": {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": ""},
+    "address": "Atatürk Mah. Ertuğrul Gazi Sok. Metropol İstanbul Sitesi Ataşehir /İstanbul ATAŞEHİR",
+    "transfer_discount_pct": 2,
+    "bank_accounts": [
+        {"bank_name": "Örnek Banka", "holder": "Dijital Pazarlama Kursları", "iban": "TR00 0000 0000 0000 0000 0000 00", "branch": ""},
+    ],
     "paytr": {
         "merchant_id": "",
         "merchant_key_enc": "",
@@ -193,6 +198,8 @@ async def get_public_settings() -> dict:
         "promo_text": doc.get("promo_text", ""),
         "testimonials": doc.get("testimonials", []),
         "tracking": doc.get("tracking", {}),
+        "address": doc.get("address", ""),
+        "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
         "payment_configured": paytr.get("configured", False),
     }
 
@@ -265,6 +272,13 @@ DEFAULT_TEMPLATES = {
         "subject": "Hesap bilgilerin güncellendi",
         "html": "<h2>Merhaba {{name}},</h2><p>Hesap bilgilerin başarıyla güncellendi. Bu işlemi sen yapmadıysan lütfen bizimle iletişime geç.</p>",
         "enabled": False,
+    },
+    "bank_transfer": {
+        "key": "bank_transfer",
+        "name": "Havale/EFT Bilgileri",
+        "subject": "Havale/EFT ödeme bilgilerin - {{site_name}}",
+        "html": "<h2>Merhaba {{name}},</h2><p><strong>{{course_title}}</strong> siparişin oluşturuldu. Ödemeni aşağıdaki hesaba havale/EFT ile yapabilirsin. Açıklama kısmına <strong>{{order_id}}</strong> yazmayı unutma.</p><p><strong>Tutar (%2 indirimli): {{amount}} TL</strong></p><div>{{bank_info}}</div><p>Ödemen onaylandığında eğitimlerine erişimin otomatik açılacaktır.</p>",
+        "enabled": True,
     },
 }
 

@@ -130,7 +130,7 @@ export default function Home() {
 
       {/* PERKS */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 py-24">
-        <div className="max-w-2xl"><span className="overline text-gold">Neler Kazanırsın?</span>
+        <div className="max-w-2xl">
           <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Sadece video değil, uçtan uca bir öğrenme deneyimi.</h2></div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           {perks.map((p, i) => (
@@ -148,7 +148,7 @@ export default function Home() {
       {/* COURSES */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-24">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-12">
-          <div className="max-w-2xl"><span className="overline text-gold">Eğitimler</span>
+          <div className="max-w-2xl">
             <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Öğrenme yolculuğunu bütünsel kur.</h2></div>
           <Link to="/kurslar"><Button variant="outline" className="rounded-full border-white/15" data-testid="home-all-courses">Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
         </div>
@@ -161,7 +161,7 @@ export default function Home() {
       {testimonials.length > 0 && (
         <section className="relative py-24 border-y border-white/10 bg-ink-surface/30">
           <div className="max-w-7xl mx-auto px-5 sm:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-14"><span className="overline text-gold">Öğrenci Hikayeleri</span>
+            <div className="text-center max-w-2xl mx-auto mb-14">
               <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Onlar başardı, sıra sende.</h2></div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {testimonials.map((t, i) => (
@@ -187,7 +187,7 @@ export default function Home() {
 
       {/* FAQ */}
       <section className="max-w-3xl mx-auto px-5 sm:px-8 py-24">
-        <div className="text-center mb-12"><span className="overline text-gold">SSS</span>
+        <div className="text-center mb-12">
           <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Sıkça Sorulan Sorular</h2></div>
         <Accordion type="single" collapsible className="space-y-3">
           {faqs.map((f, i) => (

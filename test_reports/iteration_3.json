@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 3 focused review: verified the three fixes announced by main agent — (1) Cart page compile fix, (2) transfer_discount_pct not being reset by partial /admin/settings/general PUT (exclude_unset) and Havale/EFT 2% discount correctly applied at checkout, (3) Admin Kurs Editörü drag & drop reorder. Backend: 3/3 new pytest cases pass (guest transfer checkout with 2% discount → total 980 on 1000 ₺ course; general PUT without transfer_discount_pct keeps value 2; setting it to 5 propagates to /settings/public then reverts to 2). Frontend Cart (/sepet) renders with title 'Sepetim', item, subtotal 999 ₺ and cross-sell block (previous compile error resolved). Checkout (/odeme) shows guest form (guest-name/email/phone) without forced login, method-transfer button labelled '%2 indirim', order summary displays 'Havale/EFT (%2) - 20 ₺' and Toplam 979 ₺. Admin Ayarlar > Kampanya tab shows setting-transfer-pct=2 and save-campaign triggers 'Ayarlar kaydedildi' success toast. Admin Kurs Editörü (course_8b53eae5576a - Google Ads) module drag confirmed: dragging module-drag-1 above module-drag-0 reorders modules ('Kampanya Stratejileri' becomes #1). lesson-drag-0-0 and lesson-drag-0-1 handles also present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global (Meta Pixel loader)", "issues": ["Persistent console warning '[Meta Pixel] - Invalid PixelID: null.' when tracking.meta_pixel_id is empty — guard the loader to skip init when id is falsy. (Carried over from iteration 2, still present.)"]},
+      {"screen": "Auth probe on unauthenticated pages", "issues": ["Repeated 401 console errors from initial /api/auth/me probe on public pages. Consider suppressing in auth context."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration3.py",
+    "/app/test_reports/pytest/pytest_iteration3.xml"
+  ],
+  "action_items": [
+    "Optional: Guard Meta Pixel loader when meta_pixel_id is empty (repeats from iteration 2).",
+    "Optional: Suppress 401 errors from /api/auth/me probe on public pages."
+  ],
+  "critical_code_review_comments": [
+    "routes_admin.py update_general uses body.model_dump(exclude_unset=True) — this fixes the reset bug but means the endpoint silently drops any field the frontend does not include; that is intentional but should be documented so future integrations know that omitting a field = 'keep current' (not 'reset to default').",
+    "routes_payments.checkout computes transfer_discount only when method == 'transfer'. Confirmed with 2% on 1000 → 20; 20 stored as transfer_discount on order and status becomes 'awaiting_transfer'. Consistent.",
+    "CartContext stores full item snapshot (title/price/etc.) in localStorage, so if a course's price is updated in admin the cart still shows the old price until user re-adds. Minor UX consideration, not a bug in this iteration.",
+    "CourseEditor DnD uses @hello-pangea/dnd correctly (Droppable type 'MODULE' for modules and 'lessons-<mid>' for lessons); drag handles have data-testid module-drag-<mi> and lesson-drag-<mi>-<li>. Verified module reorder end-to-end in UI."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration3.py"],
+  "success_rate": {"backend": "100% (3/3 new + prior 42/42 unchanged)", "frontend": "100% on tested flows (cart, checkout guest+transfer, admin campaign settings, course editor DnD)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Guest checkout uses ad-hoc emails test_guest_tr_*@test.com.",
+  "seed_data_creation": "Backend test creates TEST_Transfer_* course and deletes it in finally. transfer_discount_pct restored to 2 by fixtures.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "For hello-pangea/dnd Playwright drag, use: locator.scroll_into_view_if_needed → mouse.move(centre) → mouse.down → wait 200ms → small 6px nudge → step-by-step move (~30ms per step) → wait 500ms → mouse.up. A single big mouse move is interpreted as text selection. Only course_8b53eae5576a currently has 2 modules; other seeded courses have 1 module each. Iteration-3 pytest file is /app/backend/tests/test_iteration3.py — run with pytest -p no:xdist to avoid the module-scoped fixture race between the two settings tests when xdist splits classes across workers.",
+  "rca of the issue": "N/A — all three regressions from this turn are confirmed fixed."
+}

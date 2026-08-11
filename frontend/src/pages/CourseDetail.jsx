@@ -50,7 +50,6 @@ export default function CourseDetail() {
             <div className="flex items-center gap-2 flex-wrap">
               {course.category && <Badge className="bg-gold/15 text-gold border-gold/20">{course.category}</Badge>}
               <Badge className="bg-white/5 text-foreground/80 border-white/10">{course.level}</Badge>
-              <span className="flex items-center gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</span>
             </div>
             <h1 className="mt-4 font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter leading-[0.95]">{course.title}</h1>
             <p className="mt-4 text-lg text-muted-foreground leading-relaxed max-w-2xl">{course.subtitle}</p>
