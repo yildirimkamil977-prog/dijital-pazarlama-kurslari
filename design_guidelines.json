@@ -1,0 +1,102 @@
+{
+  "theme": "dark",
+  "archetype": "ARCHETYPE 5: LUXURY (Premium, Depth, Mystery) mixed with SWISS & HIGH-CONTRAST",
+  "emotion": "Premium, authoritative, trustworthy, high-conversion, cinematic",
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Satoshi",
+    "rules": [
+      "NO INTER FOR HEADINGS. EVER.",
+      "Headlines (>32px) MUST use tracking-tighter and leading-none.",
+      "Overlines / Labels MUST be uppercase, text-xs or text-sm, tracking-[0.2em].",
+      "Do not default to 'Bold'. Use 'Light' (font-light) for elegance or 'Black' (font-black) for impact.",
+      "Maximum H1 size is text-5xl sm:text-6xl. Do not use text-7xl+."
+    ],
+    "installation": "Import 'Outfit' and 'Satoshi' via Google Fonts or Fontshare."
+  },
+  "colors": {
+    "base": {
+      "background": "#07090F",
+      "surface": "#10141E",
+      "surface_elevated": "#1A1F2E"
+    },
+    "text": {
+      "primary": "#F8FAFC",
+      "secondary": "#94A3B8",
+      "muted": "#64748B"
+    },
+    "accent": {
+      "primary": "#FFB800",
+      "primary_hover": "#E5A600",
+      "secondary": "#3B82F6",
+      "success": "#10B981"
+    },
+    "rules": [
+      "Never use pure #000000. Use the tinted Midnight Blue (#07090F) for backgrounds.",
+      "Use #FFB800 (Amber/Gold) exclusively for primary CTAs and high-conversion elements like 'Buy Course' or 'Enroll'.",
+      "Ensure minimum 4.5:1 contrast ratio for normal text. Use APCA guidelines."
+    ]
+  },
+  "layouts_and_spacing": {
+    "spacing_scale": "Use generous spacing. Replace default p-4 with p-8 or p-12. Massive py-24 or py-32 for section gaps.",
+    "grid_system": "Bento Grid Protocol. Use grid-cols-1 md:grid-cols-12 with wide gaps (gap-8). Elements should span asymmetrically (e.g., col-span-8 and col-span-4).",
+    "mobile_first": "Always start with grid-cols-1. Images must have max-h-[80vh] md:max-h-none.",
+    "alignment": "Left-align paragraphs and dense content. Center-align only specific Hero headings if it improves visual rhythm."
+  },
+  "surface_strategies": {
+    "header": "Glassmorphism (Crystal Variant). backdrop-blur-xl bg-[#07090F]/60 with a 1px delicate bottom inner stroke border-white/10.",
+    "cards": "Flat background (#10141E) with 1px subtle border border-white/5. On hover, apply slight lift (-translate-y-1) and subtle shadow.",
+    "pricing_cards": "Use 'The Tracing Beam' (Linear glow/Aceternity look) for the most expensive/recommended course tier."
+  },
+  "components": {
+    "ui_library": "shadcn/ui",
+    "icons": "lucide-react",
+    "rules": [
+      "Do NOT use HTML-based components for advanced interactions. Use shadcn dropdowns, dialogs, etc.",
+      "Forms: Never use native <input>. Use Shadcn Input, Form.",
+      "Use 'sonner' for toast notifications.",
+      "Marquee Strategy: For 'Trusted By' or 'Technologies' (e.g. Meta Ads, Google Ads), use a slow, smooth drifting marquee with low contrast.",
+      "Add `data-testid` to all interactive elements."
+    ]
+  },
+  "motion": {
+    "hover_states": "Hover states must explicitly set text color (hover:bg-slate-800 hover:text-white).",
+    "transitions": "Use specific transition properties, NEVER 'transition: all'. Example: transition-transform duration-300 ease-out.",
+    "accessibility": "Respect prefers-reduced-motion."
+  },
+  "image_urls": {
+    "student_learning": {
+      "url": "https://images.pexels.com/photos/4260481/pexels-photo-4260481.jpeg",
+      "description": "Student focused on studies, representing the end-user of the platform. Use in 'About' or 'Student Dashboard' sections."
+    },
+    "digital_marketing_desk": {
+      "url": "https://images.pexels.com/photos/15555796/pexels-photo-15555796.jpeg",
+      "description": "Premium desk setup with digital marketing analytics on screen. Use for course thumbnails or Hero background overlay."
+    },
+    "cyber_neon_dashboard": {
+      "url": "https://images.pexels.com/photos/27141314/pexels-photo-27141314.jpeg",
+      "description": "High-tech dashboard. Ideal for the 'Admin Panel' showcase or 'Advanced Marketing Strategies' course."
+    }
+  },
+  "instructions_to_main_agent": [
+    "You are building a high-conversion Turkish e-learning platform.",
+    "Apply Archetype 5 (LUXURY) style - Midnight Blue backgrounds with High-Contrast Amber CTAs.",
+    "Build the front-end pages: Landing, About (Hakkımda), Courses (Kurslar), Course Detail, Cart, Checkout, Auth, Student Dashboard, Course Player.",
+    "Course Player must have a curriculum sidebar, video embed area, and downloadable PDF links.",
+    "Implement Shadcn UI extensively. For the landing page hero, create a striking, asymmetric Bento Grid layout.",
+    "Do NOT make a generic, centered AI-slop design. Push the boundaries with overlapping elements and generous padding.",
+    "All copy MUST be in Turkish."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not converge toward generic outputs. Avoid the 'AI slop' aesthetic.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur).",
+    "You MUST NOT apply universal transition. Eg: transition: all. Always add transitions for specific interactive elements.",
+    "You MUST NOT center align the app container. No .App { text-align: center; }.",
+    "NEVER use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯 for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, etc.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Never use placeholder URLs for images. Only use the provided image URLs.",
+    "Toasts must use 'sonner'."
+  ]
+}
