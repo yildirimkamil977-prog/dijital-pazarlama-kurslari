@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from deps import (
     db, now_utc, new_id, get_current_user, get_optional_user, get_paytr_credentials,
-    get_settings_doc, hash_password, create_session, set_session_cookie, schedule_email,
+    get_settings_doc, hash_password, create_session, set_session_cookie, schedule_email, push_notification,
 )
 
 router = APIRouter(prefix="/payments")
@@ -324,6 +324,7 @@ async def transfer_notification(body: TransferNotifyIn):
     }
     await db.orders.update_one({"order_id": body.order_id},
                                {"$set": {"transfer_notified": True, "transfer_notification": notif}})
+    await push_notification("transfer_notified", "Havale bildirimi alındı", f"{notif['sender_name'] or order.get('user_name','')} · {order['order_id']}", {"order_id": order["order_id"]})
     settings = await get_settings_doc()
     admin_email = settings.get("contact_email")
     if admin_email:

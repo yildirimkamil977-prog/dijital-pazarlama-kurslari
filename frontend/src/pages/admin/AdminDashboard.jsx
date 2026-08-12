@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, BookOpen, CreditCard, TrendingUp, Loader2, Clock, GraduationCap } from "lucide-react";
+import { Users, BookOpen, CreditCard, TrendingUp, Loader2, Clock, GraduationCap, Bell, CheckCheck } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import api, { formatPrice, formatDate } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,10 @@ const ChartTip = ({ active, payload, label, suffix }) => {
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
-  useEffect(() => { document.title = "Yönetim - Genel Bakış"; api.get("/admin/stats").then(({ data }) => setStats(data)).catch(() => {}); }, []);
+  const [notifs, setNotifs] = useState({ items: [], unread: 0 });
+  const loadNotifs = () => api.get("/admin/notifications").then(({ data }) => setNotifs(data)).catch(() => {});
+  const markRead = () => api.post("/admin/notifications/read").then(loadNotifs).catch(() => {});
+  useEffect(() => { document.title = "Yönetim - Genel Bakış"; api.get("/admin/stats").then(({ data }) => setStats(data)).catch(() => {}); loadNotifs(); }, []);
   if (!stats) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
 
   const cards = [
@@ -39,6 +42,23 @@ export default function AdminDashboard() {
             <p className="text-[11px] text-muted-foreground/60 mt-0.5">{c.sub}</p>
           </div>
         ))}
+      </div>
+
+      <div className="bg-ink-surface border border-white/5 rounded-2xl p-6 mb-8" data-testid="admin-notifications">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading font-semibold flex items-center gap-2"><Bell className="w-5 h-5 text-gold" /> Bildirimler {notifs.unread > 0 && <span className="text-xs font-bold text-ink bg-gold rounded-full px-2 py-0.5">{notifs.unread}</span>}</h2>
+          {notifs.unread > 0 && <button onClick={markRead} className="text-xs text-muted-foreground hover:text-gold flex items-center gap-1" data-testid="notif-read-all"><CheckCheck className="w-3.5 h-3.5" /> Tümünü okundu işaretle</button>}
+        </div>
+        <div className="space-y-2 max-h-64 overflow-auto">
+          {notifs.items.length === 0 && <p className="text-sm text-muted-foreground">Henüz bildirim yok.</p>}
+          {notifs.items.map((n) => (
+            <div key={n.notif_id} className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${n.read ? "bg-ink/40" : "bg-gold/5 border border-gold/15"}`}>
+              <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.read ? "bg-white/20" : "bg-gold"}`} />
+              <div className="min-w-0 flex-1"><p className="text-sm font-medium">{n.title}</p>{n.body && <p className="text-xs text-muted-foreground truncate">{n.body}</p>}</div>
+              <span className="text-[11px] text-muted-foreground/60 shrink-0">{formatDate(n.created_at)}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

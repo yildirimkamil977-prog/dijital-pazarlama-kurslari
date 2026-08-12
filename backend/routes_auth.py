@@ -5,7 +5,7 @@ import httpx
 from deps import (
     db, now_utc, new_id, hash_password, verify_password, create_session,
     store_external_session, set_session_cookie, clear_session_cookie,
-    get_current_user, schedule_email,
+    get_current_user, schedule_email, push_notification,
 )
 
 router = APIRouter(prefix="/auth")
@@ -58,6 +58,7 @@ async def register(body: RegisterIn, response: Response):
     token = await create_session(user["user_id"])
     set_session_cookie(response, token)
     schedule_email("welcome", email, {"name": user["name"]})
+    await push_notification("registration", "Yeni öğrenci kaydı", f"{user['name']} · {email}", {"email": email})
     return public_user(user)
 
 
@@ -100,6 +101,7 @@ async def google_session(body: SessionIn, response: Response):
         }
         await db.users.insert_one(user)
         schedule_email("welcome", email, {"name": user["name"]})
+        await push_notification("registration", "Yeni öğrenci kaydı", f"{user['name']} · {email}", {"email": email})
     else:
         await db.users.update_one({"user_id": user["user_id"]},
                                   {"$set": {"picture": data.get("picture", user.get("picture", ""))}})

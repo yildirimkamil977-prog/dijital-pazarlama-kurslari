@@ -296,6 +296,13 @@ DEFAULT_TEMPLATES = {
         "html": "<h2>Yeni havale/EFT bildirimi</h2><p><strong>{{sender_name}}</strong> tarafından <strong>{{order_id}}</strong> numaralı sipariş için ödeme bildirimi yapıldı.</p><p>Eğitim: {{course_title}}<br/>Tutar: {{amount}}<br/>Gönderim tarihi: {{transfer_date}}</p><p>Not: {{note}}</p><p>Yönetim panelindeki <strong>Ödemeler &gt; Havale</strong> bölümünden ödemeyi onaylayabilirsin.</p>",
         "enabled": True,
     },
+    "course_completed_admin": {
+        "key": "course_completed_admin",
+        "name": "Eğitim Tamamlandı (Yönetici)",
+        "subject": "Sertifika yükleme: {{name}} - {{course_title}}",
+        "html": "<h2>Bir öğrenci eğitimi tamamladı</h2><p><strong>{{name}}</strong> ({{email}}) <strong>{{course_title}}</strong> eğitimini tamamladı.</p><p>Sertifika kodu otomatik oluşturuldu: <strong>{{certificate_code}}</strong>. Dilersen yönetim panelinden bu öğrenci için özel sertifika/fatura yükleyebilirsin.</p>",
+        "enabled": True,
+    },
 }
 
 
@@ -355,6 +362,13 @@ def render_email_shell(inner_html: str, s: dict) -> str:
         f'<span style="color:#5b6270">© {year} {name}. Tüm hakları saklıdır.</span>'
         '</td></tr></table></td></tr></table></body></html>'
     )
+
+
+async def push_notification(ntype: str, title: str, body: str = "", meta: dict = None):
+    await db.notifications.insert_one({
+        "notif_id": new_id("ntf"), "type": ntype, "title": title, "body": body,
+        "meta": meta or {}, "read": False, "created_at": now_utc().isoformat(),
+    })
 
 
 async def send_templated(key: str, to_email: str, ctx: dict):

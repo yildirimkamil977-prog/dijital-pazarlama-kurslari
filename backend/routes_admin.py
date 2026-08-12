@@ -254,6 +254,21 @@ async def list_payments(request: Request):
     return orders
 
 
+@router.get("/notifications")
+async def list_notifications(request: Request):
+    await require_admin(request)
+    items = await db.notifications.find({}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    unread = await db.notifications.count_documents({"read": False})
+    return {"items": items, "unread": unread}
+
+
+@router.post("/notifications/read")
+async def read_notifications(request: Request):
+    await require_admin(request)
+    await db.notifications.update_many({"read": False}, {"$set": {"read": True}})
+    return {"ok": True}
+
+
 @router.post("/payments/{order_id}/invoice")
 async def upload_invoice(order_id: str, request: Request, file: UploadFile = File(...)):
     await require_admin(request)

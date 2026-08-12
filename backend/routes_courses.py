@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 
-from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, get_settings_doc, schedule_email
+from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, get_settings_doc, schedule_email, push_notification
 
 FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 
@@ -203,6 +203,11 @@ async def save_progress(body: ProgressIn, request: Request):
             issued = True
             schedule_email("completion", user["email"],
                            {"name": user.get("name"), "course_title": c["title"], "certificate_code": code})
+            await push_notification("completion", "Eğitim tamamlandı", f"{user.get('name')} · {c['title']}", {"user": user.get("name"), "course": c["title"]})
+            _admin_email = (await get_settings_doc()).get("contact_email")
+            if _admin_email:
+                schedule_email("course_completed_admin", _admin_email,
+                               {"name": user.get("name"), "email": user.get("email"), "course_title": c["title"], "certificate_code": code})
     return {"ok": True, "certificate_issued": issued, "progress_pct": round(100 * done / total) if total else 0}
 
 
@@ -247,7 +252,10 @@ async def download_invoice(order_id: str, request: Request):
     import base64
     from fastapi.responses import Response
     user = await get_current_user(request)
-    order = await db.orders.find_one({"order_id": order_id, "user_id": user["user_id"]})
+    q = {"order_id": order_id}
+    if user.get("role") != "admin":
+        q["user_id"] = user["user_id"]
+    order = await db.orders.find_one(q)
     if not order or not order.get("invoice"):
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     inv = order["invoice"]
