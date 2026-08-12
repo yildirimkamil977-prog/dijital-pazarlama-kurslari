@@ -127,3 +127,16 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
+
+## Iteration 9 (2026-06) — Fork: Ödeme analitiği + zengin satış bölümleri + hero fix
+- Admin Ödemeler yeniden yapılandırıldı: 4 analitik kartı (Toplam Gelir, Ödenen Sipariş, Ortalama Sepet, Havale Bekleyen tutar+adet), günlük gelir alan grafiği (recharts), öğrenci adı/e-posta/sipariş no ile arama (400ms debounce), tarih aralığı (start/end) + hızlı presetler (Son 7/30 gün, Bu Ay, Tümü) ve durum filtreleri. Backend GET /api/admin/payments artık start_date/end_date/search query paramlarını destekliyor (sunucu tarafı filtre).
+- Anasayfa: yeni ROADMAP bölümü (4 animasyonlu adım) ve VALUE STACK + garanti bandı (pakete dahil listesi + güven kartı + CTA). Bölüm etiketlerinde ikon çeşitliliği (Zap, GraduationCap, Compass, Quote, MessageCircle, Gift vb.) — tek tip yıldız şikayeti giderildi.
+- Kurs Detay: alt CTA öncesi zengin ikna bandı (3 animasyonlu özellik kartı + güven rozetleri).
+- Hero "Tanıtımı İzle" bug fix: settings dokümanında eksik olan hero_video_url/hero_poster migration ile dolduruldu (varsayılan gömülebilir video). Buton artık video dialog'unu açıyor; admin panelden yönetilebilir.
+- Test: iteration_5.json — frontend %100 (6/6 akış: analitik kartları, arama debounce, tarih presetleri, durum filtreleri, home roadmap/valuestack, hero video dialog, kurs detay ikna bandı). Backend filtreleri curl ile doğrulandı.
+
+### KALAN / Backlog
+- P1: "Ücretsiz eğitim" yayınlama & anında kayıt UX akışı (checkout'ta %100 indirim/ücretsiz anında kayıt mevcut; net "Ücretsiz Kayıt Ol" buton akışı eklenebilir)
+- P1: Gerçek PayTR anahtarları ile canlı ödeme testi (mağaza aktif olunca)
+- P2: Video Dialog'lara DialogDescription (Radix a11y uyarısı), Meta Pixel null guard, /api/auth/me 401 gürültüsü (opsiyonel)
+

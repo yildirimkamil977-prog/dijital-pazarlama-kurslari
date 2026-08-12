@@ -1,0 +1,34 @@
+{
+  "summary": "Frontend-only Playwright verification of new Admin Payments analytics + filters and new Home/CourseDetail sections. All 6 requested flows pass: (1) /yonetim/odemeler renders all 4 analytics cards [stat-revenue=2.938 ₺, stat-orders=2, stat-avg=1.469 ₺, stat-awaiting=2·5.680 ₺] and the recharts AreaChart (revenue-chart) with data. (2) payment-search debounces (~400ms) and the list correctly reduces to [data-testid=no-payments] on gibberish input, then restores after clear-filters. (3) preset-7/preset-30/preset-month/preset-all all trigger, active button gains bg-gold class; payment-start-date/payment-end-date accept ISO dates (2025-01-01..2026-12-31) and the request goes out; Temizle (clear-filters) resets both date inputs to empty. (4) payment-filter-all/awaiting_transfer/paid all click; under awaiting_transfer filter 2 approve-transfer-<id> buttons are rendered (Onayla). (5) Home / renders roadmap-step-0..3 and valuestack-cta; hero-play-video opens the video Radix Dialog. (6) /kurslar/seo-ve-icerik-pazarlamasi loads with h1='SEO ve İçerik Pazarlaması' and detail-feature-0..2 visible. Admin login via /giris succeeded (post-login redirect → /yonetim).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global", "issues": ["Recurring '[Meta Pixel] - Invalid PixelID: null.' console warning when tracking.meta_pixel_id is empty. Repeats from iterations 2-4."]},
+      {"screen": "Public pages", "issues": ["401 console noise from /api/auth/me probe on unauthenticated pages. Repeats from iterations 3-4."]},
+      {"screen": "Video Dialogs (Home hero + Course preview)", "issues": ["Radix DialogContent missing `Description` or `aria-describedby` — accessibility warning."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional / repeats) Guard Meta Pixel loader when meta_pixel_id is falsy.",
+    "(Optional / repeats) Suppress 401 noise from initial /api/auth/me probe on public pages.",
+    "(Optional) Add DialogDescription (or aria-describedby='undefined' -> a real id) to the video Dialog in Home.jsx and preview Dialog in CourseDetail.jsx to silence Radix a11y warning."
+  ],
+  "critical_code_review_comments": [
+    "AdminPayments.jsx: analytics.timeseries is derived from all `orders` state, but `orders` is already server-filtered by start_date/end_date/search. So the chart is scoped to the active date range — correct. However when the user manually types dates without clicking a preset, `preset` state is set to '' which correctly deactivates preset highlights (see date-input onChange).",
+    "AdminPayments.jsx statusFilter is CLIENT-side (line 67) while search+dates are SERVER-side — fine for now given small order volume, but if orders grow beyond page-size this will hide non-matching statuses inconsistently.",
+    "AdminPayments.jsx debounce fires after 400ms; verified working via 'no-payments' fallback.",
+    "Home.jsx hero-play-video: Dialog opens with autoplay iframe — Chrome may block autoplay without user gesture on some browsers; not an issue in current test as it was gesture-triggered.",
+    "CourseDetail.jsx: detail-feature band renders correctly; consider guarding the whole persuasion section if !course to avoid flash on slow API (already handled by `if (loading/!course) return`)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (all requested testids and flows verified)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel (login at /giris)",
+  "seed_data_creation": "None. Existing seeded orders (2 awaiting_transfer, 2 paid) were used for filter/analytics verification.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Admin login flow: fill input[type=email] + input[type=password], click button[type=submit] on /giris → redirects to /yonetim. AdminPayments testids confirmed: stat-{revenue,orders,avg,awaiting}, revenue-chart, payment-search (debounce 400ms), payment-start-date/payment-end-date (date inputs), preset-{7,30,month,all}, payment-filter-{all,awaiting_transfer,paid}, clear-filters, approve-transfer-<order_id>, upload-invoice-<order_id>, no-payments. Two existing awaiting_transfer orders render the Onayla button. Video Dialog missing Description → known Radix a11y warning (non-blocking).",
+  "rca of the issue": "N/A — all new admin payments filters/analytics and Home/CourseDetail persuasion sections verified working."
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star } from "lucide-react";
+import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap } from "lucide-react";
 import api, { formatPrice, formatDuration } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -196,7 +196,37 @@ export default function CourseDetail() {
         </div>
       </div>
 
-      <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-20">
+      {/* RICH PERSUASION BAND */}
+      <section className="relative border-y border-white/10 bg-ink-surface/30 py-20 overflow-hidden">
+        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-gold/8 rounded-full blur-[150px]" />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="inline-flex items-center gap-2 overline text-gold"><Gift className="w-3.5 h-3.5" /> Bu Eğitimle</span>
+            <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Öğrenmekten fazlası: sonuç odaklı bir sistem.</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: Rocket, title: "Uygulamalı & Güncel", text: "İzle-uygula formatında, güncel araçlar ve gerçek kampanyalarla ilerleyen dersler." },
+              { icon: MessageCircle, title: "Yalnız Değilsin", text: "Özel topluluk ve aylık canlı yayınlarda tüm sorularına yanıt bulursun." },
+              { icon: ShieldCheck, title: "Ömür Boyu Erişim", text: "Bir kez satın al, güncellenen tüm içeriklere ek ücret ödemeden eriş." },
+            ].map((f, i) => (
+              <motion.div key={f.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.12 }}
+                className="bg-ink border border-white/8 rounded-2xl p-7 hover:border-gold/30 transition-colors duration-300" data-testid={`detail-feature-${i}`}>
+                <span className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center"><f.icon className="w-7 h-7 text-gold" /></span>
+                <h3 className="mt-5 font-heading font-semibold text-lg tracking-tight">{f.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.text}</p>
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+            <span className="flex items-center gap-2"><Users className="w-4 h-4 text-gold" /> {settings.students_count || "10.000+"} öğrenci</span>
+            <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Doğrulanabilir sertifika</span>
+            <span className="flex items-center gap-2"><Zap className="w-4 h-4 text-gold" /> Anında erişim</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-20 pt-20">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gold/20 via-ink-surface to-ink-surface border border-gold/20 p-10 text-center">
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-gold/20 rounded-full blur-[100px]" />
           <div className="relative">

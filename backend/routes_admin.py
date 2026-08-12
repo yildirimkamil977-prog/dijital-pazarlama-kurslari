@@ -243,9 +243,21 @@ async def remove_enroll(body: ManualEnrollIn, request: Request):
 
 # ---------------- Payments ----------------
 @router.get("/payments")
-async def list_payments(request: Request):
+async def list_payments(request: Request, start_date: Optional[str] = None, end_date: Optional[str] = None, search: Optional[str] = None):
     await require_admin(request)
-    orders = await db.orders.find({"status": {"$in": ["paid", "awaiting_transfer"]}}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(1000)
+    q: dict = {"status": {"$in": ["paid", "awaiting_transfer"]}}
+    if start_date or end_date:
+        rng: dict = {}
+        if start_date:
+            rng["$gte"] = start_date
+        if end_date:
+            # end_date inclusive: append end-of-day
+            rng["$lte"] = end_date + "T23:59:59.999999+00:00" if len(end_date) == 10 else end_date
+        q["created_at"] = rng
+    if search:
+        rx = {"$regex": re.escape(search), "$options": "i"}
+        q["$or"] = [{"user_name": rx}, {"user_email": rx}, {"order_id": rx}]
+    orders = await db.orders.find(q, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(1000)
     for o in orders:
         inv = o.get("invoice")
         o["has_invoice"] = bool(inv)

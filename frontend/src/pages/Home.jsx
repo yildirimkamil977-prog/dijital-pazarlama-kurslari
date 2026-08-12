@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Users, Radio, FileText, Award, MessageCircle, CheckCircle2, Play, Star, TrendingUp, Target, Zap, LayoutDashboard } from "lucide-react";
+import { ArrowRight, Sparkles, Users, Radio, FileText, Award, MessageCircle, CheckCircle2, Play, Star, TrendingUp, Target, Zap, LayoutDashboard, Rocket, ShieldCheck, Flame, Trophy, Quote, Gift, Compass, GraduationCap } from "lucide-react";
 import api from "@/lib/api";
 import { useSite } from "@/context/SiteContext";
 import { useAuth } from "@/context/AuthContext";
@@ -43,6 +43,20 @@ const faqs = [
   { q: "Eğitimler hangi seviyeye uygun?", a: "Eğitimler sıfırdan başlar; kurulumlardan ileri seviye stratejilere kadar uygulamalı olarak ilerler. Ön bilgi gerekmez." },
   { q: "Sertifika veriyor musunuz?", a: "Evet. Eğitimi tamamladığında QR kod ile doğrulanabilen bir başarı sertifikası almaya hak kazanırsın." },
   { q: "Ödeme tek seferlik mi?", a: "Evet, tek seferlik ödeme yaparsın ve ömür boyu güncellenen içeriklere erişirsin." },
+];
+const roadmap = [
+  { icon: Compass, step: "01", title: "Hedefini Belirle", text: "Ücretsiz danışmanlıkla nereden başlayacağını netleştir; sana özel bir yol haritası çizelim." },
+  { icon: GraduationCap, step: "02", title: "Uygulamalı Öğren", text: "Gerçek kampanyalar üzerinden, izleyip aynı anda uygulayarak öğren. Ezber yok, saha var." },
+  { icon: Rocket, step: "03", title: "Uygula & Ölçekle", text: "Şablonlar ve checklist'lerle kendi projelerinde sonuç al, bütçeni verimli büyüt." },
+  { icon: Trophy, step: "04", title: "Sertifikanı Al", text: "Eğitimi tamamla, QR ile doğrulanabilen sertifikanı kazan ve kariyerinde öne geç." },
+];
+const valueStack = [
+  "Uçtan uca video eğitim kütüphanesi",
+  "1 saat birebir ücretsiz danışmanlık",
+  "Özel Telegram topluluğuna erişim",
+  "Her ay güncel canlı yayınlar",
+  "Onlarca hazır şablon & checklist",
+  "Doğrulanabilir başarı sertifikası",
 ];
 
 export default function Home() {
@@ -167,6 +181,7 @@ export default function Home() {
       {/* PERKS */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 py-24">
         <div className="max-w-2xl">
+          <span className="inline-flex items-center gap-2 overline text-gold"><Zap className="w-3.5 h-3.5" /> Neler Kazanırsın</span>
           <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Sadece video değil, uçtan uca bir öğrenme deneyimi.</h2></div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           {perks.map((p, i) => (
@@ -181,10 +196,36 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ROADMAP */}
+      <section className="relative border-y border-white/10 bg-ink-surface/30 py-24 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gold/5 rounded-full blur-[160px]" />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 overline text-gold"><Compass className="w-3.5 h-3.5" /> Nasıl İlerliyoruz</span>
+            <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Sıfırdan sonuca, 4 net adımda.</h2>
+          </div>
+          <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-14">
+            <div className="hidden lg:block absolute top-8 left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+            {roadmap.map((r, i) => (
+              <motion.div key={r.step} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.12 }}
+                className="relative bg-ink border border-white/8 rounded-2xl p-7 hover:border-gold/30 transition-colors duration-300" data-testid={`roadmap-step-${i}`}>
+                <div className="flex items-center justify-between">
+                  <span className="relative w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center"><r.icon className="w-7 h-7 text-gold" /></span>
+                  <span className="font-heading font-black text-4xl text-white/8">{r.step}</span>
+                </div>
+                <h3 className="mt-5 font-heading font-semibold text-lg tracking-tight">{r.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{r.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* COURSES */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-24">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-12">
           <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 overline text-gold"><GraduationCap className="w-3.5 h-3.5" /> Eğitimler</span>
             <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Öğrenme yolculuğunu bütünsel kur.</h2></div>
           <Link to="/kurslar"><Button variant="outline" className="rounded-full border-white/15" data-testid="home-all-courses">Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
         </div>
@@ -198,6 +239,7 @@ export default function Home() {
         <section className="relative py-24 border-y border-white/10 bg-ink-surface/30">
           <div className="max-w-7xl mx-auto px-5 sm:px-8">
             <div className="text-center max-w-2xl mx-auto mb-14">
+              <span className="inline-flex items-center gap-2 overline text-gold"><Quote className="w-3.5 h-3.5" /> Öğrenci Yorumları</span>
               <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Onlar başardı, sıra sende.</h2></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {visibleTestimonials.map((t, i) => (
@@ -221,9 +263,44 @@ export default function Home() {
         </section>
       )}
 
+      {/* VALUE STACK + GUARANTEE */}
+      <section className="max-w-7xl mx-auto px-5 sm:px-8 py-24">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-ink-surface via-ink-surface to-blue-950/20 p-8 md:p-14 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-gold/10 rounded-full blur-[120px]" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 overline text-gold"><Gift className="w-3.5 h-3.5" /> Pakete Dahil</span>
+            <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Tek ödeme, ömür boyu değer.</h2>
+            <p className="mt-4 text-muted-foreground leading-relaxed max-w-md">Sadece bir video eğitim değil; seni sonuca taşıyan eksiksiz bir sistem alıyorsun.</p>
+            <div className="mt-8 grid sm:grid-cols-2 gap-x-6 gap-y-4">
+              {valueStack.map((v, i) => (
+                <motion.div key={v} initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+                  className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-gold/15 flex items-center justify-center shrink-0 mt-0.5"><CheckCircle2 className="w-4 h-4 text-gold" /></span>
+                  <span className="text-sm text-foreground/90">{v}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+            className="relative bg-ink border border-gold/20 rounded-2xl p-8 gold-glow">
+            <span className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center"><ShieldCheck className="w-7 h-7 text-gold" /></span>
+            <h3 className="mt-5 font-heading font-bold text-xl tracking-tight">İçeriğe güveniyoruz</h3>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">13+ yıllık saha tecrübesiyle hazırlanan, binlerce öğrencinin sonuç aldığı güncel bir müfredat. Tüm sorularını topluluk ve canlı yayınlarda yanıtlıyoruz.</p>
+            <div className="mt-6 flex items-center gap-3 pt-6 border-t border-white/5">
+              <span className="flex items-center gap-1.5 text-sm text-gold"><Flame className="w-4 h-4" /> {settings.students_count || "10.000+"} öğrenci</span>
+              <span className="flex items-center gap-1.5 text-sm text-gold"><Trophy className="w-4 h-4" /> Sertifikalı</span>
+            </div>
+            <Link to={user ? "/panel" : "/kurslar"}><Button className="w-full mt-6 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full h-12 group" data-testid="valuestack-cta">
+              {user ? "Öğrenmeye Devam Et" : "Eğitimleri İncele"} <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+            </Button></Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="max-w-3xl mx-auto px-5 sm:px-8 py-24">
         <div className="text-center mb-12">
+          <span className="inline-flex items-center gap-2 overline text-gold"><MessageCircle className="w-3.5 h-3.5" /> SSS</span>
           <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Sıkça Sorulan Sorular</h2></div>
         <Accordion type="single" collapsible className="space-y-3">
           {faqs.map((f, i) => (
