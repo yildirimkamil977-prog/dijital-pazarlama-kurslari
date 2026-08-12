@@ -100,7 +100,7 @@ export default function AdminSettings() {
             <h2 className="font-heading font-semibold">Duyuru Çubuğu</h2>
             <div className="flex items-center justify-between"><div><Label>Üst Duyuru Çubuğu</Label><p className="text-xs text-muted-foreground">Sitenin en üstünde gösterilir</p></div>
               <Switch checked={s.promo_enabled} onCheckedChange={(v) => g({ promo_enabled: v })} data-testid="setting-promo-enabled" /></div>
-            <div><Label>Duyuru Metni</Label><Input value={s.promo_text || ""} onChange={(e) => g({ promo_text: e.target.value })} className={inputCls} /></div>
+            <div><Label>Duyuru Metinleri</Label><Textarea value={s.promo_text || ""} onChange={(e) => g({ promo_text: e.target.value })} className={inputCls} rows={4} placeholder={"Her satıra bir duyuru yazın...\nÖrn: Yıl sonuna özel indirim!\nÖrn: Ücretsiz danışmanlık fırsatı"} data-testid="setting-promo-text" /><p className="text-xs text-muted-foreground mt-1">Her satır ayrı bir duyuru olarak üst çubukta sırayla kayar.</p></div>
           </section>
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
             <h2 className="font-heading font-semibold">Sepet Kampanyası (Cross-sell)</h2>

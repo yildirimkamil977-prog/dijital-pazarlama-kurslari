@@ -43,6 +43,7 @@ export default function Checkout() {
   const originalTotal = items.reduce((s, i) => s + (i.original_price ?? i.price ?? 0), 0);
   const campaignSavings = Math.max(0, originalTotal - subtotal);
   const districts = trCities.find((c) => c.name === billing.city)?.districts || [];
+  const [pwdInfo, setPwdInfo] = useState(false);
 
   const applyDiscount = async () => {
     if (!code.trim()) return;
@@ -101,6 +102,13 @@ export default function Checkout() {
         </div>
         <Button onClick={() => navigate(`/havale-bildirimi?oid=${transferInfo.order_id}`)} className="w-full mt-8 bg-gold hover:bg-gold-hover text-ink font-bold h-12" data-testid="go-transfer-notify">Ödememi Bildir</Button>
         <Button onClick={() => navigate("/panel")} variant="outline" className="w-full mt-3 border-white/15 h-12">Panelime Git</Button>
+        <Dialog open={pwdInfo} onOpenChange={setPwdInfo}>
+          <DialogContent className="max-w-md bg-ink-surface border-white/10" data-testid="account-created-dialog">
+            <DialogHeader><DialogTitle className="flex items-center gap-2"><CheckCircle2 className="w-5 h-5 text-green-400" /> Hesabın Oluşturuldu</DialogTitle></DialogHeader>
+            <p className="text-sm text-muted-foreground leading-relaxed">Senin için otomatik bir öğrenci hesabı oluşturduk. Giriş şifren <strong className="text-foreground">{customer.email}</strong> adresine e-posta ile gönderildi. Panele giriş yaparken bu bilgileri kullanabilirsin.</p>
+            <Button onClick={() => setPwdInfo(false)} className="bg-gold hover:bg-gold-hover text-ink font-semibold mt-2" data-testid="account-created-ok">Anladım</Button>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

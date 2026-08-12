@@ -266,6 +266,13 @@ DEFAULT_TEMPLATES = {
         "html": "<h2>Merhaba {{name}},</h2><p>Şifreni sıfırlamak için bir talep aldık. Şifren <strong>{{new_password}}</strong> olarak güncellendi. Güvenliğin için giriş yaptıktan sonra ayarlardan değiştirmeni öneririz.</p>",
         "enabled": True,
     },
+    "account_created": {
+        "key": "account_created",
+        "name": "Hesap Oluşturuldu (Giriş Bilgileri)",
+        "subject": "Hesabın oluşturuldu - Giriş bilgilerin | {{site_name}}",
+        "html": "<h2>Merhaba {{name}},</h2><p>Ödeme adımında senin için otomatik bir öğrenci hesabı oluşturduk. Aşağıdaki bilgilerle giriş yapabilirsin:</p><p><strong>E-posta:</strong> {{email}}<br/><strong>Geçici Şifre:</strong> {{new_password}}</p><p>Güvenliğin için giriş yaptıktan sonra <strong>Hesap Ayarları</strong> bölümünden şifreni değiştirmeni öneririz.</p>",
+        "enabled": True,
+    },
     "profile_updated": {
         "key": "profile_updated",
         "name": "Profil Güncellendi",

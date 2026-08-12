@@ -137,7 +137,7 @@ async def _resolve_user(request, response, body):
     await db.users.insert_one(u)
     token = await create_session(u["user_id"])
     set_session_cookie(response, token)
-    schedule_email("password_reset", email, {"name": u["name"], "new_password": temp_pw})
+    schedule_email("account_created", email, {"name": u["name"], "email": email, "new_password": temp_pw, "login_url": f"{FRONTEND_URL}/giris"})
     return {k: v for k, v in u.items() if k != "password_hash"}, True
 
 
@@ -145,7 +145,7 @@ async def _resolve_user(request, response, body):
 async def checkout(body: CheckoutIn, request: Request, response: Response):
     if not body.items:
         raise HTTPException(status_code=400, detail="Sepet boş")
-    user, _created = await _resolve_user(request, response, body)
+    user, created = await _resolve_user(request, response, body)
     items = []
     subtotal = 0.0
     for it in body.items:
@@ -187,7 +187,7 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
         if applied_code:
             await db.discount_codes.update_one({"code": applied_code}, {"$inc": {"used_count": 1}})
         await _enroll_free(user, order)
-        return {"status": "free", "order_id": oid}
+        return {"status": "free", "order_id": oid, "account_created": created}
 
     # Bank transfer (Havale/EFT)
     if method == "transfer":
@@ -198,7 +198,7 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
             "amount": f"{total:.2f}", "order_id": oid, "bank_info": _bank_html(banks),
             "notify_url": f"{FRONTEND_URL}/havale-bildirimi?oid={oid}",
         })
-        return {"status": "transfer", "order_id": oid, "total": total, "bank_accounts": banks}
+        return {"status": "transfer", "order_id": oid, "total": total, "bank_accounts": banks, "account_created": created}
 
     # PayTR card
     creds = await get_paytr_credentials()

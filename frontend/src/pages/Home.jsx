@@ -24,11 +24,12 @@ const brandLogos = [
   { name: "TikTok", slug: "tiktok" },
   { name: "Google Analytics", slug: "googleanalytics" },
   { name: "Tag Manager", slug: "googletagmanager" },
+  { name: "Search Console", slug: "googlesearchconsole" },
   { name: "Semrush", slug: "semrush" },
-  { name: "Ahrefs", slug: "ahrefs" },
   { name: "HubSpot", slug: "hubspot" },
   { name: "Mailchimp", slug: "mailchimp" },
   { name: "WordPress", slug: "wordpress" },
+  { name: "Shopify", slug: "shopify" },
 ];
 const outcomes = [
   { icon: TrendingUp, stat: "%40", label: "ortalama reklam maliyeti düşüşü" },
@@ -55,7 +56,23 @@ export default function Home() {
     document.title = `${settings.site_name || "Akademi"} - Dijital Pazarlama Eğitimleri`;
   }, [settings.site_name]);
 
-  const openVideo = (url) => { setActiveVideo(url); setVideoOpen(true); };
+  const toEmbed = (url) => {
+    if (!url) return "";
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes("youtu.be")) return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
+      if (u.hostname.includes("youtube.com")) {
+        const id = u.searchParams.get("v");
+        if (id) return `https://www.youtube.com/embed/${id}`;
+      }
+      if (u.hostname.includes("vimeo.com") && !u.hostname.includes("player")) {
+        const id = u.pathname.split("/").filter(Boolean).pop();
+        return `https://player.vimeo.com/video/${id}`;
+      }
+    } catch { /* ignore */ }
+    return url;
+  };
+  const openVideo = (url) => { setActiveVideo(toEmbed(url)); setVideoOpen(true); };
   const testimonials = settings.testimonials || [];
 
   return (
@@ -135,8 +152,8 @@ export default function Home() {
         <div className="relative border-y border-white/10 py-7 overflow-hidden mt-6">
           <div className="flex items-center gap-16 animate-marquee w-max">
             {[...brandLogos, ...brandLogos].map((b, i) => (
-              <img key={i} src={`https://cdn.simpleicons.org/${b.slug}/94a3b8`} alt={b.name} title={b.name}
-                className="h-6 sm:h-7 w-auto opacity-50 hover:opacity-100 transition-opacity duration-200 shrink-0" />
+              <img key={i} src={`https://cdn.simpleicons.org/${b.slug}`} alt={b.name} title={b.name}
+                className="h-6 sm:h-7 w-auto opacity-80 hover:opacity-100 transition-opacity duration-200 shrink-0" />
             ))}
           </div>
         </div>

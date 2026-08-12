@@ -4,6 +4,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { SiteProvider } from "@/context/SiteContext";
 import { ProtectedRoute, AdminRoute } from "@/components/ProtectedRoute";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import PublicLayout from "@/components/layout/PublicLayout";
 
 import Home from "@/pages/Home";
@@ -57,6 +58,7 @@ function AppRouter() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <SiteProvider>
         <AuthProvider>
           <CartProvider>

@@ -211,7 +211,7 @@ async def download_certificate(cert_id: str, request: Request):
 @router.get("/my/payments")
 async def my_payments(request: Request):
     user = await get_current_user(request)
-    orders = await db.orders.find({"user_id": user["user_id"]}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
+    orders = await db.orders.find({"user_id": user["user_id"], "status": {"$in": ["paid", "awaiting_transfer"]}}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
     for o in orders:
         inv = o.get("invoice")
         o["has_invoice"] = bool(inv)

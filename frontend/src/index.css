@@ -59,6 +59,7 @@
         letter-spacing: 0.2em;
         font-size: 0.75rem;
         font-weight: 600;
+        text-decoration: none;
     }
     .glass {
         background: rgba(7, 9, 15, 0.65);

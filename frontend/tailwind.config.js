@@ -78,6 +78,7 @@ module.exports = {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-up': 'fade-up 0.6s ease-out forwards',
         'marquee': 'marquee 30s linear infinite',
+        'marquee-slow': 'marquee 60s linear infinite',
       }
     }
   },

@@ -52,7 +52,7 @@ export default function AdminPayments() {
       </div>
 
       <div className="flex gap-2 mb-6 flex-wrap">
-        {[["all", "Tümü"], ["awaiting_transfer", "Havale"], ["paid", "Ödendi"], ["pending", "Bekliyor"], ["failed", "Başarısız"]].map(([k, l]) => (
+        {[["all", "Tümü"], ["awaiting_transfer", "Havale Bekleyen"], ["paid", "Ödendi"]].map(([k, l]) => (
           <button key={k} onClick={() => setFilter(k)} data-testid={`payment-filter-${k}`} className={`px-4 py-2 rounded-full text-sm ${filter === k ? "bg-gold text-ink" : "bg-ink-surface border border-white/10 text-muted-foreground"}`}>{l}</button>
         ))}
       </div>

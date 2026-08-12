@@ -242,7 +242,7 @@ async def remove_enroll(body: ManualEnrollIn, request: Request):
 @router.get("/payments")
 async def list_payments(request: Request):
     await require_admin(request)
-    orders = await db.orders.find({}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(1000)
+    orders = await db.orders.find({"status": {"$in": ["paid", "awaiting_transfer"]}}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(1000)
     for o in orders:
         inv = o.get("invoice")
         o["has_invoice"] = bool(inv)

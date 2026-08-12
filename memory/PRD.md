@@ -85,5 +85,26 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Fatura bilgileri yeniden tasarlandı: İl (81 il dropdown) + İlçe (ile bağlı dependent dropdown, src/data/trCities.js), ülke sorulmuyor; backend Billing modeline city/district eklendi.
 - Test: iteration_4.json — backend 100% (upload-image, city/district checkout), frontend 100% (sticky header, logo marquee, kategori/seviye kaldırma, İl/İlçe, WhatsApp CTA, itemized indirim). Ekran görüntüleriyle de doğrulandı.
 
+## Iteration 6 (2026-06) — Faz 1: görünür hatalar + hızlı kazanımlar
+- overline (üstü çizgili) yazı sorunu tüm sitede giderildi: Tailwind'in yerleşik `overline` (text-decoration) sınıfı ile çakışan `.overline` utility'sine `text-decoration:none` eklendi (12345 Öğrenci, KEŞFET, YASAL, DESTEK HATTI vb. hepsi düzeldi).
+- Sayfa geçişlerinde en üste kaydırma: ScrollToTop bileşeni App.js'e eklendi.
+- Kayan marka logoları artık RENKLİ (cdn.simpleicons.org marka renkleri); kırık ahrefs/canva kaldırıldı, geçerli logolarla değiştirildi.
+- Üst duyuru çubuğu: panelden birden fazla duyuru (her satır ayrı duyuru — Textarea) ve daha yavaş akış (animate-marquee-slow 60s).
+- Hero tanıtım videosu: YouTube/Vimeo watch linkleri otomatik embed'e çevriliyor (toEmbed) — panelden hero_video_url ile yönetiliyor.
+- Panellerdeki İngilizce ifadeler düzeltildi: StudentPanel ve AdminDashboard'da 'awaiting_transfer' → 'Havale Bekleniyor/Bekliyor'.
+- Admin Ödemeler: artık sadece gerçek ödeme yapanlar görünüyor (status paid + awaiting_transfer); terk edilen 'pending' siparişler gizlendi. Öğrenci panelinde de aynı filtre.
+- Ödeme sonrası hesap: guest kayıtta 'password_reset' yerine yeni 'account_created' e-postası (doğru başlık/içerik + geçici şifre) gönderiliyor; Havale sonuç ekranında 'Hesabın oluşturuldu, şifren e-postana gönderildi' pop-up'ı gösteriliyor (account_created bayrağı).
+- Test: derleme temiz; backend curl ile account_created=True ve payments filtresi (sadece paid/awaiting_transfer) doğrulandı; anasayfa görselleri (overline yok, renkli logolar, çoklu duyuru) ekran görüntüsüyle doğrulandı.
+
+### KALAN FAZLAR (kullanıcı isteği, önceliklendirilecek)
+- Faz 2: E-posta şablonlarının şık HTML tasarıma çevrilmesi (logo + iletişim + footer).
+- Faz 3: Yorumlar revizyonu (panelde kurs eşleştirme, kurs detayda o kursun yorumları, anasayfada karışık, 4'lü yan yana + 4'ten fazlaysa yavaş kayan slider).
+- Faz 4: Kurs detay sayfası zenginleştirme (ikna edici CTA + içerik alanları).
+- Faz 5: SEO — kurs bazlı + global title/description/keywords panelden yönetimi + document head.
+- Faz 6: Schema markup (JSON-LD): Organization, Course, FAQ, Breadcrumb.
+- Faz 7: sitemap.xml, robots.txt, llms.txt + panel ayarlarında linkler/bilgiler.
+- Faz 8: Meta & Google Ads dönüşüm ölçümleme (üye ol, sepete ekle, satın al event'leri) + panelde ilgili ID alanları.
+- Faz 9: Anasayfaya video/görsel açıdan zengin, satışa ikna eden yeni alanlar.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

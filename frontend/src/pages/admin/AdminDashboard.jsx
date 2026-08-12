@@ -83,7 +83,7 @@ export default function AdminDashboard() {
                   <p className="text-xs text-muted-foreground">{o.items?.map((i) => i.title).join(", ")} · {formatDate(o.created_at)}</p></div>
                 <div className="flex items-center gap-3">
                   <span className="font-heading font-bold text-gold text-sm">{formatPrice(o.total)} ₺</span>
-                  <Badge className={o.status === "paid" ? "bg-green-500/15 text-green-400 border-green-500/20" : o.status === "pending" ? "bg-gold/15 text-gold border-gold/20" : "bg-destructive/15 text-red-400 border-destructive/20"}>{o.status === "paid" ? "Ödendi" : o.status === "pending" ? "Bekliyor" : "Başarısız"}</Badge>
+                  <Badge className={o.status === "paid" ? "bg-green-500/15 text-green-400 border-green-500/20" : o.status === "awaiting_transfer" ? "bg-blue-500/15 text-blue-400 border-blue-500/20" : o.status === "pending" ? "bg-gold/15 text-gold border-gold/20" : "bg-destructive/15 text-red-400 border-destructive/20"}>{o.status === "paid" ? "Ödendi" : o.status === "awaiting_transfer" ? "Havale Bekliyor" : o.status === "pending" ? "Bekliyor" : "Başarısız"}</Badge>
                 </div>
               </div>
             ))}

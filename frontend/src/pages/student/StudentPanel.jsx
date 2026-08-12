@@ -27,7 +27,7 @@ export default function StudentPanel() {
   }, []);
 
   const statusBadge = (s) => {
-    const map = { paid: ["Ödendi", "bg-green-500/15 text-green-400 border-green-500/20"], pending: ["Bekliyor", "bg-gold/15 text-gold border-gold/20"], failed: ["Başarısız", "bg-destructive/15 text-red-400 border-destructive/20"], token_failed: ["Başarısız", "bg-destructive/15 text-red-400 border-destructive/20"] };
+    const map = { paid: ["Ödendi", "bg-green-500/15 text-green-400 border-green-500/20"], awaiting_transfer: ["Havale Bekleniyor", "bg-blue-500/15 text-blue-400 border-blue-500/20"], pending: ["Bekliyor", "bg-gold/15 text-gold border-gold/20"], failed: ["Başarısız", "bg-destructive/15 text-red-400 border-destructive/20"], token_failed: ["Başarısız", "bg-destructive/15 text-red-400 border-destructive/20"] };
     const [t, c] = map[s] || [s, "bg-secondary"];
     return <Badge className={c}>{t}</Badge>;
   };
