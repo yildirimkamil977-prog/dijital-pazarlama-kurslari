@@ -117,5 +117,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Test: backend curl (sitemap, settings seo/tracking, kurs reviews=2, seo) ve ekran görüntüleri (anasayfa çoklu duyuru + renkli logolar + hero video; kurs detay Course JSON-LD + reviews + CTA) ile doğrulandı. Derleme temiz.
 - Kısmen: Anasayfaya ek "video/görsel zengin satış alanları" — mevcut hero video, istatistik, marka logoları, yorum slider, FAQ ve CTA güçlendirildi; istenirse ayrı zengin bölümler eklenebilir.
 
+## Iteration 8 (2026-06) — Sepet/indirim düzeltmeleri + per-kurs kod + dikey video yorumlar
+- İndirim kodları artık belirli kurslara özel olabiliyor: DiscountIn.course_ids; _apply_discount indirimi yalnızca eşleşen kursların tutarına uyguluyor (curl: 999 üzerinden %50 = 499,5; uygun olmayan sepette hata). AdminDiscounts diyalogunda kurs seçim listesi + kartta "N eğitime özel" rozeti.
+- Sepet & Ödeme: sağdaki özet ile alttaki WhatsApp CTA çakışması giderildi (özet + CTA tek sticky konteynerde).
+- Sepette indirimli eğitim dikkat çekici: yeşil "İNDİRİMLİ · %X" rozeti, "X ₺ tasarruf" ve yeşil çerçeve; özet ürün bazlı indirim + Toplam İndirim.
+- Yorumlar dikey videoya uygun: anasayfa testimonial kartları 9:16; kurs detay yorumları 4'lü grid, videolu (9:16 iframe) veya dikey görsel.
+- checkout ve validate-discount artık items (course_id/price) gönderiyor/işliyor.
+- Kısmen: anasayfa/kurs detay için ek büyük animasyonlu satış bölümleri — mevcut zengin alanlar (hero video, istatistik, logolar, dikey video yorum slider, FAQ, CTA) korunur; istenirse yeni bölümler eklenebilir.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

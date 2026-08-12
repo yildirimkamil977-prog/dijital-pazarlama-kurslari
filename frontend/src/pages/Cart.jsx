@@ -82,8 +82,9 @@ export default function Cart() {
             )}
           </div>
 
-          <div className="lg:col-span-4 space-y-4">
-            <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-28">
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-28 space-y-4">
+            <div className="bg-ink-surface border border-white/10 rounded-2xl p-6">
               <h2 className="font-heading font-semibold text-lg mb-4">Özet</h2>
               <div className="flex justify-between text-sm mb-2"><span className="text-muted-foreground">Liste Fiyatı ({items.length} eğitim)</span><span>{formatPrice(originalTotal)} ₺</span></div>
               {items.filter((i) => (i.original_price ?? i.price) > i.price).map((i) => (
@@ -96,6 +97,7 @@ export default function Cart() {
               <p className="text-xs text-muted-foreground text-center mt-4 flex items-center justify-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> PayTR güvenli ödeme</p>
             </div>
             <WhatsAppCTA prefill="Sepetimdeki eğitimler hakkında soru sormak istiyorum." testId="cart-whatsapp" />
+            </div>
           </div>
         </div>
       )}

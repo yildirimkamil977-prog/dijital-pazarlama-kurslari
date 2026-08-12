@@ -325,6 +325,7 @@ class DiscountIn(BaseModel):
     active: bool = True
     usage_limit: Optional[int] = None
     min_amount: Optional[float] = None
+    course_ids: List[str] = []
 
 
 @router.get("/discounts")

@@ -49,7 +49,7 @@ export default function Checkout() {
   const applyDiscount = async () => {
     if (!code.trim()) return;
     setApplying(true);
-    try { const { data } = await api.post("/payments/validate-discount", { code, subtotal }); setDiscount(data); toast.success("İndirim kodu uygulandı"); }
+    try { const { data } = await api.post("/payments/validate-discount", { code, subtotal, items: items.map((i) => ({ course_id: i.course_id, price: i.price })) }); setDiscount(data); toast.success("İndirim kodu uygulandı"); }
     catch (e) { toast.error(apiError(e)); setDiscount(null); } finally { setApplying(false); }
   };
 
@@ -201,8 +201,9 @@ export default function Checkout() {
           </section>
         </div>
 
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-28">
+        <div className="lg:col-span-5">
+          <div className="lg:sticky lg:top-28 space-y-4">
+          <div className="bg-ink-surface border border-white/10 rounded-2xl p-6">
             <h2 className="font-heading font-semibold text-lg mb-4">Sipariş Özeti</h2>
             <div className="space-y-2 max-h-40 overflow-auto mb-3">
               {items.map((i) => (<div key={i.course_id} className="flex justify-between items-center text-sm gap-2"><span className="truncate">{i.title}</span><span className="shrink-0 flex items-center gap-1.5">{(i.original_price ?? i.price) > i.price && <span className="text-xs text-muted-foreground line-through">{formatPrice(i.original_price)}</span>}{formatPrice(i.price)} ₺</span></div>))}
@@ -227,6 +228,7 @@ export default function Checkout() {
             <p className="text-xs text-muted-foreground text-center mt-4 flex items-center justify-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Güvenli ödeme</p>
           </div>
           <WhatsAppCTA prefill="Ödeme adımında yardıma ihtiyacım var." testId="checkout-whatsapp" />
+          </div>
         </div>
       </div>
 

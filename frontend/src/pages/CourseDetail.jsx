@@ -135,12 +135,19 @@ export default function CourseDetail() {
           {course.reviews?.length > 0 && (
             <div className="mt-10">
               <h2 className="font-heading font-bold text-xl tracking-tight mb-5 flex items-center gap-2"><Star className="w-5 h-5 text-gold" fill="currentColor" /> Öğrenci Yorumları</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {course.reviews.map((r, i) => (
-                  <div key={i} className="bg-ink-surface border border-white/5 rounded-2xl p-5" data-testid={`course-review-${i}`}>
-                    <div className="flex gap-0.5 mb-2">{Array.from({ length: r.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>
-                    <p className="text-sm text-foreground/90 leading-relaxed">"{r.quote}"</p>
-                    <div className="mt-3 flex items-center gap-3">{r.thumbnail && <img src={r.thumbnail} alt={r.name} className="w-9 h-9 rounded-full object-cover" />}<div><p className="text-sm font-semibold">{r.name}</p><p className="text-xs text-muted-foreground">{r.role}</p></div></div>
+                  <div key={i} className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden" data-testid={`course-review-${i}`}>
+                    {r.video_url ? (
+                      <div className="relative aspect-[9/16] bg-black"><iframe title={`review-${i}`} src={r.video_url} className="w-full h-full" allow="encrypted-media; fullscreen" allowFullScreen /></div>
+                    ) : r.thumbnail ? (
+                      <div className="aspect-[9/16]"><img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" /></div>
+                    ) : null}
+                    <div className="p-4">
+                      <div className="flex gap-0.5 mb-2">{Array.from({ length: r.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>
+                      <p className="text-sm text-foreground/90 leading-relaxed line-clamp-4">"{r.quote}"</p>
+                      <div className="mt-3 pt-3 border-t border-white/5"><p className="text-sm font-semibold">{r.name}</p><p className="text-xs text-muted-foreground">{r.role}</p></div>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -10,16 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-const empty = { code: "", type: "percent", value: 10, active: true, usage_limit: "", min_amount: "" };
+const empty = { code: "", type: "percent", value: 10, active: true, usage_limit: "", min_amount: "", course_ids: [] };
 
 export default function AdminDiscounts() {
   const [codes, setCodes] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
 
   const load = () => api.get("/admin/discounts").then(({ data }) => setCodes(data)).finally(() => setLoading(false));
-  useEffect(() => { document.title = "Yönetim - İndirim Kodları"; load(); }, []);
+  useEffect(() => { document.title = "Yönetim - İndirim Kodları"; load(); api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {}); }, []);
 
   const create = async () => {
     if (!form.code.trim()) { toast.error("Kod zorunlu"); return; }
@@ -28,6 +29,7 @@ export default function AdminDiscounts() {
         code: form.code, type: form.type, value: Number(form.value), active: form.active,
         usage_limit: form.usage_limit === "" ? null : Number(form.usage_limit),
         min_amount: form.min_amount === "" ? null : Number(form.min_amount),
+        course_ids: form.course_ids || [],
       });
       toast.success("İndirim kodu oluşturuldu"); setOpen(false); setForm(empty); load();
     } catch (e) { toast.error(apiError(e)); }
@@ -62,6 +64,21 @@ export default function AdminDiscounts() {
                 <div><Label>Min. Tutar (₺)</Label><Input type="number" value={form.min_amount} onChange={(e) => setForm({ ...form, min_amount: e.target.value })} className="bg-ink border-white/10 mt-1.5" placeholder="Yok" /></div>
               </div>
               <label className="flex items-center gap-2 text-sm"><Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} /> Aktif</label>
+              <div>
+                <Label>Geçerli Eğitimler (boş = tüm sepet)</Label>
+                <div className="mt-1.5 max-h-40 overflow-auto space-y-1.5 border border-white/10 rounded-lg p-3 bg-ink" data-testid="discount-courses">
+                  {courses.map((c) => {
+                    const on = (form.course_ids || []).includes(c.course_id);
+                    return (
+                      <button type="button" key={c.course_id} onClick={() => setForm({ ...form, course_ids: on ? form.course_ids.filter((x) => x !== c.course_id) : [...(form.course_ids || []), c.course_id] })}
+                        className={`w-full text-left text-sm rounded-md px-2.5 py-1.5 transition-colors ${on ? "bg-gold/15 text-gold" : "hover:bg-white/5 text-muted-foreground"}`} data-testid={`discount-course-${c.course_id}`}>
+                        {on ? "✓ " : ""}{c.title}
+                      </button>
+                    );
+                  })}
+                  {courses.length === 0 && <p className="text-xs text-muted-foreground">Eğitim yok.</p>}
+                </div>
+              </div>
             </div>
             <DialogFooter><Button onClick={create} className="bg-gold text-ink font-semibold" data-testid="save-discount">Oluştur</Button></DialogFooter>
           </DialogContent>
@@ -87,6 +104,7 @@ export default function AdminDiscounts() {
             <div className="flex gap-3 mt-4 text-xs text-muted-foreground">
               <Badge className="bg-secondary">{c.used_count || 0}{c.usage_limit ? `/${c.usage_limit}` : ""} kullanım</Badge>
               {c.min_amount ? <Badge className="bg-secondary">Min {formatPrice(c.min_amount)} ₺</Badge> : null}
+              {c.course_ids?.length ? <Badge className="bg-gold/15 text-gold border-gold/20">{c.course_ids.length} eğitime özel</Badge> : null}
               {!c.active && <Badge className="bg-destructive/15 text-red-400 border-destructive/20">Pasif</Badge>}
             </div>
           </div>

@@ -57,7 +57,7 @@ async def _price_of(course: dict) -> float:
     return float(course.get("price", 0))
 
 
-async def _apply_discount(code: Optional[str], subtotal: float):
+async def _apply_discount(code: Optional[str], subtotal: float, items=None):
     if not code:
         return 0.0, None
     doc = await db.discount_codes.find_one({"code": code.upper(), "active": True}, {"_id": 0})
@@ -67,10 +67,17 @@ async def _apply_discount(code: Optional[str], subtotal: float):
         raise HTTPException(status_code=400, detail="İndirim kodu kullanım limiti doldu")
     if doc.get("min_amount") and subtotal < doc["min_amount"]:
         raise HTTPException(status_code=400, detail=f"Bu kod min. {doc['min_amount']} TL için geçerli")
-    if doc["type"] == "percent":
-        disc = subtotal * (doc["value"] / 100.0)
+    course_ids = doc.get("course_ids") or []
+    if course_ids:
+        base = sum(float(i.get("price", 0)) for i in (items or []) if i.get("course_id") in course_ids)
+        if base <= 0:
+            raise HTTPException(status_code=400, detail="Bu kod sepetteki eğitimler için geçerli değil")
     else:
-        disc = float(doc["value"])
+        base = subtotal
+    if doc["type"] == "percent":
+        disc = base * (doc["value"] / 100.0)
+    else:
+        disc = min(float(doc["value"]), base)
     return min(disc, subtotal), doc
 
 
@@ -79,8 +86,10 @@ async def validate_discount(body: dict, request: Request):
     await get_current_user(request)
     code = body.get("code")
     subtotal = float(body.get("subtotal", 0))
-    disc, doc = await _apply_discount(code, subtotal)
-    label = f"%{int(doc['value'])} indirim" if doc and doc["type"] == "percent" else f"{int(doc['value'])} ₺ indirim" if doc else ""
+    items = body.get("items") or []
+    disc, doc = await _apply_discount(code, subtotal, items)
+    scope = " (seçili eğitimlerde)" if (doc and doc.get("course_ids")) else ""
+    label = (f"%{int(doc['value'])} indirim{scope}" if doc and doc["type"] == "percent" else f"{int(doc['value'])} ₺ indirim{scope}" if doc else "")
     return {
         "discount": round(disc, 2), "code": doc["code"] if doc else None,
         "type": doc["type"] if doc else None, "value": doc["value"] if doc else None,
@@ -158,7 +167,7 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
         subtotal += price
         items.append({"course_id": c["course_id"], "title": c["title"], "price": price})
 
-    discount, disc_doc = await _apply_discount(body.discount_code, subtotal)
+    discount, disc_doc = await _apply_discount(body.discount_code, subtotal, items)
     applied_code = disc_doc["code"] if disc_doc else None
     after_code = subtotal - discount
 
