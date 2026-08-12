@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
 from deps import (
-    db, now_utc, new_id, require_admin, fernet, get_settings_doc, schedule_email, hash_password,
+    db, now_utc, new_id, require_admin, fernet, get_settings_doc, schedule_email, push_notification, hash_password,
 )
 
 router = APIRouter(prefix="/admin")
@@ -329,6 +329,7 @@ async def mark_paid(order_id: str, request: Request):
             })
         schedule_email("purchase", order["user_email"], {"name": order.get("user_name"),
                        "course_title": it["title"], "amount": f"{order.get('total', 0):.2f}"})
+    await push_notification("payment", "Yeni ödeme alındı", f"{order.get('user_name','')} · {order.get('total',0):.0f} ₺ · {order_id}", {"order_id": order_id})
     return {"ok": True}
 
 
