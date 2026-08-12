@@ -73,5 +73,17 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Yeni backend: GET /api/payments/transfer-order/{id} (public özet), POST /api/payments/transfer-notification. server.py seed: bank_transfer şablonu migration + transfer_notified_admin şablonu.
 - Test: backend uçtan uca curl ile doğrulandı (checkout→awaiting_transfer→bildirim→admin onay→paid); frontend bildirim sayfası ve admin havale filtresi/onay UI ekran görüntüsüyle doğrulandı.
 
+## Iteration 5 (2026-06) — Kapsamlı UI/UX + fonksiyon güncellemeleri
+- Yapışkan header artık ekranın en üstüne sabit (promo bar + navbar tek fixed top-0 konteyner; PublicLayout + Navbar refactor). Aşağı kaydırınca boşluk oluşmuyor.
+- Hero "öğrenci" etiketindeki pill/çizgi kaldırıldı (Home.jsx).
+- Anasayfada kayan marka YAZILARI yerine kayan marka LOGOLARI (cdn.simpleicons.org: googleads, meta, tiktok, analytics, semrush, ahrefs vb.).
+- Görsel yükleme: yeni ImageUpload bileşeni + backend POST /api/admin/upload-image (admin, 5MB, base64→Mongo) ve public GET /api/uploads/{id}. Kullanım: CourseEditor kapak, AdminSettings hero kapak + testimonial kapak. Artık URL yapıştırmak yerine bilgisayardan yükleniyor.
+- Kurslarda kategori ve seviye bilgileri kaldırıldı (Courses.jsx, CourseDetail.jsx, CourseEditor.jsx).
+- İndirim hesabı/gösterimi: Sepet ve Ödeme özetinde indirimler ayrı ayrı (Liste Fiyatı, ürün bazlı indirim / Kampanya İndirimi, Toplam) — yanıltıcı blended yüzde kaldırıldı. Cross-sell ekleme tam fiyatı original_price olarak kaydediyor.
+- WhatsApp CTA yeniden tasarlandı (WhatsAppCTA bileşeni: yeşil avatar + Çevrimiçi göstergesi); Sepet ve Ödeme'de kullanılıyor, taşma sorunu giderildi.
+- Havale/EFT indirim oranı 0 ise ödeme adımında '%X indirim' etiketi gizleniyor (transferPct>0 guard).
+- Fatura bilgileri yeniden tasarlandı: İl (81 il dropdown) + İlçe (ile bağlı dependent dropdown, src/data/trCities.js), ülke sorulmuyor; backend Billing modeline city/district eklendi.
+- Test: iteration_4.json — backend 100% (upload-image, city/district checkout), frontend 100% (sticky header, logo marquee, kategori/seviye kaldırma, İl/İlçe, WhatsApp CTA, itemized indirim). Ekran görüntüleriyle de doğrulandı.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

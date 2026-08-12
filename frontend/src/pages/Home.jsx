@@ -18,7 +18,18 @@ const perks = [
   { icon: Award, title: "Doğrulanabilir Sertifika", text: "Eğitimi tamamladığında QR kod ile doğrulanabilen bir başarı sertifikası kazan." },
   { icon: Sparkles, title: "Ömür Boyu Güncel Erişim", text: "Yeni eklenen tüm derslere ve kaynaklara ek ücret ödemeden erişmeye devam et." },
 ];
-const brands = ["Google Ads", "Meta Ads", "TikTok Ads", "Google Analytics", "Search Console", "Tag Manager", "SEMrush", "Ahrefs"];
+const brandLogos = [
+  { name: "Google Ads", slug: "googleads" },
+  { name: "Meta", slug: "meta" },
+  { name: "TikTok", slug: "tiktok" },
+  { name: "Google Analytics", slug: "googleanalytics" },
+  { name: "Tag Manager", slug: "googletagmanager" },
+  { name: "Semrush", slug: "semrush" },
+  { name: "Ahrefs", slug: "ahrefs" },
+  { name: "HubSpot", slug: "hubspot" },
+  { name: "Mailchimp", slug: "mailchimp" },
+  { name: "WordPress", slug: "wordpress" },
+];
 const outcomes = [
   { icon: TrendingUp, stat: "%40", label: "ortalama reklam maliyeti düşüşü" },
   { icon: Target, stat: "3x", label: "organik trafik artışı" },
@@ -60,7 +71,7 @@ export default function Home() {
 
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-20 md:pt-24 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-6">
-            <span className="inline-flex items-center gap-2 overline text-gold border border-gold/30 rounded-full px-4 py-1.5 bg-gold/5">
+            <span className="inline-flex items-center gap-2 overline text-gold">
               <Sparkles className="w-3.5 h-3.5" /> {settings.students_count || "10.000+"} öğrenci
             </span>
             <h1 className="mt-6 font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter leading-[0.95]">
@@ -121,9 +132,12 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative border-y border-white/10 py-6 overflow-hidden mt-6">
-          <div className="flex gap-12 animate-marquee whitespace-nowrap w-max">
-            {[...brands, ...brands].map((b, i) => <span key={i} className="overline text-muted-foreground/40">{b}</span>)}
+        <div className="relative border-y border-white/10 py-7 overflow-hidden mt-6">
+          <div className="flex items-center gap-16 animate-marquee w-max">
+            {[...brandLogos, ...brandLogos].map((b, i) => (
+              <img key={i} src={`https://cdn.simpleicons.org/${b.slug}/94a3b8`} alt={b.name} title={b.name}
+                className="h-6 sm:h-7 w-auto opacity-50 hover:opacity-100 transition-opacity duration-200 shrink-0" />
+            ))}
           </div>
         </div>
       </section>

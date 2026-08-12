@@ -11,6 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { trCities } from "@/data/trCities";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
 export default function Checkout() {
   const { items, subtotal, remove, clear } = useCart();
@@ -28,7 +32,7 @@ export default function Checkout() {
   const [method, setMethod] = useState("paytr");
   const [accept, setAccept] = useState(false);
   const [customer, setCustomer] = useState({ name: "", email: "", phone: "" });
-  const [billing, setBilling] = useState({ type: "individual", tckn: "", company_name: "", tax_office: "", tax_no: "", address: "" });
+  const [billing, setBilling] = useState({ type: "individual", tckn: "", company_name: "", tax_office: "", tax_no: "", city: "", district: "", address: "" });
   const [transferInfo, setTransferInfo] = useState(null);
 
   useEffect(() => { document.title = "Ödeme - Akademi"; }, []);
@@ -36,6 +40,9 @@ export default function Checkout() {
   const afterCode = discount ? Math.max(0, subtotal - discount.discount) : subtotal;
   const transferDisc = method === "transfer" ? Math.round(afterCode * (transferPct / 100) * 100) / 100 : 0;
   const total = Math.max(0, afterCode - transferDisc);
+  const originalTotal = items.reduce((s, i) => s + (i.original_price ?? i.price ?? 0), 0);
+  const campaignSavings = Math.max(0, originalTotal - subtotal);
+  const districts = trCities.find((c) => c.name === billing.city)?.districts || [];
 
   const applyDiscount = async () => {
     if (!code.trim()) return;
@@ -122,27 +129,40 @@ export default function Checkout() {
           {/* Billing */}
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6">
             <h2 className="font-heading font-semibold mb-4">Fatura Bilgileri</h2>
-            <div className="flex gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3 mb-5">
               {[["individual", "Bireysel", User], ["corporate", "Kurumsal", Building2]].map(([v, l, Ic]) => (
                 <button key={v} onClick={() => setBilling({ ...billing, type: v })} data-testid={`billing-${v}`}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-colors duration-200 ${billing.type === v ? "border-gold bg-gold/10 text-gold" : "border-white/10 text-muted-foreground"}`}>
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-colors duration-200 ${billing.type === v ? "border-gold bg-gold/10 text-gold" : "border-white/10 text-muted-foreground hover:border-white/20"}`}>
                   <Ic className="w-4 h-4" /> {l}
                 </button>
               ))}
             </div>
-            {billing.type === "individual" ? (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div><Label>TC Kimlik No</Label><Input value={billing.tckn} onChange={(e) => setBilling({ ...billing, tckn: e.target.value })} className={inputCls} /></div>
-                <div className="sm:col-span-2"><Label>Adres</Label><Input value={billing.address} onChange={(e) => setBilling({ ...billing, address: e.target.value })} className={inputCls} /></div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {billing.type === "individual" ? (
+                <div className="sm:col-span-2"><Label>TC Kimlik No</Label><Input value={billing.tckn} onChange={(e) => setBilling({ ...billing, tckn: e.target.value })} className={inputCls} data-testid="billing-tckn" /></div>
+              ) : (
+                <>
+                  <div><Label>Firma Ünvanı</Label><Input value={billing.company_name} onChange={(e) => setBilling({ ...billing, company_name: e.target.value })} className={inputCls} data-testid="billing-company" /></div>
+                  <div><Label>Vergi No</Label><Input value={billing.tax_no} onChange={(e) => setBilling({ ...billing, tax_no: e.target.value })} className={inputCls} data-testid="billing-taxno" /></div>
+                  <div className="sm:col-span-2"><Label>Vergi Dairesi</Label><Input value={billing.tax_office} onChange={(e) => setBilling({ ...billing, tax_office: e.target.value })} className={inputCls} data-testid="billing-taxoffice" /></div>
+                </>
+              )}
+              <div>
+                <Label>İl</Label>
+                <Select value={billing.city} onValueChange={(v) => setBilling({ ...billing, city: v, district: "" })}>
+                  <SelectTrigger className={inputCls} data-testid="billing-city"><SelectValue placeholder="Şehir seçin" /></SelectTrigger>
+                  <SelectContent className="max-h-72">{trCities.map((c) => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div><Label>Firma Ünvanı</Label><Input value={billing.company_name} onChange={(e) => setBilling({ ...billing, company_name: e.target.value })} className={inputCls} data-testid="billing-company" /></div>
-                <div><Label>Vergi Dairesi</Label><Input value={billing.tax_office} onChange={(e) => setBilling({ ...billing, tax_office: e.target.value })} className={inputCls} /></div>
-                <div><Label>Vergi No</Label><Input value={billing.tax_no} onChange={(e) => setBilling({ ...billing, tax_no: e.target.value })} className={inputCls} /></div>
-                <div className="sm:col-span-2"><Label>Adres</Label><Input value={billing.address} onChange={(e) => setBilling({ ...billing, address: e.target.value })} className={inputCls} /></div>
+              <div>
+                <Label>İlçe</Label>
+                <Select value={billing.district} onValueChange={(v) => setBilling({ ...billing, district: v })} disabled={!billing.city}>
+                  <SelectTrigger className={inputCls} data-testid="billing-district"><SelectValue placeholder={billing.city ? "İlçe seçin" : "Önce şehir seçin"} /></SelectTrigger>
+                  <SelectContent className="max-h-72">{districts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
-            )}
+              <div className="sm:col-span-2"><Label>Adres</Label><Textarea value={billing.address} onChange={(e) => setBilling({ ...billing, address: e.target.value })} className={inputCls} rows={2} placeholder="Mahalle, cadde, kapı no..." data-testid="billing-address" /></div>
+            </div>
           </section>
 
           {/* Payment method */}
@@ -154,7 +174,7 @@ export default function Checkout() {
                 {method === "paytr" && <CheckCircle2 className="w-5 h-5 text-gold" />}
               </button>
               <button onClick={() => setMethod("transfer")} data-testid="method-transfer" className={`w-full flex items-center gap-3 p-4 rounded-xl border text-left transition-colors duration-200 ${method === "transfer" ? "border-gold bg-gold/5" : "border-white/10"}`}>
-                <Landmark className="w-5 h-5 text-gold" /><div className="flex-1"><p className="font-medium text-sm">Havale / EFT <span className="text-green-400 text-xs font-semibold">%{transferPct} indirim</span></p><p className="text-xs text-muted-foreground">Banka bilgileri ekranda ve e-postada iletilir</p></div>
+                <Landmark className="w-5 h-5 text-gold" /><div className="flex-1"><p className="font-medium text-sm">Havale / EFT {transferPct > 0 && <span className="text-green-400 text-xs font-semibold">%{transferPct} indirim</span>}</p><p className="text-xs text-muted-foreground">Banka bilgileri ekranda ve e-postada iletilir</p></div>
                 {method === "transfer" && <CheckCircle2 className="w-5 h-5 text-gold" />}
               </button>
             </div>
@@ -175,9 +195,11 @@ export default function Checkout() {
           <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-28">
             <h2 className="font-heading font-semibold text-lg mb-4">Sipariş Özeti</h2>
             <div className="space-y-2 max-h-40 overflow-auto mb-3">
-              {items.map((i) => (<div key={i.course_id} className="flex justify-between items-center text-sm"><span className="truncate mr-2">{i.title}</span><span className="shrink-0">{formatPrice(i.price)} ₺</span></div>))}
+              {items.map((i) => (<div key={i.course_id} className="flex justify-between items-center text-sm gap-2"><span className="truncate">{i.title}</span><span className="shrink-0 flex items-center gap-1.5">{(i.original_price ?? i.price) > i.price && <span className="text-xs text-muted-foreground line-through">{formatPrice(i.original_price)}</span>}{formatPrice(i.price)} ₺</span></div>))}
             </div>
             <div className="space-y-2 text-sm pt-3 border-t border-white/5">
+              <div className="flex justify-between"><span className="text-muted-foreground">Liste Fiyatı</span><span>{formatPrice(originalTotal)} ₺</span></div>
+              {campaignSavings > 0 && <div className="flex justify-between text-green-400"><span>Kampanya İndirimi</span><span>- {formatPrice(campaignSavings)} ₺</span></div>}
               <div className="flex justify-between"><span className="text-muted-foreground">Ara Toplam</span><span>{formatPrice(subtotal)} ₺</span></div>
               {discount && <div className="flex justify-between text-green-400"><span>{discount.label}</span><span>- {formatPrice(discount.discount)} ₺</span></div>}
               {transferDisc > 0 && <div className="flex justify-between text-green-400"><span>Havale/EFT (%{transferPct})</span><span>- {formatPrice(transferDisc)} ₺</span></div>}
@@ -194,13 +216,7 @@ export default function Checkout() {
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-4 flex items-center justify-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Güvenli ödeme</p>
           </div>
-          {wa && (
-            <a href={`https://wa.me/${wa}?text=${encodeURIComponent("Ödeme adımında yardıma ihtiyacım var.")}`} target="_blank" rel="noreferrer" data-testid="checkout-whatsapp"
-              className="flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl p-4 hover:bg-[#25D366]/15 transition-colors duration-200">
-              <span className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center shrink-0"><MessageCircle className="w-5 h-5 text-white" fill="white" /></span>
-              <div><p className="text-sm font-medium">Tereddüt mü var?</p><p className="text-xs text-muted-foreground">WhatsApp'tan bize ulaş</p></div>
-            </a>
-          )}
+          <WhatsAppCTA prefill="Ödeme adımında yardıma ihtiyacım var." testId="checkout-whatsapp" />
         </div>
       </div>
 

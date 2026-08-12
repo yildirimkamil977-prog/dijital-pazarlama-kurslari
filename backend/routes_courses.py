@@ -28,6 +28,18 @@ async def settings_public():
     return await get_public_settings()
 
 
+@router.get("/uploads/{upload_id}")
+async def get_upload(upload_id: str):
+    import base64
+    from fastapi.responses import Response
+    doc = await db.uploads.find_one({"upload_id": upload_id})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+    return Response(content=base64.b64decode(doc["data"]),
+                    media_type=doc.get("content_type", "image/png"),
+                    headers={"Cache-Control": "public, max-age=31536000"})
+
+
 @router.get("/courses")
 async def list_courses(category: Optional[str] = None):
     q = {"is_published": True}

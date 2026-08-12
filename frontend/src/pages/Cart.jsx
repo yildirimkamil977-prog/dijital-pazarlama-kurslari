@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Trash2, ShoppingCart, ArrowRight, Plus, Sparkles, ShieldCheck, MessageCircle } from "lucide-react";
+import { Trash2, ShoppingCart, ArrowRight, Plus, Sparkles, ShieldCheck } from "lucide-react";
 import api, { formatPrice } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { useSite } from "@/context/SiteContext";
 import { Button } from "@/components/ui/button";
+import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 import { toast } from "sonner";
 
 export default function Cart() {
   const { items, remove, add, subtotal } = useCart();
   const { user } = useAuth();
-  const { settings } = useSite();
   const navigate = useNavigate();
   const [recs, setRecs] = useState([]);
 
@@ -24,12 +23,10 @@ export default function Cart() {
     // eslint-disable-next-line
   }, [items.length]);
 
-  const addRec = (r) => { add({ course_id: r.course_id, title: r.title, slug: r.slug, thumbnail: r.thumbnail, price: r.bundle_price, discount_price: r.bundle_price }); toast.success("Kampanyalı fiyatla eklendi"); };
-  const wa = (settings.whatsapp_number || "").replace(/\D/g, "");
+  const addRec = (r) => { add({ course_id: r.course_id, title: r.title, slug: r.slug, thumbnail: r.thumbnail, price: r.price, discount_price: r.bundle_price }); toast.success("Kampanyalı fiyatla eklendi"); };
 
   const originalTotal = items.reduce((s, i) => s + (i.original_price ?? i.price ?? 0), 0);
   const savings = Math.max(0, originalTotal - subtotal);
-  const savingsPct = originalTotal > 0 ? Math.round((savings / originalTotal) * 100) : 0;
 
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14">
@@ -88,20 +85,17 @@ export default function Cart() {
           <div className="lg:col-span-4 space-y-4">
             <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-28">
               <h2 className="font-heading font-semibold text-lg mb-4">Özet</h2>
-              <div className="flex justify-between text-sm mb-2"><span className="text-muted-foreground">{items.length} eğitim</span><span>{formatPrice(originalTotal)} ₺</span></div>
-              {savings > 0 && <div className="flex justify-between text-sm mb-2 text-green-400"><span>İndirim (%{savingsPct})</span><span>- {formatPrice(savings)} ₺</span></div>}
+              <div className="flex justify-between text-sm mb-2"><span className="text-muted-foreground">Liste Fiyatı ({items.length} eğitim)</span><span>{formatPrice(originalTotal)} ₺</span></div>
+              {items.filter((i) => (i.original_price ?? i.price) > i.price).map((i) => (
+                <div key={i.course_id} className="flex justify-between text-sm mb-2 text-green-400"><span className="truncate mr-2">{i.title} indirimi</span><span className="shrink-0">- {formatPrice((i.original_price ?? i.price) - i.price)} ₺</span></div>
+              ))}
+              {savings > 0 && <div className="flex justify-between text-sm mb-2 font-medium text-green-400 pt-2 border-t border-white/5"><span>Toplam İndirim</span><span>- {formatPrice(savings)} ₺</span></div>}
               <div className="flex justify-between font-heading font-bold text-lg pt-4 mt-4 border-t border-white/5"><span>Toplam</span><span className="text-gold">{formatPrice(subtotal)} ₺</span></div>
               <Button onClick={() => navigate("/odeme")} data-testid="checkout-btn" className="w-full mt-6 bg-gold hover:bg-gold-hover text-ink font-bold h-12">Ödemeye Geç <ArrowRight className="w-4 h-4 ml-2" /></Button>
               <p className="text-xs text-muted-foreground text-center mt-3">Üye olmadan da ödeme yapabilirsin.</p>
               <p className="text-xs text-muted-foreground text-center mt-4 flex items-center justify-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> PayTR güvenli ödeme</p>
             </div>
-            {wa && (
-              <a href={`https://wa.me/${wa}?text=${encodeURIComponent("Sepetimdeki eğitimler hakkında soru sormak istiyorum.")}`} target="_blank" rel="noreferrer" data-testid="cart-whatsapp"
-                className="flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl p-4 hover:bg-[#25D366]/15 transition-colors duration-200">
-                <span className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center shrink-0"><MessageCircle className="w-5 h-5 text-white" fill="white" /></span>
-                <div><p className="text-sm font-medium">Aklına takılan bir şey mi var?</p><p className="text-xs text-muted-foreground">WhatsApp'tan hemen bize sor</p></div>
-              </a>
-            )}
+            <WhatsAppCTA prefill="Sepetimdeki eğitimler hakkında soru sormak istiyorum." testId="cart-whatsapp" />
           </div>
         </div>
       )}

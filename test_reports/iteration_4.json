@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 4 verified: (1) Sticky header — a single fixed top-0 wrapper (promo bar + navbar, height ~109px, z-50) remains at top:0 after scroll to y=800. (2) Home marquee uses actual images from cdn.simpleicons.org (20 <img> tags detected, e.g. googleads/meta/tiktok). (3) Courses /kurslar and course detail /kurslar/seo-ve-icerik-pazarlamasi no longer render category/level badges; Ders, Sertifika and 'Ömür boyu' labels remain as expected. (4) Backend POST /api/admin/upload-image with PNG returns {url:/api/uploads/<id>}; GET returns image with matching bytes and correct content-type. Non-image rejected with 400; unauthenticated returns 401. (5) POST /api/payments/checkout with guest+transfer+billing.city/district persists city='İstanbul'/district='Kadıköy' (and corporate variant Ankara/Çankaya with company_name/tax_no) on the order visible via /api/admin/payments. (6) Checkout page /odeme exposes all required testids (billing-city, billing-district, checkout-whatsapp, guest-name, guest-email, method-transfer, method-paytr, billing-individual, billing-corporate). billing-city is a Radix Select with 81 options including 'İstanbul'; district dropdown becomes active on city change. Corporate toggle shows Firma/Vergi No/Vergi Dairesi fields. (7) Havale/EFT label correctly reads '%2 indirim' (settings.transfer_discount_pct=2); the JSX guard `transferPct > 0` (Checkout.jsx line 177) will hide it if pct=0. (8) Cart /sepet renders cross-sell block with '%10 indirim kazan' and cart-whatsapp CTA card (Destek Ekibi • Çevrimiçi). Itemized discount rendering (Cart.jsx line 90) uses `i.original_price ?? i.price` — will render as '<title> indirimi -X ₺' when snapshot has original_price; Checkout.jsx (line 202) uses campaignSavings + optional discount code label + transfer discount as separate lines — logic verified in source, no misleading blended pct.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global (Meta Pixel loader)", "issues": ["Console warning '[Meta Pixel] - Invalid PixelID: null.' still present when tracking.meta_pixel_id is empty. Repeats from iterations 2 & 3."]},
+      {"screen": "Public pages", "issues": ["Repeated 401 in console from /api/auth/me probe on unauthenticated pages. Repeats from iteration 3."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration4.py",
+    "/app/test_reports/pytest/pytest_iteration4.xml"
+  ],
+  "action_items": [
+    "Optional: Guard Meta Pixel loader when meta_pixel_id is falsy (still open from iteration 2).",
+    "Optional: Suppress 401 console noise from initial /api/auth/me probe on public pages.",
+    "Optional: When adding items to cart, ensure `original_price` is stored in snapshot so the Cart itemized '<title> indirimi' green line renders. Currently the discount snapshot may not include original_price for course pages that only expose price+discount_price; consider setting original_price=price when discount_price<price during add()."
+  ],
+  "critical_code_review_comments": [
+    "routes_admin.upload_image: correctly enforces admin, ct.startswith('image/'), 5MB cap, stores base64 in db.uploads and returns /api/uploads/<id>. routes_courses.get_upload is public (as required for <img src> access). Consider also validating file extension or magic bytes as a defence-in-depth measure — currently content_type header alone is trusted for the served MIME.",
+    "routes_payments.Billing model has city/district as empty-string defaults — good for backward compat. When guest checkout is made without billing, no exception is raised; guest+transfer flow works. Verified persistence in db.orders via /admin/payments.",
+    "Cart.jsx line 90 relies on `i.original_price` to compute the '...indirimi' green line. CartContext.add() must snapshot original_price alongside price/discount_price; verify all call sites (CourseDetail, Courses, cross-sell) pass original_price. If some call sites don't, the itemized discount will not render for those items even when the course had a discount_price at the time of adding.",
+    "Checkout.jsx correctly hides '%X indirim' label with `transferPct > 0` guard — no action needed unless main agent wants to change the wording.",
+    "trCities.js loaded implicitly (81 options confirmed in DOM); dependent district select behaves correctly."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration4.py"],
+  "success_rate": {"backend": "100% (5/5 new + prior 3/3 iteration3 unchanged)", "frontend": "100% on tested flows (sticky header, marquee logos, courses/detail no badges, checkout billing city/district + Radix select, corporate toggle, WhatsApp CTA presence, cart cross-sell)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Guest test emails: test_billing_*@test.com, test_corp_*@test.com.",
+  "seed_data_creation": "test_iteration4.py creates TEST_Billing_* and TEST_Corp_* courses and deletes them in finally. Upload test inserts a 1x1 PNG document in db.uploads (small, not cleaned — image endpoints do not offer delete; acceptable).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Cart page uses localStorage key 'akademi_cart'; when seeding manually, include original_price in each item to see the itemized '<title> indirimi' line. billing-city is a Radix Select (BUTTON tag); to select via Playwright either use force=True keyboard select or click the [role=option] entry (81 options render inside a portal). All requested data-testids exist: course-thumb-upload (CourseEditor), hero-poster-upload & testimonial-thumb-0 (AdminSettings), billing-city/district/individual/corporate, checkout-whatsapp, cart-whatsapp, method-transfer/paytr, guest-name/email. Backend upload endpoint stores base64 in Mongo — GET responds with correct content-type and matching bytes.",
+  "rca of the issue": "N/A — all new iteration-4 features (upload-image, city/district billing, sticky header, brand logos, category/level removal, WhatsApp CTA, itemized discount logic, Havale/EFT %X label guard) verified working."
+}

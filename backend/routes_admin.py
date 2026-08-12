@@ -268,6 +268,23 @@ async def upload_invoice(order_id: str, request: Request, file: UploadFile = Fil
     return {"ok": True}
 
 
+@router.post("/upload-image")
+async def upload_image(request: Request, file: UploadFile = File(...)):
+    await require_admin(request)
+    ct = file.content_type or "image/png"
+    if not ct.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Lütfen bir görsel dosyası yükleyin")
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Görsel 5MB'den büyük olamaz")
+    uid = new_id("img")
+    await db.uploads.insert_one({
+        "upload_id": uid, "content_type": ct,
+        "data": base64.b64encode(content).decode(), "created_at": now_utc().isoformat(),
+    })
+    return {"url": f"/api/uploads/{uid}"}
+
+
 @router.delete("/payments/{order_id}/invoice")
 async def delete_invoice(order_id: str, request: Request):
     await require_admin(request)

@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { ImageUpload } from "@/components/ImageUpload";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
@@ -118,12 +119,7 @@ export default function CourseEditor() {
           <div><Label>Başlık *</Label><Input data-testid="course-title" value={form.title} onChange={(e) => set("title", e.target.value)} className={inputCls} /></div>
           <div><Label>Kısa Açıklama</Label><Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} className={inputCls} /></div>
           <div><Label>Detaylı Açıklama</Label><Textarea value={form.description} onChange={(e) => set("description", e.target.value)} className={inputCls} rows={4} /></div>
-          <div className="grid grid-cols-2 gap-4">
-            <div><Label>Kategori</Label><Input value={form.category} onChange={(e) => set("category", e.target.value)} className={inputCls} placeholder="Reklam, SEO..." /></div>
-            <div><Label>Seviye</Label><Input value={form.level} onChange={(e) => set("level", e.target.value)} className={inputCls} /></div>
-          </div>
-          <div><Label>Kapak Görseli (URL)</Label><Input value={form.thumbnail} onChange={(e) => set("thumbnail", e.target.value)} className={inputCls} placeholder="https://..." />
-            {form.thumbnail && <img src={form.thumbnail} alt="" className="mt-3 w-48 h-28 object-cover rounded-lg border border-white/10" />}</div>
+          <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={form.thumbnail} onChange={(v) => set("thumbnail", v)} testId="course-thumb-upload" /></div></div>
           <div className="grid grid-cols-2 gap-4">
             <div><Label>Fiyat (₺)</Label><Input type="number" data-testid="course-price" value={form.price} onChange={(e) => set("price", e.target.value)} className={inputCls} /></div>
             <div><Label>İndirimli Fiyat (₺)</Label><Input type="number" value={form.discount_price ?? ""} onChange={(e) => set("discount_price", e.target.value === "" ? null : e.target.value)} className={inputCls} /></div>

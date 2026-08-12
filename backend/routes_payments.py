@@ -37,6 +37,8 @@ class Billing(BaseModel):
     company_name: str = ""
     tax_office: str = ""
     tax_no: str = ""
+    city: str = ""
+    district: str = ""
     address: str = ""
 
 

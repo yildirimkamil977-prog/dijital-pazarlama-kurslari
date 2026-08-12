@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ImageUpload } from "@/components/ImageUpload";
 import { toast } from "sonner";
 
 const gKeys = ["site_name", "tagline", "contact_email", "support_phone", "hero_title", "hero_subtitle", "about_text", "students_count", "email_enabled", "hero_video_url", "hero_poster", "whatsapp_number", "whatsapp_message", "bundle_discount_pct", "transfer_discount_pct", "promo_enabled", "promo_text"];
@@ -86,7 +87,7 @@ export default function AdminSettings() {
             <div><Label>Hero Alt Metin</Label><Textarea value={s.hero_subtitle || ""} onChange={(e) => g({ hero_subtitle: e.target.value })} className={inputCls} rows={3} /></div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div><Label>Hero Video (embed linki)</Label><Input value={s.hero_video_url || ""} onChange={(e) => g({ hero_video_url: e.target.value })} className={inputCls} placeholder="https://www.youtube.com/embed/..." data-testid="setting-hero-video" /></div>
-              <div><Label>Hero Kapak Görseli (URL)</Label><Input value={s.hero_poster || ""} onChange={(e) => g({ hero_poster: e.target.value })} className={inputCls} /></div>
+              <div><Label>Hero Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={s.hero_poster || ""} onChange={(v) => g({ hero_poster: v })} testId="hero-poster-upload" /></div></div>
             </div>
             <div><Label>Hakkımda Metni</Label><Textarea value={s.about_text || ""} onChange={(e) => g({ about_text: e.target.value })} className={inputCls} rows={4} /></div>
           </section>
@@ -171,7 +172,7 @@ export default function AdminSettings() {
                 <div><Label>İsim</Label><Input value={t.name} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={inputCls} data-testid={`testimonial-name-${i}`} /></div>
                 <div><Label>Ünvan / Rol</Label><Input value={t.role} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} className={inputCls} /></div>
                 <div><Label>Video (embed linki)</Label><Input value={t.video_url} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, video_url: e.target.value } : x))} className={inputCls} /></div>
-                <div><Label>Kapak Görseli (URL)</Label><Input value={t.thumbnail} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, thumbnail: e.target.value } : x))} className={inputCls} /></div>
+                <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={t.thumbnail} onChange={(v) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, thumbnail: v } : x))} testId={`testimonial-thumb-${i}`} /></div></div>
               </div>
               <div><Label>Yorum</Label><Textarea value={t.quote} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, quote: e.target.value } : x))} className={inputCls} rows={2} /></div>
             </section>

@@ -47,11 +47,7 @@ export default function CourseDetail() {
         </div>
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-14 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           <div className="lg:col-span-7">
-            <div className="flex items-center gap-2 flex-wrap">
-              {course.category && <Badge className="bg-gold/15 text-gold border-gold/20">{course.category}</Badge>}
-              <Badge className="bg-white/5 text-foreground/80 border-white/10">{course.level}</Badge>
-            </div>
-            <h1 className="mt-4 font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter leading-[0.95]">{course.title}</h1>
+            <h1 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter leading-[0.95]">{course.title}</h1>
             <p className="mt-4 text-lg text-muted-foreground leading-relaxed max-w-2xl">{course.subtitle}</p>
             <div className="flex flex-wrap items-center gap-5 mt-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-gold" /> {course.lesson_count} ders</span>

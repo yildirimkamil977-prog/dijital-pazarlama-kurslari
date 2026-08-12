@@ -38,12 +38,10 @@ export default function Courses() {
                 <Link to={`/kurslar/${c.slug}`} className="relative block rounded-2xl overflow-hidden group aspect-video">
                   <img src={c.thumbnail} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
-                  {c.category && <Badge className="absolute top-4 left-4 bg-ink/80 text-foreground border-white/10">{c.category}</Badge>}
                   {hasDiscount && <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">%{Math.round((1 - c.discount_price / c.price) * 100)} indirim</Badge>}
                 </Link>
 
                 <div className="p-2 lg:p-4">
-                  <Badge className="bg-white/5 text-foreground/70 border-white/10 mb-3">{c.level}</Badge>
                   <h2 className="font-heading font-bold text-2xl sm:text-3xl tracking-tight leading-tight">{c.title}</h2>
                   <p className="mt-3 text-muted-foreground leading-relaxed">{c.subtitle}</p>
 
