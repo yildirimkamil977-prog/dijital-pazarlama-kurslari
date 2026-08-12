@@ -120,6 +120,13 @@ export default function CourseEditor() {
           <div><Label>Kısa Açıklama</Label><Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} className={inputCls} /></div>
           <div><Label>Detaylı Açıklama</Label><Textarea value={form.description} onChange={(e) => set("description", e.target.value)} className={inputCls} rows={4} /></div>
           <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={form.thumbnail} onChange={(v) => set("thumbnail", v)} testId="course-thumb-upload" /></div></div>
+          <div className="pt-4 border-t border-white/5"><h3 className="font-heading font-semibold text-sm mb-3">SEO (Arama Motoru)</h3>
+            <div className="space-y-3">
+              <div><Label>Meta Başlık</Label><Input value={form.meta_title || ""} onChange={(e) => set("meta_title", e.target.value)} className={inputCls} placeholder="Boş bırakılırsa kurs başlığı kullanılır" data-testid="course-meta-title" /></div>
+              <div><Label>Meta Açıklama</Label><Textarea value={form.meta_description || ""} onChange={(e) => set("meta_description", e.target.value)} className={inputCls} rows={2} data-testid="course-meta-desc" /></div>
+              <div><Label>Anahtar Kelimeler</Label><Input value={form.meta_keywords || ""} onChange={(e) => set("meta_keywords", e.target.value)} className={inputCls} placeholder="virgülle ayırın" data-testid="course-meta-keywords" /></div>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div><Label>Fiyat (₺)</Label><Input type="number" data-testid="course-price" value={form.price} onChange={(e) => set("price", e.target.value)} className={inputCls} /></div>
             <div><Label>İndirimli Fiyat (₺)</Label><Input type="number" value={form.discount_price ?? ""} onChange={(e) => set("discount_price", e.target.value === "" ? null : e.target.value)} className={inputCls} /></div>

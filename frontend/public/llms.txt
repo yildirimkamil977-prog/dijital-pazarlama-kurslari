@@ -1,0 +1,13 @@
+# Dijital Pazarlama Kursları
+
+> Premium dijital pazarlama video eğitim platformu. Google Ads, Meta reklamları, SEO, analitik ve daha fazlası; uygulamalı dersler, canlı yayınlar ve doğrulanabilir sertifika ile.
+
+## Önemli Sayfalar
+- Eğitimler: /kurslar
+- Hakkımda: /hakkimda
+- İletişim: /iletisim
+
+## Notlar
+- Eğitimler tek seferlik ödeme ile ömür boyu erişim sağlar.
+- Havale/EFT ile ekstra indirim mevcuttur.
+- Site haritası: /api/seo/sitemap.xml

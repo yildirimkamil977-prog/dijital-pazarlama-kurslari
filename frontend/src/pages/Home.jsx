@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Users, Radio, FileText, Award, MessageCircle, CheckCircle2, Play, Star, TrendingUp, Target, Zap, LayoutDashboard } from "lucide-react";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { CourseCard } from "@/components/CourseCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Seo } from "@/components/Seo";
 
 const perks = [
   { icon: MessageCircle, title: "1 Saat Ücretsiz Danışmanlık", text: "Başlamadan önce hedeflerini netleştir, sana uygun eğitim yolunu birlikte planlayalım." },
@@ -74,6 +75,10 @@ export default function Home() {
   };
   const openVideo = (url) => { setActiveVideo(toEmbed(url)); setVideoOpen(true); };
   const testimonials = settings.testimonials || [];
+  const shuffledT = useMemo(() => [...testimonials].sort(() => Math.random() - 0.5), [testimonials.length]);
+  const [tStart, setTStart] = useState(0);
+  useEffect(() => { if (shuffledT.length <= 4) return; const id = setInterval(() => setTStart((s) => (s + 4) % shuffledT.length), 5000); return () => clearInterval(id); }, [shuffledT.length]);
+  const visibleTestimonials = shuffledT.length <= 4 ? shuffledT : Array.from({ length: 4 }, (_, k) => shuffledT[(tStart + k) % shuffledT.length]);
 
   return (
     <div className="relative overflow-hidden">
@@ -194,20 +199,20 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-5 sm:px-8">
             <div className="text-center max-w-2xl mx-auto mb-14">
               <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Onlar başardı, sıra sende.</h2></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((t, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {visibleTestimonials.map((t, i) => (
+                <motion.div key={`${tStart}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
                   className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden group">
                   <div className="relative aspect-video cursor-pointer overflow-hidden" onClick={() => t.video_url && openVideo(t.video_url)} data-testid={`testimonial-video-${i}`}>
                     {t.thumbnail && <img src={t.thumbnail} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
-                    <div className="absolute inset-0 bg-ink/30 flex items-center justify-center">
-                      <span className="w-14 h-14 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-6 h-6 text-ink ml-0.5" fill="currentColor" /></span>
-                    </div>
+                    {t.video_url && <div className="absolute inset-0 bg-ink/30 flex items-center justify-center">
+                      <span className="w-12 h-12 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-5 h-5 text-ink ml-0.5" fill="currentColor" /></span>
+                    </div>}
                   </div>
-                  <div className="p-6">
-                    <div className="flex gap-0.5 mb-3">{Array.from({ length: t.rating || 5 }).map((_, j) => <Star key={j} className="w-4 h-4 text-gold" fill="currentColor" />)}</div>
-                    <p className="text-sm text-foreground/90 leading-relaxed">"{t.quote}"</p>
-                    <div className="mt-4 pt-4 border-t border-white/5"><p className="font-heading font-semibold text-sm">{t.name}</p><p className="text-xs text-muted-foreground">{t.role}</p></div>
+                  <div className="p-5">
+                    <div className="flex gap-0.5 mb-2">{Array.from({ length: t.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>
+                    <p className="text-sm text-foreground/90 leading-relaxed line-clamp-4">"{t.quote}"</p>
+                    <div className="mt-3 pt-3 border-t border-white/5"><p className="font-heading font-semibold text-sm">{t.name}</p><p className="text-xs text-muted-foreground">{t.role}</p></div>
                   </div>
                 </motion.div>
               ))}

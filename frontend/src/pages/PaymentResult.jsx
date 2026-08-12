@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, Clock } from "lucide-react";
 import api from "@/lib/api";
+import { trackPurchase } from "@/lib/track";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +23,7 @@ export default function PaymentResult() {
       try {
         const { data } = await api.get(`/payments/order/${oid}`);
         setOrder(data);
-        if (data.status === "paid") { clear(); setLoading(false); return; }
+        if (data.status === "paid") { clear(); trackPurchase({ orderId: oid, value: data.total, items: (data.items || []).map((i) => ({ id: i.course_id, title: i.title, price: i.price })) }); setLoading(false); return; }
         if (data.status === "pending" && !failParam && tries < 5) { tries++; setTimeout(poll, 2000); return; }
         setLoading(false);
       } catch { setLoading(false); }

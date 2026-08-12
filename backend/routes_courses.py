@@ -1,8 +1,11 @@
+import os
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 
-from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, schedule_email
+from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, get_settings_doc, schedule_email
+
+FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 
 router = APIRouter()
 
@@ -78,7 +81,26 @@ async def get_course(slug: str, request: Request):
         modules.append({"id": m["id"], "title": m["title"], "lessons": lessons})
     summary["modules"] = modules
     summary["enrolled"] = enrolled
+    summary["seo"] = {
+        "meta_title": c.get("meta_title", ""),
+        "meta_description": c.get("meta_description", ""),
+        "meta_keywords": c.get("meta_keywords", ""),
+    }
+    allt = (await get_settings_doc()).get("testimonials", [])
+    specific = [t for t in allt if t.get("course_id") == c["course_id"]]
+    summary["reviews"] = specific if specific else [t for t in allt if not t.get("course_id")]
     return summary
+
+
+@router.get("/seo/sitemap.xml")
+async def sitemap():
+    from fastapi.responses import Response
+    courses = await db.courses.find({"is_published": True}, {"_id": 0, "slug": 1}).to_list(500)
+    urls = ["", "kurslar", "hakkimda", "iletisim"]
+    items = "".join(f"<url><loc>{FRONTEND_URL}/{u}</loc><changefreq>weekly</changefreq></url>" for u in urls)
+    items += "".join(f"<url><loc>{FRONTEND_URL}/kurslar/{c['slug']}</loc><changefreq>weekly</changefreq></url>" for c in courses)
+    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
+    return Response(content=xml, media_type="application/xml")
 
 
 # ---------- Student: enrollments & player ----------

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /yonetim
+Disallow: /panel
+Disallow: /odeme
+Disallow: /sepet
+
+Sitemap: /api/seo/sitemap.xml

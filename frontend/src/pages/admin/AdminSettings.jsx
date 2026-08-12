@@ -18,16 +18,21 @@ export default function AdminSettings() {
   const [s, setS] = useState(null);
   const [templates, setTemplates] = useState([]);
   const [paytr, setPaytr] = useState({ merchant_id: "", merchant_key: "", merchant_salt: "", notification_url: "", test_mode: true });
-  const [tracking, setTracking] = useState({ head_code: "", body_code: "", ga_id: "", meta_pixel_id: "", google_ads_id: "" });
+  const [tracking, setTracking] = useState({ head_code: "", body_code: "", ga_id: "", meta_pixel_id: "", google_ads_id: "", google_ads_purchase_label: "" });
+  const [seo, setSeo] = useState({ meta_title: "", meta_description: "", meta_keywords: "", og_image: "" });
+  const [courses, setCourses] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [busy, setBusy] = useState("");
+  const BACKEND = process.env.REACT_APP_BACKEND_URL;
   const callbackUrl = `${process.env.REACT_APP_BACKEND_URL}/api/payments/paytr/callback`;
 
   const loadSettings = () => api.get("/admin/settings").then(({ data }) => {
     setS(data);
     setPaytr({ merchant_id: data.paytr.merchant_id || "", merchant_key: "", merchant_salt: "", notification_url: data.paytr.notification_url || callbackUrl, test_mode: data.paytr.test_mode });
     setTracking(data.tracking || tracking);
+    setSeo(data.seo || { meta_title: "", meta_description: "", meta_keywords: "", og_image: "" });
     setTestimonials(data.testimonials || []);
+    api.get("/courses").then((r) => setCourses(r.data)).catch(() => {});
   });
 
   useEffect(() => { document.title = "Yönetim - Ayarlar"; loadSettings(); api.get("/admin/email-templates").then(({ data }) => setTemplates(data)); /* eslint-disable-next-line */ }, []);
@@ -50,6 +55,7 @@ export default function AdminSettings() {
   };
 
   const saveTracking = async () => { setBusy("t"); try { await api.put("/admin/settings/tracking", tracking); toast.success("Takip kodları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
+  const saveSeo = async () => { setBusy("seo"); try { await api.put("/admin/settings/seo", seo); toast.success("SEO ayarları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveTestimonials = async () => { setBusy("tt"); try { await api.put("/admin/settings/testimonials", testimonials); toast.success("Yorumlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveTemplate = async (tpl) => { try { await api.put(`/admin/email-templates/${tpl.key}`, { subject: tpl.subject, html: tpl.html, enabled: tpl.enabled }); toast.success("Şablon kaydedildi"); } catch (e) { toast.error(apiError(e)); } };
 
@@ -65,6 +71,7 @@ export default function AdminSettings() {
           <TabsTrigger value="campaign" data-testid="settings-tab-campaign"><Megaphone className="w-4 h-4 mr-2" /> Kampanya</TabsTrigger>
           <TabsTrigger value="paytr" data-testid="settings-tab-paytr"><CreditCard className="w-4 h-4 mr-2" /> PayTR</TabsTrigger>
           <TabsTrigger value="tracking" data-testid="settings-tab-tracking"><Code className="w-4 h-4 mr-2" /> Takip Kodları</TabsTrigger>
+          <TabsTrigger value="seo" data-testid="settings-tab-seo"><Globe className="w-4 h-4 mr-2" /> SEO</TabsTrigger>
           <TabsTrigger value="testimonials" data-testid="settings-tab-testimonials"><Star className="w-4 h-4 mr-2" /> Yorumlar</TabsTrigger>
           <TabsTrigger value="email" data-testid="settings-tab-email"><Mail className="w-4 h-4 mr-2" /> E-posta</TabsTrigger>
         </TabsList>
@@ -155,11 +162,34 @@ export default function AdminSettings() {
               <div><Label>Google Analytics ID</Label><Input value={tracking.ga_id} onChange={(e) => setTracking({ ...tracking, ga_id: e.target.value })} className={inputCls} placeholder="G-XXXXXXX" data-testid="tracking-ga" /></div>
               <div><Label>Meta Pixel ID</Label><Input value={tracking.meta_pixel_id} onChange={(e) => setTracking({ ...tracking, meta_pixel_id: e.target.value })} className={inputCls} placeholder="1234567890" data-testid="tracking-meta" /></div>
               <div><Label>Google Ads ID</Label><Input value={tracking.google_ads_id} onChange={(e) => setTracking({ ...tracking, google_ads_id: e.target.value })} className={inputCls} placeholder="AW-XXXXXXX" data-testid="tracking-gads" /></div>
+              <div><Label>Google Ads Dönüşüm Etiketi (Satın Alma)</Label><Input value={tracking.google_ads_purchase_label || ""} onChange={(e) => setTracking({ ...tracking, google_ads_purchase_label: e.target.value })} className={inputCls} placeholder="AbC-D_efGh" data-testid="tracking-gads-label" /></div>
             </div>
             <div><Label>Özel &lt;head&gt; Kodu</Label><Textarea value={tracking.head_code} onChange={(e) => setTracking({ ...tracking, head_code: e.target.value })} className={`${inputCls} font-mono text-xs`} rows={4} placeholder="<script>...</script>" data-testid="tracking-head" /></div>
             <div><Label>Özel &lt;body&gt; Kodu</Label><Textarea value={tracking.body_code} onChange={(e) => setTracking({ ...tracking, body_code: e.target.value })} className={`${inputCls} font-mono text-xs`} rows={4} placeholder="<noscript>...</noscript>" /></div>
           </section>
           <Button onClick={saveTracking} disabled={busy === "t"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-tracking">{busy === "t" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+        </TabsContent>
+
+        {/* SEO */}
+        <TabsContent value="seo" className="mt-6 space-y-6">
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
+            <h2 className="font-heading font-semibold">Genel SEO</h2>
+            <p className="text-sm text-muted-foreground">Ana sayfa ve site geneli varsayılan başlık/açıklama. Kurslar kendi SEO alanlarını kullanır.</p>
+            <div><Label>Meta Başlık (Title)</Label><Input value={seo.meta_title} onChange={(e) => setSeo({ ...seo, meta_title: e.target.value })} className={inputCls} data-testid="seo-title" /></div>
+            <div><Label>Meta Açıklama (Description)</Label><Textarea value={seo.meta_description} onChange={(e) => setSeo({ ...seo, meta_description: e.target.value })} className={inputCls} rows={3} data-testid="seo-desc" /></div>
+            <div><Label>Anahtar Kelimeler</Label><Input value={seo.meta_keywords} onChange={(e) => setSeo({ ...seo, meta_keywords: e.target.value })} className={inputCls} placeholder="dijital pazarlama, google ads, seo" data-testid="seo-keywords" /></div>
+            <div><Label>Paylaşım Görseli (OG Image)</Label><div className="mt-1.5"><ImageUpload value={seo.og_image} onChange={(v) => setSeo({ ...seo, og_image: v })} testId="seo-ogimage" /></div></div>
+            <Button onClick={saveSeo} disabled={busy === "seo"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-seo">{busy === "seo" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+          </section>
+          <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-3">
+            <h2 className="font-heading font-semibold">SEO Dosyaları</h2>
+            <p className="text-sm text-muted-foreground">Arama motorları ve yapay zeka botları için otomatik oluşturulan dosyalar.</p>
+            <div className="grid sm:grid-cols-3 gap-3 text-sm">
+              <a href={`${BACKEND}/api/seo/sitemap.xml`} target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 p-3 hover:border-gold/40 text-gold" data-testid="link-sitemap">sitemap.xml →</a>
+              <a href="/robots.txt" target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 p-3 hover:border-gold/40 text-gold" data-testid="link-robots">robots.txt →</a>
+              <a href="/llms.txt" target="_blank" rel="noreferrer" className="rounded-lg border border-white/10 p-3 hover:border-gold/40 text-gold" data-testid="link-llms">llms.txt →</a>
+            </div>
+          </section>
         </TabsContent>
 
         {/* TESTIMONIALS */}
@@ -171,6 +201,7 @@ export default function AdminSettings() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <div><Label>İsim</Label><Input value={t.name} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} className={inputCls} data-testid={`testimonial-name-${i}`} /></div>
                 <div><Label>Ünvan / Rol</Label><Input value={t.role} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, role: e.target.value } : x))} className={inputCls} /></div>
+                <div><Label>İlgili Eğitim</Label><select value={t.course_id || ""} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, course_id: e.target.value } : x))} className={`${inputCls} w-full h-10 rounded-md px-3`} data-testid={`testimonial-course-${i}`}><option value="">Genel (tüm site)</option>{courses.map((c) => <option key={c.course_id} value={c.course_id}>{c.title}</option>)}</select></div>
                 <div><Label>Video (embed linki)</Label><Input value={t.video_url} onChange={(e) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, video_url: e.target.value } : x))} className={inputCls} /></div>
                 <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={t.thumbnail} onChange={(v) => setTestimonials(testimonials.map((x, j) => j === i ? { ...x, thumbnail: v } : x))} testId={`testimonial-thumb-${i}`} /></div></div>
               </div>
@@ -178,7 +209,7 @@ export default function AdminSettings() {
             </section>
           ))}
           <div className="flex gap-2">
-            <Button variant="outline" className="border-white/15" onClick={() => setTestimonials([...testimonials, { name: "", role: "", quote: "", video_url: "", thumbnail: "", rating: 5 }])} data-testid="add-testimonial"><Plus className="w-4 h-4 mr-2" /> Yorum Ekle</Button>
+            <Button variant="outline" className="border-white/15" onClick={() => setTestimonials([...testimonials, { name: "", role: "", quote: "", video_url: "", thumbnail: "", rating: 5, course_id: "" }])} data-testid="add-testimonial"><Plus className="w-4 h-4 mr-2" /> Yorum Ekle</Button>
             <Button onClick={saveTestimonials} disabled={busy === "tt"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-testimonials">{busy === "tt" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
           </div>
         </TabsContent>

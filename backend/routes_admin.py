@@ -55,6 +55,9 @@ class CourseIn(BaseModel):
     is_published: bool = False
     what_you_learn: List[str] = []
     requirements: List[str] = []
+    meta_title: str = ""
+    meta_description: str = ""
+    meta_keywords: str = ""
     cross_sell_ids: List[str] = []
     modules: List[Module] = []
 
@@ -379,7 +382,8 @@ async def admin_get_settings(request: Request):
         "address": doc.get("address", ""),
         "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
         "bank_accounts": doc.get("bank_accounts", []),
-        "tracking": doc.get("tracking", {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": ""}),
+        "tracking": doc.get("tracking", {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": "", "google_ads_purchase_label": ""}),
+        "seo": doc.get("seo", {"meta_title": "", "meta_description": "", "meta_keywords": "", "og_image": ""}),
         "paytr": {
             "merchant_id": p.get("merchant_id", ""),
             "has_key": bool(p.get("merchant_key_enc")),
@@ -425,12 +429,27 @@ class TrackingIn(BaseModel):
     ga_id: str = ""
     meta_pixel_id: str = ""
     google_ads_id: str = ""
+    google_ads_purchase_label: str = ""
 
 
 @router.put("/settings/tracking")
 async def update_tracking(body: TrackingIn, request: Request):
     await require_admin(request)
     await db.settings.update_one({"_id": "site"}, {"$set": {"tracking": body.model_dump()}})
+    return {"ok": True}
+
+
+class SeoIn(BaseModel):
+    meta_title: str = ""
+    meta_description: str = ""
+    meta_keywords: str = ""
+    og_image: str = ""
+
+
+@router.put("/settings/seo")
+async def update_seo(body: SeoIn, request: Request):
+    await require_admin(request)
+    await db.settings.update_one({"_id": "site"}, {"$set": {"seo": body.model_dump()}})
     return {"ok": True}
 
 
@@ -455,6 +474,7 @@ class Testimonial(BaseModel):
     video_url: str = ""
     thumbnail: str = ""
     rating: int = 5
+    course_id: str = ""
 
 
 @router.put("/settings/testimonials")

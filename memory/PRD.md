@@ -106,5 +106,16 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Faz 8: Meta & Google Ads dönüşüm ölçümleme (üye ol, sepete ekle, satın al event'leri) + panelde ilgili ID alanları.
 - Faz 9: Anasayfaya video/görsel açıdan zengin, satışa ikna eden yeni alanlar.
 
+## Iteration 7 (2026-06) — Kalan tüm fazlar tamamlandı
+- E-posta: Tüm şablonlar artık markalı HTML kabuğuna (render_email_shell: logo başlık + iletişim footer) sarılıyor.
+- Yorumlar: Panelde her yoruma "İlgili Eğitim" seçimi (course_id); kurs detayında o kursun yorumları (yoksa genel), anasayfada karışık (shuffle) 4'lü; 4'ten fazlaysa 5sn'de bir yavaş dönen slider. Kapak görselleri bilgisayardan yüklenebiliyor.
+- Kurs detay: JSON-LD (Course + BreadcrumbList), SEO meta (title/description/keywords), öğrenci yorumları bölümü ve alt ikna edici CTA bandı eklendi.
+- SEO: CourseEditor'a kurs bazlı meta_title/description/keywords; AdminSettings'e "SEO" sekmesi (global meta + OG görsel upload) ve SEO dosya linkleri. Seo bileşeni document.title/meta/OG/canonical + JSON-LD yönetiyor.
+- Schema: Anasayfa Organization + WebSite + FAQPage; kurs detay Course + Breadcrumb JSON-LD.
+- Dosyalar: GET /api/seo/sitemap.xml (dinamik, yayındaki kursları içerir), public/robots.txt, public/llms.txt; panelde linkleri.
+- Dönüşüm ölçümleme: lib/track.js — AddToCart (CartContext), InitiateCheckout & Purchase (Checkout/PaymentResult), CompleteRegistration/sign_up (Register + guest checkout). Meta Pixel + GA4 + Google Ads conversion (panelde google_ads_purchase_label alanı, window.__SITE_TRACKING__).
+- Test: backend curl (sitemap, settings seo/tracking, kurs reviews=2, seo) ve ekran görüntüleri (anasayfa çoklu duyuru + renkli logolar + hero video; kurs detay Course JSON-LD + reviews + CTA) ile doğrulandı. Derleme temiz.
+- Kısmen: Anasayfaya ek "video/görsel zengin satış alanları" — mevcut hero video, istatistik, marka logoları, yorum slider, FAQ ve CTA güçlendirildi; istenirse ayrı zengin bölümler eklenebilir.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

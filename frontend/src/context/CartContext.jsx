@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { trackAddToCart } from "@/lib/track";
 
 const CartContext = createContext(null);
 const KEY = "akademi_cart";
@@ -13,14 +14,15 @@ export function CartProvider({ children }) {
   }, [items]);
 
   const add = (course) => {
+    const price = course.discount_price != null ? course.discount_price : course.price;
     setItems((prev) => {
       if (prev.find((i) => i.course_id === course.course_id)) return prev;
-      const price = course.discount_price != null ? course.discount_price : course.price;
       return [...prev, {
         course_id: course.course_id, title: course.title, slug: course.slug,
         thumbnail: course.thumbnail, price, original_price: course.price,
       }];
     });
+    trackAddToCart({ id: course.course_id, title: course.title, price });
   };
 
   const remove = (course_id) => setItems((prev) => prev.filter((i) => i.course_id !== course_id));

@@ -151,7 +151,8 @@ DEFAULT_SETTINGS = {
         {"name": "Emre Demir", "role": "Freelance Pazarlamacı", "quote": "Meta reklamları eğitimi kariyerimi değiştirdi. Artık kendi ajansımı yönetiyorum.", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "thumbnail": "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg", "rating": 5},
         {"name": "Zeynep Arslan", "role": "Marka Yöneticisi", "quote": "SEO eğitimi ile web sitemizin organik trafiğini 6 ayda 3 katına çıkardık.", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "thumbnail": "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg", "rating": 5},
     ],
-    "tracking": {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": ""},
+    "tracking": {"head_code": "", "body_code": "", "ga_id": "", "meta_pixel_id": "", "google_ads_id": "", "google_ads_purchase_label": ""},
+    "seo": {"meta_title": "", "meta_description": "", "meta_keywords": "", "og_image": ""},
     "address": "Atatürk Mah. Ertuğrul Gazi Sok. Metropol İstanbul Sitesi Ataşehir /İstanbul ATAŞEHİR",
     "transfer_discount_pct": 2,
     "bank_accounts": [
@@ -198,6 +199,7 @@ async def get_public_settings() -> dict:
         "promo_text": doc.get("promo_text", ""),
         "testimonials": doc.get("testimonials", []),
         "tracking": doc.get("tracking", {}),
+        "seo": doc.get("seo", {}),
         "address": doc.get("address", ""),
         "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
         "payment_configured": paytr.get("configured", False),
@@ -329,6 +331,32 @@ def schedule_email(key: str, to_email: str, ctx: dict):
     asyncio.create_task(send_templated(key, to_email, ctx))
 
 
+def render_email_shell(inner_html: str, s: dict) -> str:
+    name = s.get("site_name", "Akademi")
+    email = s.get("contact_email", "")
+    phone = s.get("support_phone", "")
+    addr = s.get("address", "")
+    year = now_utc().year
+    contact = ""
+    if email:
+        contact += email + "<br/>"
+    if phone:
+        contact += phone + "<br/>"
+    if addr:
+        contact += addr + "<br/>"
+    return (
+        '<!DOCTYPE html><html lang="tr"><body style="margin:0;background:#0b0d13;font-family:Arial,Helvetica,sans-serif;color:#e5e7eb">'
+        '<table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0d13;padding:32px 12px"><tr><td align="center">'
+        '<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#10141e;border-radius:16px;overflow:hidden;border:1px solid #1f2637">'
+        f'<tr><td style="background:linear-gradient(135deg,#FFB800,#E5A600);padding:22px 32px"><span style="font-size:20px;font-weight:800;color:#07090f">{name}</span></td></tr>'
+        f'<tr><td style="padding:32px;font-size:15px;line-height:1.7;color:#cbd2e0">{inner_html}</td></tr>'
+        '<tr><td style="padding:24px 32px;background:#0b0d13;border-top:1px solid #1f2637;font-size:12px;color:#8a92a6;line-height:1.7">'
+        f'<strong style="color:#e5e7eb">{name}</strong><br/>{contact}'
+        f'<span style="color:#5b6270">© {year} {name}. Tüm hakları saklıdır.</span>'
+        '</td></tr></table></td></tr></table></body></html>'
+    )
+
+
 async def send_templated(key: str, to_email: str, ctx: dict):
     settings = await get_settings_doc()
     if not settings.get("email_enabled", True):
@@ -338,5 +366,6 @@ async def send_templated(key: str, to_email: str, ctx: dict):
         return
     ctx = {**ctx, "site_name": settings.get("site_name", "Akademi")}
     subject = render_template(tpl["subject"], ctx)
-    html = render_template(tpl["html"], ctx)
+    inner = render_template(tpl["html"], ctx)
+    html = render_email_shell(inner, settings)
     await send_email(to_email, subject, html, reply_to=settings.get("contact_email"))

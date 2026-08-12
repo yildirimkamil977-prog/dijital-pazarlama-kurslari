@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { GraduationCap, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { apiError } from "@/lib/api";
+import { trackRegister } from "@/lib/track";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

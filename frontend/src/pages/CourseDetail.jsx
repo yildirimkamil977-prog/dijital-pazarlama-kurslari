@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Seo } from "@/components/Seo";
+import { useSite } from "@/context/SiteContext";
+import { trackInitiateCheckout } from "@/lib/track";
 import { toast } from "sonner";
 
 export default function CourseDetail() {
@@ -16,6 +19,7 @@ export default function CourseDetail() {
   const navigate = useNavigate();
   const { add, has } = useCart();
   const { user } = useAuth();
+  const { settings } = useSite();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
@@ -33,11 +37,25 @@ export default function CourseDetail() {
   const price = hasDiscount ? course.discount_price : course.price;
   const inCart = has(course.course_id);
   const handleAdd = () => { add(course); toast.success("Sepete eklendi"); };
-  const handleBuy = () => { if (!inCart) add(course); navigate(user ? "/odeme" : "/giris"); };
+  const handleBuy = () => { if (!inCart) add(course); trackInitiateCheckout({ value: price, numItems: 1 }); navigate(user ? "/odeme" : "/giris"); };
   const openPreview = (l) => { if ((l.is_preview || course.enrolled) && l.video_url) setPreview(l); };
 
   return (
     <div className="relative">
+      <Seo
+        title={`${course.seo?.meta_title || course.title} | ${settings.site_name || "Akademi"}`}
+        description={course.seo?.meta_description || course.subtitle || (course.description || "").slice(0, 155)}
+        keywords={course.seo?.meta_keywords}
+        image={course.thumbnail}
+        jsonLd={[
+          { "@context": "https://schema.org", "@type": "Course", "name": course.title, "description": course.seo?.meta_description || course.subtitle || course.description, "provider": { "@type": "Organization", "name": settings.site_name || "Akademi" } },
+          { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": window.location.origin },
+            { "@type": "ListItem", "position": 2, "name": "Eğitimler", "item": `${window.location.origin}/kurslar` },
+            { "@type": "ListItem", "position": 3, "name": course.title },
+          ] },
+        ]}
+      />
       {/* Colorful gradient hero band */}
       <div className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
@@ -113,6 +131,21 @@ export default function CourseDetail() {
             <h2 className="font-heading font-bold text-xl tracking-tight mb-3">Açıklama</h2>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{course.description}</p>
           </div>
+
+          {course.reviews?.length > 0 && (
+            <div className="mt-10">
+              <h2 className="font-heading font-bold text-xl tracking-tight mb-5 flex items-center gap-2"><Star className="w-5 h-5 text-gold" fill="currentColor" /> Öğrenci Yorumları</h2>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {course.reviews.map((r, i) => (
+                  <div key={i} className="bg-ink-surface border border-white/5 rounded-2xl p-5" data-testid={`course-review-${i}`}>
+                    <div className="flex gap-0.5 mb-2">{Array.from({ length: r.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>
+                    <p className="text-sm text-foreground/90 leading-relaxed">"{r.quote}"</p>
+                    <div className="mt-3 flex items-center gap-3">{r.thumbnail && <img src={r.thumbnail} alt={r.name} className="w-9 h-9 rounded-full object-cover" />}<div><p className="text-sm font-semibold">{r.name}</p><p className="text-xs text-muted-foreground">{r.role}</p></div></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sticky card */}
@@ -155,6 +188,17 @@ export default function CourseDetail() {
           </motion.div>
         </div>
       </div>
+
+      <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-20">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gold/20 via-ink-surface to-ink-surface border border-gold/20 p-10 text-center">
+          <div className="absolute -top-16 -right-16 w-64 h-64 bg-gold/20 rounded-full blur-[100px]" />
+          <div className="relative">
+            <h2 className="font-heading font-black text-2xl sm:text-3xl tracking-tighter">Bu eğitimle bir adım öne geç.</h2>
+            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Ömür boyu erişim, doğrulanabilir sertifika ve uygulamalı içerikler seni bekliyor.</p>
+            {!course.enrolled && <Button onClick={handleBuy} className="mt-6 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-8 gold-glow" data-testid="cta-buy-bottom">Hemen Satın Al · {price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</Button>}
+          </div>
+        </div>
+      </section>
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl p-0 gap-0 bg-black border-white/10 overflow-hidden">
