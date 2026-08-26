@@ -1,0 +1,34 @@
+{
+  "summary": "Backend + frontend verification of the new Instructors feature. Backend pytest suite (/app/backend/tests/test_instructors.py) — 4/4 pass: public GET /api/instructors (lists Kamil with course_count=3), GET /api/instructors/kamil-yildirim (returns 3 courses), GET /api/courses (each course_summary carries instructor.slug=kamil-yildirim), and admin CRUD POST/PUT/DELETE /api/admin/instructors (roundtrip Create→List→Update→Delete). Frontend Playwright — all 8 requested flows verified: (1) /giris admin login → /yonetim redirect. (2) /yonetim/egitmenler renders Kamil Yıldırım card with '3 eğitim'. (3) add-instructor dialog + instructor-name/title/bio + save-instructor creates new card (new id inst_b00c6167e3b0). (4) edit-instructor-<id> re-opens dialog, changing title to 'Güncellenmiş Ünvan' + save-instructor reflects on card. (5) delete-instructor-<id> with dialog confirm removes new card while Kamil remains. (6) /yonetim/kurslar edit-course-<id> opens editor; data-testid=course-instructor is a native SELECT with 2 options ['','Eğitmen seçilmedi'] + ['inst_105af6c86623','Kamil Yıldırım — Dijital Pazarlama Uzmanı'], current value = inst_105af6c86623, save-course completes without error and course→instructor link persists (verified via API: all 3 courses instructor_id=inst_105af6c86623). (7) /kurslar/seo-ve-icerik-pazarlamasi → course-instructor-card visible with anchor href='/egitmen/kamil-yildirim'. (8) /egitmen/kamil-yildirim → instructor-avatar, instructor-bio and 3 course links visible. (9) /kurslar shows [course-instructor-seo-ve-icerik-pazarlamasi, course-instructor-meta-reklamlari-instagram-facebook, course-instructor-google-ads-ile-sifirdan-uzmanliga] all linking to /egitmen/kamil-yildirim.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Course editor", "issues": ["Only one real instructor option (plus empty placeholder) exists in seed data — course-instructor SELECT works but cannot fully validate 'change to a different instructor persists' with a single seeded instructor. Consider adding a second seeded instructor to make change-and-persist coverage stronger."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_instructors.py",
+    "/app/test_reports/pytest/instructors.xml"
+  ],
+  "action_items": [
+    "(Optional) Seed a second instructor so admin can actually test switching a course's instructor to a different value (currently only 'Kamil Yıldırım' exists)."
+  ],
+  "critical_code_review_comments": [
+    "routes_admin.py DELETE /admin/instructors/{id}: on delete, cascades $set instructor_id='' on all courses referencing it — this correctly orphans courses but silently leaves them without an instructor. Consider (a) blocking deletion when course_count>0, or (b) surfacing a UI warning showing the affected course count before confirming.",
+    "AdminInstructors delete-instructor uses window.confirm (native dialog) — works but inconsistent with the AlertDialog pattern used in AdminCourses (Vazgeç / Sil). Recommend converting to AlertDialog for UX consistency and better accessibility.",
+    "Tester note: during an earlier run a DOM-walk based approach for detecting the 'new instructor id' incorrectly matched a shared parent container and returned Kamil's id, causing the test to edit+delete Kamil. This is a TEST script issue, not a product bug — mitigated by using a before/after diff of edit-instructor-* testids. The seed data (Kamil + 3 course links) was restored via a one-off Mongo script; final state re-verified via /api/instructors.",
+    "InstructorPage: instructor-avatar renders even when avatar is an empty string — verify the img has proper fallback / alt handling (not tested visually in this iteration since Kamil has an avatar URL)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_instructors.py (new)"
+  ],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "100% (all 8 flows)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel (login at /giris)",
+  "seed_data_creation": "Restored seed instructor 'Kamil Yıldırım' (instructor_id=inst_105af6c86623, slug=kamil-yildirim) via /tmp/restore.py and re-linked all 3 courses (course_ids 42e213ed6670, 4f638d946cb2, 8b53eae5576a) to that instructor after an inadvertent delete during initial test run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Instructors feature is fully working. Testids on Eğitmenler page: add-instructor, instructor-name, instructor-title, instructor-bio, save-instructor, edit-instructor-<id>, delete-instructor-<id> (uses native window.confirm — accept via page.on('dialog', d=>d.accept())). Course editor testid course-instructor is a native <select>; save-course button navigates back to /yonetim/kurslar on success. To locate the id of a newly-added instructor reliably, diff the list of [data-testid^='edit-instructor-'] before vs after add — DO NOT walk up the DOM by matching text, as sibling instructor cards share ancestors and you'll pick up the wrong id. Do not delete Kamil Yıldırım (instructor_id=inst_105af6c86623). Public routes: /egitmen/<slug> (instructor detail), /kurslar/<slug> (course detail with course-instructor-card).",
+  "rca of the issue": "N/A — feature verified working end-to-end. Only note: an initial tester-side mistake in identifying the 'new' instructor's id caused an accidental delete of the seeded Kamil Yıldırım; this was fully self-recovered via a Mongo restore script and by then using a before/after id-diff strategy. Post-recovery all backend + frontend assertions pass."
+}

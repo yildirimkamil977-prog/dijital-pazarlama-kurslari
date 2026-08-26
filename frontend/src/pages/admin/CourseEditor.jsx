@@ -15,7 +15,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
   title: "", subtitle: "", description: "", category: "", level: "Tüm Seviyeler",
-  price: 0, discount_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım",
+  price: 0, discount_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
   is_published: false, what_you_learn: [], requirements: [], cross_sell_ids: [], modules: [],
 };
 
@@ -29,10 +29,12 @@ export default function CourseEditor() {
   const [openModules, setOpenModules] = useState({});
   const [openLessons, setOpenLessons] = useState({});
   const [allCourses, setAllCourses] = useState([]);
+  const [instructors, setInstructors] = useState([]);
 
   useEffect(() => {
     document.title = isNew ? "Yeni Kurs" : "Kurs Düzenle";
     api.get("/admin/courses").then(({ data }) => setAllCourses(data)).catch(() => {});
+    api.get("/admin/instructors").then(({ data }) => setInstructors(data)).catch(() => {});
     if (!isNew) {
       api.get(`/admin/courses/${id}`).then(({ data }) => setForm({ ...empty, ...data, cross_sell_ids: data.cross_sell_ids || [], discount_price: data.discount_price ?? null }))
         .catch(() => { toast.error("Kurs yüklenemedi"); navigate("/yonetim/kurslar"); }).finally(() => setLoading(false));
@@ -120,6 +122,14 @@ export default function CourseEditor() {
           <div><Label>Kısa Açıklama</Label><Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} className={inputCls} /></div>
           <div><Label>Detaylı Açıklama</Label><Textarea value={form.description} onChange={(e) => set("description", e.target.value)} className={inputCls} rows={4} /></div>
           <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={form.thumbnail} onChange={(v) => set("thumbnail", v)} testId="course-thumb-upload" /></div></div>
+          <div>
+            <Label>Eğitmen</Label>
+            <select value={form.instructor_id || ""} onChange={(e) => set("instructor_id", e.target.value)} className="w-full bg-ink border border-white/10 rounded-md h-10 px-3 mt-1.5 text-sm" data-testid="course-instructor">
+              <option value="">Eğitmen seçilmedi</option>
+              {instructors.map((i) => <option key={i.instructor_id} value={i.instructor_id}>{i.name}{i.title ? ` — ${i.title}` : ""}</option>)}
+            </select>
+            {instructors.length === 0 && <p className="text-xs text-muted-foreground mt-1.5">Henüz eğitmen yok. <span className="text-gold">Eğitmenler</span> sayfasından ekleyebilirsin.</p>}
+          </div>
           <div className="pt-4 border-t border-white/5"><h3 className="font-heading font-semibold text-sm mb-3">SEO (Arama Motoru)</h3>
             <div className="space-y-3">
               <div><Label>Meta Başlık</Label><Input value={form.meta_title || ""} onChange={(e) => set("meta_title", e.target.value)} className={inputCls} placeholder="Boş bırakılırsa kurs başlığı kullanılır" data-testid="course-meta-title" /></div>

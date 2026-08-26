@@ -131,6 +131,15 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Ücretsiz eğitim: fiyat 0 ise sepet/ödeme yerine "Ücretsiz Kayıt Ol" butonu. Giriş yapmış kullanıcı → doğrudan POST /payments/checkout (total 0 → status:free) → anında kayıt + /panel/izle/:courseId'ye yönlendirme. Misafir → /odeme (ücretsiz akış anında kaydeder). Backend zaten total<=0 için _enroll_free ile anında kayıt yapıyor.
 - Test: mobil (414px) ücretsiz kurs barı "Ücretsiz Kayıt Ol"/"Ücretsiz" ve ödeme kursu barı "Kayıt Ol"/"1.799₺"/"%10 indirim" ekran görüntüsüyle doğrulandı; misafir ücretsiz checkout curl ile status:free doğrulandı (test verisi temizlendi).
 
+## Iteration 11 (2026-06) — Eğitmen (Instructor) sistemi
+- Yeni `instructors` koleksiyonu + admin CRUD (GET/POST/PUT/DELETE /api/admin/instructors): ad, ünvan, biyografi, profil resmi (ImageUpload). Admin panelde "Eğitmenler" menüsü (/yonetim/egitmenler, AdminInstructors.jsx) — kart listesi, ekle/düzenle/sil, her eğitmende bağlı kurs sayısı.
+- Kurslara `instructor_id` alanı; Kurs Editörü'nde eğitmen seçim dropdown'ı (course-instructor). Silinen eğitmenin kursları instructor_id='' olarak boşaltılır.
+- Public: GET /api/instructors (liste + course_count), GET /api/instructors/{slug} (biyografi + o eğitmenin yayındaki kursları). course_summary artık instructor objesi (name/slug/title/avatar) taşıyor.
+- Eğitmen sayfası: /egitmen/:slug (InstructorPage.jsx) — avatar, ad, ünvan, biyografi + eğitmene ait kurs kartları.
+- Kurs kartlarında (anasayfa + Kurslar sayfası) eğitmen mini-satırı (avatar + ad/ünvan, eğitmen sayfasına link). Kurs Detay'da açıklama altında zengin eğitmen kartı (link).
+- Seed: "Kamil Yıldırım" eğitmeni (slug kamil-yildirim) oluşturuldu ve mevcut 3 kurs ona bağlandı.
+- Test: iteration_6.json — backend 4/4 (pytest), frontend 8/8 (admin CRUD, editör atama kalıcılığı, kurs detay/liste/eğitmen sayfası). Ekran görüntüleriyle de doğrulandı.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Layers, Clock, CheckCircle2, ArrowRight, Award, Infinity as InfinityIcon } from "lucide-react";
+import { Loader2, Layers, Clock, CheckCircle2, ArrowRight, Award, Infinity as InfinityIcon, User } from "lucide-react";
 import api, { formatPrice, formatDuration } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +47,13 @@ export default function Courses() {
                 <div className="p-2 lg:p-4">
                   <h2 className="font-heading font-bold text-2xl sm:text-3xl tracking-tight leading-tight">{c.title}</h2>
                   <p className="mt-3 text-muted-foreground leading-relaxed">{c.subtitle}</p>
+
+                  {c.instructor && (
+                    <Link to={`/egitmen/${c.instructor.slug}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2.5 mt-4 w-fit hover:opacity-80 transition-opacity duration-200" data-testid={`course-instructor-${c.slug}`}>
+                      {c.instructor.avatar ? <img src={c.instructor.avatar} alt={c.instructor.name} className="w-9 h-9 rounded-full object-cover border border-white/10" /> : <span className="w-9 h-9 rounded-full bg-gold/15 flex items-center justify-center"><User className="w-4 h-4 text-gold" /></span>}
+                      <span className="leading-tight"><span className="block text-sm font-medium text-foreground">{c.instructor.name}</span>{c.instructor.title && <span className="block text-xs text-muted-foreground">{c.instructor.title}</span>}</span>
+                    </Link>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-4 mt-5 text-sm text-muted-foreground">
                     <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-gold" /> {c.lesson_count} ders</span>

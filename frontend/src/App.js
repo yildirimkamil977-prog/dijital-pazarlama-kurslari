@@ -11,6 +11,7 @@ import Home from "@/pages/Home";
 import About from "@/pages/About";
 import Courses from "@/pages/Courses";
 import CourseDetail from "@/pages/CourseDetail";
+import InstructorPage from "@/pages/InstructorPage";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import PaymentResult from "@/pages/PaymentResult";
@@ -37,6 +38,7 @@ function AppRouter() {
         <Route path="/hakkimda" element={<About />} />
         <Route path="/kurslar" element={<Courses />} />
         <Route path="/kurslar/:slug" element={<CourseDetail />} />
+        <Route path="/egitmen/:slug" element={<InstructorPage />} />
         <Route path="/sepet" element={<Cart />} />
         <Route path="/iletisim" element={<Contact />} />
         <Route path="/odeme" element={<Checkout />} />

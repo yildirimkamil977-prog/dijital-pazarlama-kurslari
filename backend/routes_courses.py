@@ -20,6 +20,7 @@ def course_summary(c: dict) -> dict:
         "category": c.get("category", ""), "level": c.get("level", "Tüm Seviyeler"),
         "price": c.get("price", 0), "discount_price": c.get("discount_price"),
         "thumbnail": c.get("thumbnail", ""), "instructor_name": c.get("instructor_name", ""),
+        "instructor_id": c.get("instructor_id", ""),
         "is_published": c.get("is_published", False),
         "lesson_count": len(lessons), "total_seconds": total_seconds,
         "what_you_learn": c.get("what_you_learn", []),
@@ -29,6 +30,38 @@ def course_summary(c: dict) -> dict:
 @router.get("/settings/public")
 async def settings_public():
     return await get_public_settings()
+
+
+def instructor_card(d: dict) -> dict:
+    return {"instructor_id": d["instructor_id"], "slug": d["slug"], "name": d["name"],
+            "title": d.get("title", ""), "bio": d.get("bio", ""), "avatar": d.get("avatar", "")}
+
+
+async def _instructor_map() -> dict:
+    docs = await db.instructors.find({}, {"_id": 0}).to_list(300)
+    return {d["instructor_id"]: instructor_card(d) for d in docs}
+
+
+@router.get("/instructors")
+async def public_instructors():
+    docs = await db.instructors.find({}, {"_id": 0}).sort("created_at", 1).to_list(200)
+    out = []
+    for d in docs:
+        card = instructor_card(d)
+        card["course_count"] = await db.courses.count_documents({"instructor_id": d["instructor_id"], "is_published": True})
+        out.append(card)
+    return out
+
+
+@router.get("/instructors/{slug}")
+async def public_instructor(slug: str):
+    d = await db.instructors.find_one({"slug": slug}, {"_id": 0})
+    if not d:
+        raise HTTPException(status_code=404, detail="Eğitmen bulunamadı")
+    card = instructor_card(d)
+    docs = await db.courses.find({"instructor_id": d["instructor_id"], "is_published": True}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    card["courses"] = [course_summary(c) for c in docs]
+    return card
 
 
 @router.get("/uploads/{upload_id}")
@@ -49,7 +82,13 @@ async def list_courses(category: Optional[str] = None):
     if category:
         q["category"] = category
     docs = await db.courses.find(q, {"_id": 0}).sort("created_at", -1).to_list(200)
-    return [course_summary(c) for c in docs]
+    imap = await _instructor_map()
+    result = []
+    for c in docs:
+        s = course_summary(c)
+        s["instructor"] = imap.get(c.get("instructor_id"))
+        result.append(s)
+    return result
 
 
 @router.get("/courses/{slug}")
@@ -81,6 +120,12 @@ async def get_course(slug: str, request: Request):
         modules.append({"id": m["id"], "title": m["title"], "lessons": lessons})
     summary["modules"] = modules
     summary["enrolled"] = enrolled
+    inst = None
+    if c.get("instructor_id"):
+        idoc = await db.instructors.find_one({"instructor_id": c["instructor_id"]}, {"_id": 0})
+        if idoc:
+            inst = instructor_card(idoc)
+    summary["instructor"] = inst
     summary["seo"] = {
         "meta_title": c.get("meta_title", ""),
         "meta_description": c.get("meta_description", ""),

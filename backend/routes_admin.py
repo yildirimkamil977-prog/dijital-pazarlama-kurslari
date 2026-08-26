@@ -52,6 +52,7 @@ class CourseIn(BaseModel):
     discount_price: Optional[float] = None
     thumbnail: str = ""
     instructor_name: str = ""
+    instructor_id: str = ""
     is_published: bool = False
     what_you_learn: List[str] = []
     requirements: List[str] = []
@@ -122,6 +123,57 @@ async def update_course(course_id: str, body: CourseIn, request: Request):
 async def delete_course(course_id: str, request: Request):
     await require_admin(request)
     await db.courses.delete_one({"course_id": course_id})
+    return {"ok": True}
+
+
+# ---------------- Instructors ----------------
+class InstructorIn(BaseModel):
+    name: str
+    title: str = ""
+    bio: str = ""
+    avatar: str = ""
+
+
+@router.get("/instructors")
+async def admin_list_instructors(request: Request):
+    await require_admin(request)
+    docs = await db.instructors.find({}, {"_id": 0}).sort("created_at", 1).to_list(200)
+    for d in docs:
+        d["course_count"] = await db.courses.count_documents({"instructor_id": d["instructor_id"]})
+    return docs
+
+
+@router.post("/instructors")
+async def create_instructor(body: InstructorIn, request: Request):
+    await require_admin(request)
+    slug = slugify(body.name)
+    if await db.instructors.find_one({"slug": slug}):
+        slug = f"{slug}-{new_id('')[1:6]}"
+    doc = body.model_dump()
+    doc.update({"instructor_id": new_id("inst"), "slug": slug,
+                "created_at": now_utc().isoformat(), "updated_at": now_utc().isoformat()})
+    await db.instructors.insert_one({**doc})
+    doc.pop("_id", None)
+    return doc
+
+
+@router.put("/instructors/{instructor_id}")
+async def update_instructor(instructor_id: str, body: InstructorIn, request: Request):
+    await require_admin(request)
+    existing = await db.instructors.find_one({"instructor_id": instructor_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Eğitmen bulunamadı")
+    doc = body.model_dump()
+    doc["updated_at"] = now_utc().isoformat()
+    await db.instructors.update_one({"instructor_id": instructor_id}, {"$set": doc})
+    return await db.instructors.find_one({"instructor_id": instructor_id}, {"_id": 0})
+
+
+@router.delete("/instructors/{instructor_id}")
+async def delete_instructor(instructor_id: str, request: Request):
+    await require_admin(request)
+    await db.instructors.delete_one({"instructor_id": instructor_id})
+    await db.courses.update_many({"instructor_id": instructor_id}, {"$set": {"instructor_id": ""}})
     return {"ok": True}
 
 

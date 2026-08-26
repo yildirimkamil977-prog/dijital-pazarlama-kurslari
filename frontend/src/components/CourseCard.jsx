@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PlayCircle, Clock, Layers } from "lucide-react";
+import { PlayCircle, Clock, Layers, User } from "lucide-react";
 import { formatPrice, formatDuration } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 
@@ -38,6 +38,13 @@ export function CourseCard({ course, index = 0 }) {
           <span className="flex items-center gap-1.5"><Layers className="w-3.5 h-3.5" /> {course.lesson_count} ders</span>
           <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {formatDuration(course.total_seconds)}</span>
         </div>
+
+        {course.instructor && (
+          <div className="flex items-center gap-2 mt-3">
+            {course.instructor.avatar ? <img src={course.instructor.avatar} alt={course.instructor.name} className="w-6 h-6 rounded-full object-cover border border-white/10" /> : <span className="w-6 h-6 rounded-full bg-gold/15 flex items-center justify-center"><User className="w-3.5 h-3.5 text-gold" /></span>}
+            <span className="text-xs text-muted-foreground">{course.instructor.name}</span>
+          </div>
+        )}
 
         <div className="flex items-end justify-between mt-4 pt-4 border-t border-white/5">
           <div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap, GraduationCap } from "lucide-react";
 import api, { formatPrice, formatDuration, apiError } from "@/lib/api";
@@ -143,6 +143,25 @@ export default function CourseDetail() {
             <h2 className="font-heading font-bold text-xl tracking-tight mb-3">Açıklama</h2>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{course.description}</p>
           </div>
+
+          {course.instructor && (
+            <div className="mt-10" data-testid="course-instructor-card">
+              <h2 className="font-heading font-bold text-xl tracking-tight mb-4">Eğitmen</h2>
+              <Link to={`/egitmen/${course.instructor.slug}`} className="flex items-start gap-5 bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-2xl p-6 hover:border-gold/40 transition-colors duration-300 group">
+                {course.instructor.avatar ? (
+                  <img src={course.instructor.avatar} alt={course.instructor.name} className="w-20 h-20 rounded-2xl object-cover border border-white/10 shrink-0" />
+                ) : (
+                  <span className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0"><Users className="w-9 h-9 text-gold" /></span>
+                )}
+                <div className="min-w-0">
+                  <p className="font-heading font-semibold text-lg group-hover:text-gold transition-colors duration-200">{course.instructor.name}</p>
+                  {course.instructor.title && <p className="text-sm text-gold">{course.instructor.title}</p>}
+                  {course.instructor.bio && <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-3">{course.instructor.bio}</p>}
+                  <span className="inline-flex items-center gap-1 text-xs text-gold mt-3 font-medium">Profili görüntüle →</span>
+                </div>
+              </Link>
+            </div>
+          )}
 
           {course.reviews?.length > 0 && (
             <div className="mt-10">
