@@ -125,6 +125,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - checkout ve validate-discount artık items (course_id/price) gönderiyor/işliyor.
 - Kısmen: anasayfa/kurs detay için ek büyük animasyonlu satış bölümleri — mevcut zengin alanlar (hero video, istatistik, logolar, dikey video yorum slider, FAQ, CTA) korunur; istenirse yeni bölümler eklenebilir.
 
+## Iteration 10 (2026-06) — Mobil sticky CTA + "Kayıt Ol" + Ücretsiz eğitim akışı
+- Kurs Detay mobilde ekranda sabit alt bar (lg:hidden, fixed bottom): fiyat + üstü çizili liste fiyatı + indirim rozeti + kayıt butonu (data-testid mobile-buy-bar / mobile-enroll-btn / mobile-price). Sayfaya pb-24 lg:pb-0 eklendi.
+- Tüm "Satın Al" butonları "Kayıt Ol" olarak değiştirildi (Kurs Detay sticky kart "Hemen Kayıt Ol", alt CTA "Hemen Kayıt Ol · fiyat", mobil bar "Kayıt Ol").
+- Ücretsiz eğitim: fiyat 0 ise sepet/ödeme yerine "Ücretsiz Kayıt Ol" butonu. Giriş yapmış kullanıcı → doğrudan POST /payments/checkout (total 0 → status:free) → anında kayıt + /panel/izle/:courseId'ye yönlendirme. Misafir → /odeme (ücretsiz akış anında kaydeder). Backend zaten total<=0 için _enroll_free ile anında kayıt yapıyor.
+- Test: mobil (414px) ücretsiz kurs barı "Ücretsiz Kayıt Ol"/"Ücretsiz" ve ödeme kursu barı "Kayıt Ol"/"1.799₺"/"%10 indirim" ekran görüntüsüyle doğrulandı; misafir ücretsiz checkout curl ile status:free doğrulandı (test verisi temizlendi).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

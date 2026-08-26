@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap } from "lucide-react";
-import api, { formatPrice, formatDuration } from "@/lib/api";
+import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap, GraduationCap } from "lucide-react";
+import api, { formatPrice, formatDuration, apiError } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
 import { useSite } from "@/context/SiteContext";
-import { trackInitiateCheckout } from "@/lib/track";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/track";
 import { toast } from "sonner";
 
 export default function CourseDetail() {
@@ -23,6 +23,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState(null);
+  const [enrolling, setEnrolling] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -36,12 +37,23 @@ export default function CourseDetail() {
   const hasDiscount = course.discount_price != null && course.discount_price < course.price;
   const price = hasDiscount ? course.discount_price : course.price;
   const inCart = has(course.course_id);
+  const isFree = price === 0;
   const handleAdd = () => { add(course); toast.success("Sepete eklendi"); };
   const handleBuy = () => { if (!inCart) add(course); trackInitiateCheckout({ value: price, numItems: 1 }); navigate(user ? "/odeme" : "/giris"); };
+  const handleFreeEnroll = async () => {
+    if (!user) { if (!inCart) add(course); navigate("/odeme"); return; }
+    setEnrolling(true);
+    try {
+      const { data } = await api.post("/payments/checkout", { items: [{ course_id: course.course_id }], payment_method: "paytr", billing: {} });
+      trackPurchase({ orderId: data.order_id, value: 0, items: [{ id: course.course_id, title: course.title, price: 0 }] });
+      toast.success("Kayıt tamamlandı! Eğitime yönlendiriliyorsun.");
+      navigate(`/panel/izle/${course.course_id}`);
+    } catch (e) { toast.error(apiError(e)); } finally { setEnrolling(false); }
+  };
   const openPreview = (l) => { if ((l.is_preview || course.enrolled) && l.video_url) setPreview(l); };
 
   return (
-    <div className="relative">
+    <div className="relative pb-24 lg:pb-0">
       <Seo
         title={`${course.seo?.meta_title || course.title} | ${settings.site_name || "Akademi"}`}
         description={course.seo?.meta_description || course.subtitle || (course.description || "").slice(0, 155)}
@@ -179,10 +191,18 @@ export default function CourseDetail() {
                   </div>
                   {hasDiscount && <Badge className="mt-2 bg-destructive/15 text-red-400 border-destructive/20">%{Math.round((1 - course.discount_price / course.price) * 100)} indirim</Badge>}
                   <div className="mt-6 space-y-3">
-                    <Button onClick={handleBuy} data-testid="buy-now" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">Hemen Satın Al</Button>
-                    <Button onClick={handleAdd} disabled={inCart} variant="outline" data-testid="add-to-cart" className="w-full h-12 border-white/15">
-                      {inCart ? <><Check className="w-4 h-4 mr-2" /> Sepette</> : <><ShoppingCart className="w-4 h-4 mr-2" /> Sepete Ekle</>}
-                    </Button>
+                    {isFree ? (
+                      <Button onClick={handleFreeEnroll} disabled={enrolling} data-testid="free-enroll" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">
+                        {enrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : <><GraduationCap className="w-4 h-4 mr-2" /> Ücretsiz Kayıt Ol</>}
+                      </Button>
+                    ) : (
+                      <>
+                        <Button onClick={handleBuy} data-testid="buy-now" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">Hemen Kayıt Ol</Button>
+                        <Button onClick={handleAdd} disabled={inCart} variant="outline" data-testid="add-to-cart" className="w-full h-12 border-white/15">
+                          {inCart ? <><Check className="w-4 h-4 mr-2" /> Sepette</> : <><ShoppingCart className="w-4 h-4 mr-2" /> Sepete Ekle</>}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </>
               )}
@@ -232,7 +252,7 @@ export default function CourseDetail() {
           <div className="relative">
             <h2 className="font-heading font-black text-2xl sm:text-3xl tracking-tighter">Bu eğitimle bir adım öne geç.</h2>
             <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Ömür boyu erişim, doğrulanabilir sertifika ve uygulamalı içerikler seni bekliyor.</p>
-            {!course.enrolled && <Button onClick={handleBuy} className="mt-6 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-8 gold-glow" data-testid="cta-buy-bottom">Hemen Satın Al · {price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</Button>}
+            {!course.enrolled && <Button onClick={isFree ? handleFreeEnroll : handleBuy} disabled={enrolling} className="mt-6 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-8 gold-glow" data-testid="cta-buy-bottom">{isFree ? "Ücretsiz Kayıt Ol" : `Hemen Kayıt Ol · ${formatPrice(price)} ₺`}</Button>}
           </div>
         </div>
       </section>
@@ -243,6 +263,22 @@ export default function CourseDetail() {
           <div className="p-4 bg-ink-surface"><p className="font-heading font-semibold text-sm">{preview?.title}</p></div>
         </DialogContent>
       </Dialog>
+
+      {/* MOBILE STICKY BUY BAR */}
+      {!course.enrolled && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-3" data-testid="mobile-buy-bar">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              {hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatPrice(course.price)} ₺</span>}
+              <span className="font-heading font-black text-xl text-gold" data-testid="mobile-price">{isFree ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+              {hasDiscount && <Badge className="bg-destructive/15 text-red-400 border-destructive/20 text-[10px]">%{Math.round((1 - course.discount_price / course.price) * 100)} indirim</Badge>}
+            </div>
+          </div>
+          <Button onClick={isFree ? handleFreeEnroll : handleBuy} disabled={enrolling} data-testid="mobile-enroll-btn" className="bg-gold hover:bg-gold-hover text-ink font-bold h-11 px-6 shrink-0">
+            {enrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : isFree ? "Ücretsiz Kayıt Ol" : "Kayıt Ol"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
