@@ -152,6 +152,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - İçerik güvenliği (Ders İzleyici): video alanına giriş yapan öğrencinin e-postasıyla dinamik filigran (büyük çapraz + sağ alt köşe), sağ tık (context menu) ve metin seçimi engellendi. Backend zaten ders video URL'lerini ve kaynakları yalnızca kayıtlı öğrenciye sunuyor (player endpoint kayıtsıza 403). Not: iframe/DevTools ile tam DRM mümkün değil; filigran gündelik hırsızlığı/paylaşımı caydırır, erişim kontrolü asıl korumadır.
 - Test: iteration_7.json — backend 4/4 (paid_amount paid=1999 & free=0, player 403/200), frontend %100 (rozet '1.999 ₺ ödendi', filigran e-posta, sağ tık engeli). Test kullanıcıları temizlendi.
 
+## Iteration 14 (2026-06) — Video oynatıcı YouTube Hata 153 fix + Vimeo geçişi
+- Kök neden: Demo derslerin YouTube video ID'si (hSHZzC9bhkc) gömülmeye kapalıydı → "Video oynatıcı yapılandırma hatası / Hata 153". Eğitmen tüm videoları Vimeo'dan sunmak istiyor.
+- Fix: `frontend/src/lib/video.js` → `toEmbed()` yardımcı fonksiyonu (Vimeo `vimeo.com/{id}`, `vimeo.com/{id}/{hash}`, `player.vimeo.com/*` ve YouTube `watch?v=`, `youtu.be`, `/embed/` linklerini doğru iframe embed'ine çevirir; Vimeo'da dnt=1 + indirme/pip/badge kapalı). CoursePlayer ve CourseDetail önizleme iframe'i bu fonksiyonu kullanıyor. Player iframe'ine referrerPolicy=no-referrer.
+- Veri: Tüm demo ders videoları + hero + testimonial videoları çalışan Vimeo örneğine (vimeo.com/76979871) taşındı; server.py seed_default_data ve deps.py varsayılanları da Vimeo yapıldı (fresh DB idempotent). Bozuk test testimonial'ları (Ali/Ayşe) varsayılanlara sıfırlandı.
+- A11y: CourseDetail önizleme dialog'una sr-only DialogTitle eklendi.
+- Test: iteration_8.json — backend 4/4 (player vimeo URL, non-enrolled 403, hero vimeo, önizleme youtube yok), frontend %100 (lesson-video src = player.vimeo.com, Hata 153 yok, filigran + sağ tık engeli korunuyor). NOT: Seçilen demo Vimeo örneği bu ortamda Vimeo'nun kendi "player error"ını gösterebilir; eğitmen kendi Vimeo videolarını (domain embed izinli) ekleyince sorunsuz oynar. Pipeline doğru.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

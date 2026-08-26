@@ -202,7 +202,7 @@ export default function CourseEditor() {
                                               </div>
                                               {lOpen && (
                                                 <div className="px-3 pb-3 space-y-2 border-t border-white/5 pt-3">
-                                                  <Input value={l.video_url} onChange={(e) => updLesson(mi, li, "video_url", e.target.value)} className="bg-ink border-white/10 text-sm" placeholder="Video embed linki (örn: https://www.youtube.com/embed/XXXX)" />
+                                                  <Input value={l.video_url} onChange={(e) => updLesson(mi, li, "video_url", e.target.value)} className="bg-ink border-white/10 text-sm" placeholder="Video linki (Vimeo önerilir: https://vimeo.com/XXXXXXXX)" />
                                                   <Textarea value={l.description} onChange={(e) => updLesson(mi, li, "description", e.target.value)} className="bg-ink border-white/10 text-sm" rows={2} placeholder="Kısa ders açıklaması" />
                                                   <div><Label className="text-xs text-muted-foreground">Detaylı Ders Notu</Label>
                                                     <Textarea value={l.notes} onChange={(e) => updLesson(mi, li, "notes", e.target.value)} className="bg-ink border-white/10 text-sm mt-1" rows={4} placeholder="Öğrencinin ders altında göreceği detaylı notlar, adımlar, ipuçları..." data-testid={`lesson-notes-${mi}-${li}`} /></div>

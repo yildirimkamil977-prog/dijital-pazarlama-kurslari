@@ -122,12 +122,12 @@ async def seed_courses():
             "requirements": ["Ön bilgi gerekmez", "Bir Google hesabı"],
             "modules": [
                 {"id": new_id("mod"), "title": "Giriş ve Hesap Kurulumu", "lessons": [
-                    {"id": new_id("les"), "title": "Google Ads'e Genel Bakış", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Google Ads ekosistemine giriş.", "duration_seconds": 480, "is_preview": True, "resources": []},
-                    {"id": new_id("les"), "title": "Hesap ve Faturalandırma Kurulumu", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Adım adım hesap kurulumu.", "duration_seconds": 600, "is_preview": False, "resources": [{"name": "Kurulum Checklist.pdf", "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"}]},
+                    {"id": new_id("les"), "title": "Google Ads'e Genel Bakış", "video_url": "https://vimeo.com/76979871", "description": "Google Ads ekosistemine giriş.", "duration_seconds": 480, "is_preview": True, "resources": []},
+                    {"id": new_id("les"), "title": "Hesap ve Faturalandırma Kurulumu", "video_url": "https://vimeo.com/76979871", "description": "Adım adım hesap kurulumu.", "duration_seconds": 600, "is_preview": False, "resources": [{"name": "Kurulum Checklist.pdf", "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"}]},
                 ]},
                 {"id": new_id("mod"), "title": "Kampanya Stratejileri", "lessons": [
-                    {"id": new_id("les"), "title": "Arama Ağı Kampanyaları", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Dönüşüm odaklı arama kampanyaları.", "duration_seconds": 900, "is_preview": False, "resources": []},
-                    {"id": new_id("les"), "title": "Teklif Stratejileri", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Akıllı teklif türleri.", "duration_seconds": 720, "is_preview": False, "resources": []},
+                    {"id": new_id("les"), "title": "Arama Ağı Kampanyaları", "video_url": "https://vimeo.com/76979871", "description": "Dönüşüm odaklı arama kampanyaları.", "duration_seconds": 900, "is_preview": False, "resources": []},
+                    {"id": new_id("les"), "title": "Teklif Stratejileri", "video_url": "https://vimeo.com/76979871", "description": "Akıllı teklif türleri.", "duration_seconds": 720, "is_preview": False, "resources": []},
                 ]},
             ],
         },
@@ -144,8 +144,8 @@ async def seed_courses():
             "requirements": ["Ön bilgi gerekmez"],
             "modules": [
                 {"id": new_id("mod"), "title": "Temeller", "lessons": [
-                    {"id": new_id("les"), "title": "Meta Reklam Ekosistemi", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Tanıtım dersi.", "duration_seconds": 420, "is_preview": True, "resources": []},
-                    {"id": new_id("les"), "title": "Business Suite Kurulumu", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Kurulum.", "duration_seconds": 540, "is_preview": False, "resources": []},
+                    {"id": new_id("les"), "title": "Meta Reklam Ekosistemi", "video_url": "https://vimeo.com/76979871", "description": "Tanıtım dersi.", "duration_seconds": 420, "is_preview": True, "resources": []},
+                    {"id": new_id("les"), "title": "Business Suite Kurulumu", "video_url": "https://vimeo.com/76979871", "description": "Kurulum.", "duration_seconds": 540, "is_preview": False, "resources": []},
                 ]},
             ],
         },
@@ -161,8 +161,8 @@ async def seed_courses():
             "requirements": ["Temel web bilgisi faydalı"],
             "modules": [
                 {"id": new_id("mod"), "title": "SEO Temelleri", "lessons": [
-                    {"id": new_id("les"), "title": "Arama Motorları Nasıl Çalışır?", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Giriş.", "duration_seconds": 360, "is_preview": True, "resources": []},
-                    {"id": new_id("les"), "title": "Anahtar Kelime Araştırması", "video_url": "https://www.youtube.com/embed/hSHZzC9bhkc", "description": "Araçlar ve yöntemler.", "duration_seconds": 660, "is_preview": False, "resources": []},
+                    {"id": new_id("les"), "title": "Arama Motorları Nasıl Çalışır?", "video_url": "https://vimeo.com/76979871", "description": "Giriş.", "duration_seconds": 360, "is_preview": True, "resources": []},
+                    {"id": new_id("les"), "title": "Anahtar Kelime Araştırması", "video_url": "https://vimeo.com/76979871", "description": "Araçlar ve yöntemler.", "duration_seconds": 660, "is_preview": False, "resources": []},
                 ]},
             ],
         },

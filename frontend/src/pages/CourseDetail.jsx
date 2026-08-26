@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { toEmbed } from "@/lib/video";
 import { motion } from "framer-motion";
 import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap, GraduationCap } from "lucide-react";
 import api, { formatPrice, formatDuration, apiError } from "@/lib/api";
@@ -278,7 +279,8 @@ export default function CourseDetail() {
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl p-0 gap-0 bg-black border-white/10 overflow-hidden">
-          <div className="aspect-video">{preview?.video_url && <iframe title={preview.title} src={preview.video_url + (preview.video_url.includes("?") ? "&" : "?") + "autoplay=1"} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="preview-iframe" />}</div>
+          <DialogTitle className="sr-only">{preview?.title || "Video önizleme"}</DialogTitle>
+          <div className="aspect-video">{preview?.video_url && <iframe title={preview.title} src={`${toEmbed(preview.video_url)}${toEmbed(preview.video_url).includes("?") ? "&" : "?"}autoplay=1`} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="preview-iframe" />}</div>
           <div className="p-4 bg-ink-surface"><p className="font-heading font-semibold text-sm">{preview?.title}</p></div>
         </DialogContent>
       </Dialog>

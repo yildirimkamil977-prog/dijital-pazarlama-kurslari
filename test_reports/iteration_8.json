@@ -1,0 +1,39 @@
+{
+  "summary": "Verified Vimeo migration fix (YouTube 'Hata 153' -> Vimeo). Backend pytest 4/4 pass: (1) /api/my/courses/course_4f638d946cb2/player returns both lessons with vimeo.com/76979871 (no youtube), (2) newly-registered non-enrolled student gets 403 on the player endpoint, (3) GET /api/settings/public hero_video_url='https://vimeo.com/76979871' (Ali/Ayşe testimonials skipped as leftover test-pollution from iteration2 seeds), (4) public course-by-slug preview lessons contain no youtube URLs. Frontend Playwright on /panel/izle/course_4f638d946cb2 as admin (yildirimkamil977@gmail.com): lesson-video iframe src = https://player.vimeo.com/video/76979871?dnt=1&title=0&byline=0&portrait=0&pip=0&badge=0, no Turkish 'Hata 153 / yapılandırma hatası' text on page, video-watermark shows 'yildirimkamil977@gmail.com', clicking the second curriculum item (Business Suite Kurulumu) keeps a player.vimeo.com src, right-click on player-video-area is defaultPrevented=true. Course detail preview at /kurslar/seo-ve-icerik-pazarlamasi: clicking 'Önizlemeyi izle' opens preview-iframe with src=https://player.vimeo.com/video/76979871?dnt=1&...&autoplay=1. Non-enrolled 403 regression verified via backend test.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/settings/public testimonials", "issue": "Testimonials array contains stale test-fixture rows from a prior iteration (name='Ali' video_url='https://youtube.com/embed/1', name='Ayşe' empty). Not part of current bug, but the fix statement claims 'testimonial videos migrated to Vimeo' — those two rows should be cleaned or the seed re-run so live testimonials match deps.py (Selin/Emre/Zeynep with vimeo.com URLs)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Course player + Course-detail preview", "issue": "The Vimeo iframe (player.vimeo.com/video/76979871) itself renders Vimeo's built-in 'Player error — The player is having trouble' card for the demo video. The frontend fix is correct (src is player.vimeo.com, no YouTube 153 error card), but the chosen sample video 76979871 is not reliably playable via Vimeo's embed in this environment. Consider switching the demo lesson/hero video to a Vimeo asset the account controls (or a known-stable public Vimeo Staff Pick) so users don't see Vimeo's error UI on the demo.", "affected_selectors": ["[data-testid='lesson-video']", "[data-testid='preview-iframe']"]}
+    ],
+    "design_issues": [
+      {"screen": "Course detail preview dialog", "issues": ["DialogContent missing DialogTitle -> a11y console warning about screen readers; not blocking but easy to fix by wrapping title with VisuallyHidden."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_vimeo_migration.py",
+    "/app/test_reports/pytest/vimeo.xml"
+  ],
+  "action_items": [
+    "Optional: replace demo Vimeo ID 76979871 with a more reliable embeddable Vimeo asset — current sample shows Vimeo's own 'Player error' inside the iframe on both the player and preview.",
+    "Optional: clean stale testimonial fixtures (Ali/Ayşe with youtube.com URL) polluted by iteration2 tests so /api/settings/public matches the migrated Vimeo data in deps.py.",
+    "Optional: add DialogTitle (or VisuallyHidden wrapper) to the preview dialog for a11y."
+  ],
+  "critical_code_review_comments": [
+    "video.js toEmbed: correctly handles vimeo.com/{id}, vimeo.com/{id}/{h}, player.vimeo.com/*, youtu.be, youtube.com/watch?v= and youtube.com/embed/. Fine.",
+    "server.py seed_default_data still assigns 'https://www.youtube.com/embed/hSHZzC9bhkc' to lesson.video_url for fresh DBs (Google Ads, SEO, Sosyal Medya). The current live DB already has vimeo migrated for Meta course, but a fresh seed run would reintroduce YouTube demo videos in other courses. Recommend updating seed to vimeo.com/76979871 (or a chosen embeddable ID) to make the fix idempotent across environments."
+  ],
+  "updated_files": ["/app/backend/tests/test_vimeo_migration.py"],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Non-enrolled student auto-registered per run as TEST_nonenr_<uuid>@example.com.",
+  "seed_data_creation": "None (only ephemeral TEST_nonenr_* students registered).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Vimeo migration is verified at the URL/embed level: player-endpoint returns vimeo.com URLs, frontend toEmbed converts to https://player.vimeo.com/video/{id}?dnt=1&... in both [data-testid=lesson-video] and [data-testid=preview-iframe]. If future changes touch video URLs, re-run /app/backend/tests/test_vimeo_migration.py (needs REACT_APP_BACKEND_URL exported). server.py seed_default_data still contains youtube.com/embed/hSHZzC9bhkc for non-Meta courses; the live DB was manually migrated only for Meta.",
+  "rca of the issue": "Original bug: YouTube video hSHZzC9bhkc had embedding disabled -> YouTube returned 'Hata 153'. Fix migrated demo lesson/hero/testimonial video_urls in DB (Meta course + hero) to vimeo.com/76979871 and introduced frontend toEmbed() that converts vimeo.com/{id} to player.vimeo.com/video/{id}?dnt=1&title=0&byline=0&portrait=0&pip=0&badge=0. CoursePlayer iframe and CourseDetail preview dialog both consume toEmbed. Verified: no YouTube error 153, iframes host = player.vimeo.com, watermark + right-click block regressions still work, 403 for non-enrolled still works."
+}
