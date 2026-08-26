@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -16,16 +17,15 @@ const B_STATUS = { pending: ["Beklemede", "bg-gold/15 text-gold border-gold/20"]
 export default function AdminConsulting() {
   const [cfg, setCfg] = useState({ enabled: true, price: 0, weekly: {} });
   const [bookings, setBookings] = useState([]);
-  const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [proposeState, setProposeState] = useState(null); // {id, date, time, note}
 
   const load = () => {
     setLoading(true);
     Promise.all([
       api.get("/admin/consulting/config").then(({ data }) => setCfg({ enabled: data.enabled, price: data.price, weekly: data.weekly || {} })),
       api.get("/admin/consulting/bookings").then(({ data }) => setBookings(data)),
-      api.get("/admin/consulting/purchases").then(({ data }) => setPurchases(data)),
     ]).catch((e) => toast.error(apiError(e))).finally(() => setLoading(false));
   };
   useEffect(() => { document.title = "Yönetim - Danışmanlık"; load(); }, []);
@@ -42,13 +42,13 @@ export default function AdminConsulting() {
 
   const act = async (url, okMsg, body) => { try { await api.post(url, body || {}); toast.success(okMsg); load(); } catch (e) { toast.error(apiError(e)); } };
   const reject = (id) => { const note = window.prompt("Reddetme notu (opsiyonel):", "") ?? ""; act(`/admin/consulting/bookings/${id}/reject`, "Talep reddedildi", { note }); };
-  const propose = (id) => {
-    const date = window.prompt("Önerilen tarih (YYYY-AA-GG):", "");
-    if (!date) return;
-    const time = window.prompt("Önerilen saat (SS:00):", "10:00");
-    if (!time) return;
-    const note = window.prompt("Not (opsiyonel):", "") ?? "";
-    act(`/admin/consulting/bookings/${id}/propose`, "Yeni saat önerildi", { date, time, note });
+  const propose = (id) => setProposeState({ id, date: "", time: "10:00", note: "" });
+  const submitPropose = async () => {
+    if (!proposeState.date) { toast.error("Lütfen bir tarih seç"); return; }
+    try {
+      await api.post(`/admin/consulting/bookings/${proposeState.id}/propose`, { date: proposeState.date, time: proposeState.time, note: proposeState.note });
+      toast.success("Yeni saat önerildi, öğrenciye e-posta gönderildi"); setProposeState(null); load();
+    } catch (e) { toast.error(apiError(e)); }
   };
 
   if (loading) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
@@ -132,31 +132,27 @@ export default function AdminConsulting() {
         )}
       </div>
 
-      {/* Purchases */}
-      <div>
-        <h2 className="font-heading font-bold text-xl mb-4 flex items-center gap-2"><Ticket className="w-5 h-5 text-gold" /> Ücretli Danışmanlık Talepleri (Havale)</h2>
-        {purchases.length === 0 ? <p className="text-muted-foreground text-sm">Henüz ücretli talep yok.</p> : (
-          <div className="space-y-3">
-            {purchases.map((p) => (
-              <div key={p.purchase_id} className="bg-ink-surface border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                  <p className="text-sm font-medium">{p.user_name} <span className="text-muted-foreground font-normal">· {p.user_email}</span></p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{formatDate(p.created_at)} · {formatPrice(p.amount)} ₺</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={p.status === "paid" ? "bg-green-500/15 text-green-400 border-green-500/20" : p.status === "rejected" ? "bg-destructive/15 text-red-400 border-destructive/20" : "bg-blue-500/15 text-blue-300 border-blue-500/20"}>{p.status === "paid" ? "Ödendi" : p.status === "rejected" ? "Reddedildi" : "Havale Bekleniyor"}</Badge>
-                  {p.status === "awaiting_transfer" && (
-                    <>
-                      <Button size="sm" className="h-8 bg-green-500 hover:bg-green-600 text-white" onClick={() => act(`/admin/consulting/purchases/${p.purchase_id}/approve`, "Ödeme onaylandı, hak tanımlandı")} data-testid={`approve-purchase-${p.purchase_id}`}><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Onayla</Button>
-                      <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={() => act(`/admin/consulting/purchases/${p.purchase_id}/reject`, "Talep reddedildi")}><XCircle className="w-3.5 h-3.5" /></Button>
-                    </>
-                  )}
-                </div>
+      {/* Propose modal */}
+      <Dialog open={!!proposeState} onOpenChange={(o) => !o && setProposeState(null)}>
+        <DialogContent className="max-w-sm bg-ink-surface border-white/10">
+          <DialogHeader><DialogTitle>Farklı Gün ve Saat Öner</DialogTitle></DialogHeader>
+          {proposeState && (
+            <div className="space-y-3">
+              <div><Label className="text-sm">Tarih</Label><Input type="date" value={proposeState.date} onChange={(e) => setProposeState((s) => ({ ...s, date: e.target.value }))} className="mt-1.5 bg-ink border-white/10" data-testid="propose-date" /></div>
+              <div><Label className="text-sm">Saat</Label>
+                <select value={proposeState.time} onChange={(e) => setProposeState((s) => ({ ...s, time: e.target.value }))} className="w-full bg-ink border border-white/10 rounded-md h-10 px-3 mt-1.5 text-sm" data-testid="propose-time">
+                  {HOURS.map((h) => <option key={h} value={`${String(h).padStart(2, "0")}:00`}>{String(h).padStart(2, "0")}:00</option>)}
+                </select>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div><Label className="text-sm">Not (opsiyonel)</Label><Input value={proposeState.note} onChange={(e) => setProposeState((s) => ({ ...s, note: e.target.value }))} className="mt-1.5 bg-ink border-white/10" placeholder="Öğrenciye iletilecek not" data-testid="propose-note" /></div>
+              <div className="flex justify-end gap-2 pt-1">
+                <Button variant="outline" className="border-white/15" onClick={() => setProposeState(null)}>Vazgeç</Button>
+                <Button onClick={submitPropose} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="submit-propose">Öner ve Bildir</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

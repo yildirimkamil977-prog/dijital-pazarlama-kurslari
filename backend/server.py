@@ -102,6 +102,14 @@ async def seed():
     for _k in ("welcome", "password_reset"):
         await db.email_templates.update_one({"key": _k},
                                             {"$set": {"html": DEFAULT_TEMPLATES[_k]["html"], "subject": DEFAULT_TEMPLATES[_k]["subject"]}})
+    # Migration: consulting notification templates
+    _ct = {
+        "consulting_approved": ("Randevun onaylandı - {{site_name}}", "<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Randevun onaylandı</h2><p>Merhaba {{name}},</p><p><strong>{{datetime}}</strong> tarihli bire bir danışmanlık randevun onaylandı. Görüşmede buluşmak üzere!</p><div style=\"margin:24px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold\">Panelime Git</a></div>"),
+        "consulting_rejected": ("Danışmanlık talebin hakkında - {{site_name}}", "<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Danışmanlık talebin hakkında</h2><p>Merhaba {{name}},</p><p><strong>{{datetime}}</strong> için oluşturduğun danışmanlık talebi maalesef onaylanamadı.</p><p style=\"color:#8a92a6\">Not: {{note}}</p><p>Panelinden başka bir uygun gün ve saat seçebilirsin.</p><div style=\"margin:24px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold\">Yeni Randevu Seç</a></div>"),
+        "consulting_proposed": ("Danışmanlık için yeni saat önerisi - {{site_name}}", "<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Yeni saat önerisi</h2><p>Merhaba {{name}},</p><p>Talep ettiğin <strong>{{datetime}}</strong> yerine yeni bir zaman öneriyoruz:</p><p style=\"font-size:18px;color:#FFB800;font-weight:bold\">{{proposed}}</p><p style=\"color:#8a92a6\">Not: {{note}}</p><p>Panelinden bu öneriyi kabul edebilir veya reddedebilirsin.</p><div style=\"margin:24px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold\">Öneriyi Görüntüle</a></div>"),
+    }
+    for _k, (_s, _h) in _ct.items():
+        await db.email_templates.update_one({"key": _k}, {"$set": {"key": _k, "name": _k, "subject": _s, "html": _h, "enabled": True}}, upsert=True)
 
     # Demo courses
     if await db.courses.count_documents({}) == 0:

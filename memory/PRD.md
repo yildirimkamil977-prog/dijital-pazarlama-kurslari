@@ -166,6 +166,15 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Kredi mantığı: her ücretli kurs (enrollment source!='free') +1 saat; ücretsiz kurslar 0. Ücretli satın alma admin onayında +1. Aktif booking (pending/approved/rescheduled/completed) 1 hak tüketir; red/iptal iade eder. Slot kilitleme: bir slot talep edilince /consulting/slots'tan düşer, başkası aynı date+time'ı alamaz (400).
 - Test: iteration_9.json — backend 8/8, frontend %100 (config, kredi, slot üretimi, booking+kilit, kredi zorlaması, admin onay/öner, reschedule kabul, Havale satın alma+onay). Hata yok. NOT: <option> içi hydration console uyarısı (Emergent build instrumentasyonu, kullanıcıya görünmez).
 
+## Iteration 16 (2026-06) — Danışmanlık geliştirmeleri (rozet, öner-modalı, e-posta, takvim, kart)
+- Admin nav'da bekleyen danışmanlık talebi sayısı rozeti (GET /admin/consulting/pending-count, 30sn'de bir güncellenir; consulting-nav-badge).
+- Randevu Onay/Ret/Öneri işlemlerinde öğrenciye şık HTML e-posta (yeni şablonlar: consulting_approved/rejected/proposed; server.py'ye seed + migration).
+- "Farklı Gün ve Saat Öner" artık görünür bir MODAL (tarih + saat + not) — önceki window.prompt yerine; öneri öğrenciye e-postayla iletilir.
+- Ücretli danışmanlık artık SADECE kredi kartı (PayTR) ile; Havale seçeneği kaldırıldı. PayTR yapılandırılmadığında 503 (order önce credential kontrolünden sonra oluşturulur — orphan pending yok).
+- Öğrenci panelinde randevu seçimi artık şık TAKVİM görünümü (shadcn Calendar; müsait günler altın vurgulu, gün seçince saat çipleri). Mobil (390px) test edildi.
+- Ücret sabit (settings.consulting.price, admin belirler).
+- Test: iteration_10.json — backend 9/9, frontend %100 (rozet artış/azalış, öner-modalı→rescheduled, e-posta şablonları, takvim+booking, kart 503, mobil, slot kilit regresyonu). Hata yok.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

@@ -1,0 +1,21 @@
+{
+  "summary": "End-to-end verification of the Danışmanlık enhancements (badge, propose modal, emails, calendar, card-only purchase). Backend pytest 9/9 pass on /app/backend/tests/test_consulting.py (config+price, admin credit, fresh-student zero credit, pending-count endpoint increments after booking and decrements on reject, slot locking regression, admin approve happy path, propose sets 'rescheduled' with proposed_date/time, /consulting/purchase returns 503 with Turkish 'yapılandırılmadı' detail when PayTR is unset, admin email_templates contains consulting_approved/rejected/proposed keys). Frontend Playwright as admin: after booking a slot from /panel > tab-consulting, the calendar shows highlighted days, slot chip slot-2026-08-31-10:00 opens confirm-booking dialog, consulting-credits drops from '1 saat' to '0 saat'. Sidebar consulting-nav-badge shows '1' at /yonetim. On /yonetim/danismanlik, propose-booking-<id> opens the new modal with propose-date + propose-time + propose-note + submit-propose (all data-testids present); submitting sets booking to rescheduled. Reject cleanup restored admin to 1 credit. Buy flow (buy-consulting) shows the Turkish 'Kart ile ödeme henüz yapılandırılmadı' toast (503), and NO Havale/IBAN dialog is opened for consulting. Mobile 390x844 layout for the student consulting tab renders without overflow (screenshot mobile_consulting.png).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_consulting.py", "/app/test_reports/pytest/consulting.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_consulting.consulting_purchase creates an order row BEFORE checking PayTR credentials — when creds are missing it still leaves a 'pending' orders doc with payment_method='paytr'. Consider inserting the order only after credentials are validated, or mark it 'failed' when raising 503 to avoid orphaned pending orders.",
+    "Admin propose modal HTML <input type='date'> uses the browser-native date picker; per project convention, shadcn Calendar/Popover is preferred for consistency. Not blocking, but a UX inconsistency vs. student-side which uses the shadcn Calendar.",
+    "STATUS_TR and pending-count both key off status='pending'; 'rescheduled' is not counted in pending-count. This is per spec (only new requests badge) but worth documenting so admins know rescheduled items aren't reflected in the badge.",
+    "Emergent build injects <span data-ve-dynamic> inside <option> children (React hydration warning). Harmless but console-noisy; consider not mapping i18n text as JSX inside <option>."
+  ],
+  "updated_files": ["/app/backend/tests/test_consulting.py"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Fresh students registered per run as TEST_consult_<hex>@example.com.",
+  "seed_data_creation": "No permanent changes. All test bookings created during backend + frontend runs were rejected in cleanup. Admin state restored: granted=1, used=0, available_credits=1; pending-count=0. Consulting config remains enabled=true, price=1500, weekly Mon10-13 + Wed14-16 as specified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All new Danışmanlık features (nav badge, propose modal with data-testids propose-date/propose-time/propose-note/submit-propose, card-only purchase returning 503 when PayTR unset, email templates consulting_approved/rejected/proposed) are verified. Test suite is /app/backend/tests/test_consulting.py. IMPORTANT: booking with admin consumes the 1 credit — always reject to restore. PayTR remains unconfigured in this env: /api/consulting/purchase must return 503 with detail 'Kart ile ödeme henüz yapılandırılmadı...'. There is no Havale option for consulting anymore (student UI shows only 'Kredi Kartı ile Hak Al').",
+  "rca of the issue": "N/A — feature-verification pass, no functional bugs found."
+}

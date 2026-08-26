@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Loader2, CalendarDays, Clock, Ticket, ShoppingCart, CheckCircle2, X, Landmark } from "lucide-react";
+import { Loader2, CalendarDays, Clock, Ticket, CreditCard, CheckCircle2, X } from "lucide-react";
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
@@ -14,15 +15,15 @@ const STATUS_STYLE = {
   cancelled: "bg-secondary text-muted-foreground",
   completed: "bg-green-500/15 text-green-400 border-green-500/20",
 };
-const trDate = (d) => { try { return new Date(d).toLocaleDateString("tr-TR", { day: "2-digit", month: "long", weekday: "long" }); } catch { return d; } };
+const trDate = (d) => { try { return new Date(d + "T00:00:00").toLocaleDateString("tr-TR", { day: "2-digit", month: "long", weekday: "long" }); } catch { return d; } };
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 export default function ConsultingPanel() {
   const [data, setData] = useState(null);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
   const [confirm, setConfirm] = useState(null);
-  const [buying, setBuying] = useState(false);
-  const [purchaseInfo, setPurchaseInfo] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const load = () => {
@@ -36,39 +37,31 @@ export default function ConsultingPanel() {
 
   const book = async () => {
     setBusy(true);
-    try {
-      await api.post("/consulting/book", { date: confirm.date, time: confirm.time });
-      toast.success("Talebin oluşturuldu, onay bekleniyor");
-      setConfirm(null); load();
-    } catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
+    try { await api.post("/consulting/book", { date: confirm.date, time: confirm.time }); toast.success("Talebin oluşturuldu, onay bekleniyor"); setConfirm(null); setSelected(null); load(); }
+    catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
   };
-
-  const respond = async (id, action) => {
-    try { await api.post(`/consulting/bookings/${id}/respond`, { action }); toast.success(action === "accept" ? "Önerilen saat onaylandı" : "Öneri reddedildi"); load(); }
-    catch (e) { toast.error(apiError(e)); }
-  };
-  const cancel = async (id) => {
-    if (!window.confirm("Bu talebi iptal etmek istiyor musun?")) return;
-    try { await api.post(`/consulting/bookings/${id}/cancel`); toast.success("Talep iptal edildi"); load(); }
-    catch (e) { toast.error(apiError(e)); }
-  };
-
+  const respond = async (id, action) => { try { await api.post(`/consulting/bookings/${id}/respond`, { action }); toast.success(action === "accept" ? "Önerilen saat onaylandı" : "Öneri reddedildi"); load(); } catch (e) { toast.error(apiError(e)); } };
+  const cancel = async (id) => { if (!window.confirm("Bu talebi iptal etmek istiyor musun?")) return; try { await api.post(`/consulting/bookings/${id}/cancel`); toast.success("Talep iptal edildi"); load(); } catch (e) { toast.error(apiError(e)); } };
   const buy = async () => {
-    setBuying(true);
-    try { const { data } = await api.post("/consulting/purchase"); setPurchaseInfo(data); load(); }
-    catch (e) { toast.error(apiError(e)); } finally { setBuying(false); }
+    setBusy(true);
+    try { const { data } = await api.post("/consulting/purchase"); if (data.iframe_url) window.location.href = data.iframe_url; }
+    catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-7 h-7 text-gold animate-spin" /></div>;
   if (!data?.enabled) return <p className="text-muted-foreground text-center py-16">Bire bir danışmanlık şu anda aktif değil.</p>;
 
   const credits = data.available_credits;
-  const grouped = slots.reduce((acc, s) => { (acc[s.date] = acc[s.date] || []).push(s); return acc; }, {});
-  const dates = Object.keys(grouped).sort();
+  const byDate = slots.reduce((acc, s) => { (acc[s.date] = acc[s.date] || []).push(s); return acc; }, {});
+  const availableDates = Object.keys(byDate);
+  const availableSet = new Set(availableDates);
+  const selectedIso = selected ? iso(selected) : null;
+  const dayTimes = selectedIso ? (byDate[selectedIso] || []) : [];
+  const minDate = new Date(); minDate.setHours(0, 0, 0, 0);
+  const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 30);
 
   return (
     <div className="space-y-8">
-      {/* Credit + buy */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-2xl p-6">
         <div className="flex items-center gap-4">
           <span className="w-14 h-14 rounded-2xl bg-gold/15 flex items-center justify-center"><Ticket className="w-7 h-7 text-gold" /></span>
@@ -78,52 +71,58 @@ export default function ConsultingPanel() {
           </div>
         </div>
         {data.price > 0 && (
-          <Button onClick={buy} disabled={buying} data-testid="buy-consulting" className="bg-gold hover:bg-gold-hover text-ink font-bold">
-            {buying ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ShoppingCart className="w-4 h-4 mr-2" /> Ücretli Hak Al · {formatPrice(data.price)} ₺</>}
+          <Button onClick={buy} disabled={busy} data-testid="buy-consulting" className="bg-gold hover:bg-gold-hover text-ink font-bold">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-4 h-4 mr-2" /> Kredi Kartı ile Hak Al · {formatPrice(data.price)} ₺</>}
           </Button>
         )}
       </div>
 
-      {/* Slot picker */}
       <div>
-        <h3 className="font-heading font-semibold text-lg mb-1 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-gold" /> Uygun Gün ve Saatler</h3>
+        <h3 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-gold" /> Randevu Takvimi</h3>
         {credits <= 0 ? (
-          <p className="text-sm text-muted-foreground mt-2">Randevu oluşturmak için bir eğitim satın alarak veya ücretli hak alarak danışmanlık hakkı kazanabilirsin.</p>
-        ) : dates.length === 0 ? (
-          <p className="text-sm text-muted-foreground mt-2" data-testid="no-slots">Şu an uygun boş zaman dilimi bulunmuyor. Lütfen daha sonra tekrar kontrol et.</p>
+          <p className="text-sm text-muted-foreground">Randevu oluşturmak için bir eğitim satın alarak veya kredi kartıyla hak alarak danışmanlık hakkı kazanabilirsin.</p>
+        ) : availableDates.length === 0 ? (
+          <p className="text-sm text-muted-foreground" data-testid="no-slots">Şu an uygun boş zaman dilimi bulunmuyor. Lütfen daha sonra tekrar kontrol et.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {dates.map((d) => (
-              <div key={d} className="bg-ink-surface border border-white/5 rounded-2xl p-4" data-testid={`slot-day-${d}`}>
-                <p className="text-sm font-medium mb-3 capitalize">{trDate(d)}</p>
-                <div className="flex flex-wrap gap-2">
-                  {grouped[d].map((s) => (
-                    <button key={s.time} onClick={() => setConfirm(s)} data-testid={`slot-${s.date}-${s.time}`}
-                      className="px-3 py-1.5 rounded-lg text-sm bg-ink border border-white/10 hover:border-gold hover:text-gold transition-colors duration-200 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" /> {s.time}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-ink-surface border border-white/5 rounded-2xl p-4 flex justify-center" data-testid="consulting-calendar">
+              <Calendar mode="single" selected={selected} onSelect={setSelected} fromDate={minDate} toDate={maxDate}
+                disabled={(d) => !availableSet.has(iso(d))}
+                modifiers={{ available: (d) => availableSet.has(iso(d)) }}
+                modifiersClassNames={{ available: "font-bold text-gold" }} />
+            </div>
+            <div className="bg-ink-surface border border-white/5 rounded-2xl p-5">
+              {!selected ? (
+                <p className="text-sm text-muted-foreground">Takvimden altın renkli (müsait) bir gün seç.</p>
+              ) : dayTimes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Bu gün için boş saat kalmadı.</p>
+              ) : (
+                <>
+                  <p className="text-sm font-medium mb-3 capitalize">{trDate(selectedIso)}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {dayTimes.map((s) => (
+                      <button key={s.time} onClick={() => setConfirm(s)} data-testid={`slot-${s.date}-${s.time}`}
+                        className="px-3 py-2 rounded-lg text-sm bg-ink border border-white/10 hover:border-gold hover:text-gold transition-colors duration-200 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" /> {s.time}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* My bookings */}
       <div>
         <h3 className="font-heading font-semibold text-lg mb-4">Randevularım</h3>
-        {data.bookings.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Henüz bir danışmanlık talebin yok.</p>
-        ) : (
+        {data.bookings.length === 0 ? <p className="text-sm text-muted-foreground">Henüz bir danışmanlık talebin yok.</p> : (
           <div className="space-y-3">
             {data.bookings.map((b) => (
               <div key={b.booking_id} data-testid={`booking-${b.booking_id}`} className="bg-ink-surface border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-sm font-medium capitalize">{trDate(b.date)} · {b.time}</p>
-                  {b.status === "rescheduled" && b.proposed_date && (
-                    <p className="text-xs text-blue-300 mt-1">Önerilen: <span className="capitalize">{trDate(b.proposed_date)}</span> · {b.proposed_time}</p>
-                  )}
+                  {b.status === "rescheduled" && b.proposed_date && <p className="text-xs text-blue-300 mt-1">Önerilen: <span className="capitalize">{trDate(b.proposed_date)}</span> · {b.proposed_time}</p>}
                   {b.admin_note && <p className="text-xs text-muted-foreground mt-1">Not: {b.admin_note}</p>}
                 </div>
                 <div className="flex items-center gap-2">
@@ -142,7 +141,6 @@ export default function ConsultingPanel() {
         )}
       </div>
 
-      {/* Confirm booking */}
       <Dialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <DialogContent className="max-w-sm bg-ink-surface border-white/10">
           <DialogHeader><DialogTitle>Randevu Onayı</DialogTitle></DialogHeader>
@@ -151,27 +149,6 @@ export default function ConsultingPanel() {
             <Button variant="outline" className="border-white/15" onClick={() => setConfirm(null)}>Vazgeç</Button>
             <Button onClick={book} disabled={busy} data-testid="confirm-booking" className="bg-gold hover:bg-gold-hover text-ink font-semibold">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Talep Oluştur"}</Button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Purchase bank info */}
-      <Dialog open={!!purchaseInfo} onOpenChange={(o) => !o && setPurchaseInfo(null)}>
-        <DialogContent className="max-w-md bg-ink-surface border-white/10">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><Landmark className="w-5 h-5 text-gold" /> Havale / EFT ile Ödeme</DialogTitle></DialogHeader>
-          {purchaseInfo && (
-            <div className="space-y-3 text-sm">
-              <p className="text-muted-foreground">1 saatlik danışmanlık için <span className="text-gold font-bold">{formatPrice(purchaseInfo.amount)} ₺</span> tutarını aşağıdaki hesaba gönderdikten sonra, ödemen yönetici tarafından onaylandığında hakkın tanımlanacak.</p>
-              {(purchaseInfo.bank_accounts || []).map((b, i) => (
-                <div key={i} className="bg-ink border border-white/10 rounded-xl p-3">
-                  <p className="font-medium">{b.bank_name}</p>
-                  <p className="text-xs text-muted-foreground">{b.holder}</p>
-                  <p className="font-mono text-xs mt-1 select-all">{b.iban}</p>
-                </div>
-              ))}
-              <p className="text-xs text-muted-foreground">Talep no: {purchaseInfo.purchase_id}</p>
-              <Button className="w-full bg-gold hover:bg-gold-hover text-ink font-semibold" onClick={() => setPurchaseInfo(null)}>Anladım</Button>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </div>

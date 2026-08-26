@@ -1,4 +1,6 @@
 import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
 import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog, CalendarClock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -25,6 +27,19 @@ const nav = [
 export default function AdminPanel() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [pending, setPending] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    const fetchCount = () => api.get("/admin/consulting/pending-count").then(({ data }) => { if (alive) setPending(data.count || 0); }).catch(() => {});
+    fetchCount();
+    const id = setInterval(fetchCount, 30000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+
+  const badge = (n) => n.to === "/yonetim/danismanlik" && pending > 0
+    ? <span data-testid="consulting-nav-badge" className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-gold text-ink text-[11px] font-bold flex items-center justify-center">{pending}</span>
+    : null;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -37,7 +52,7 @@ export default function AdminPanel() {
           {nav.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} data-testid={`admin-nav-${n.label}`}
               className={({ isActive }) => `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 ${isActive ? "bg-gold text-ink" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>
-              <n.icon className="w-4 h-4" /> {n.label}
+              <n.icon className="w-4 h-4" /> {n.label}{badge(n)}
             </NavLink>
           ))}
         </nav>
@@ -52,7 +67,7 @@ export default function AdminPanel() {
         <div className="flex gap-1 p-2 w-max">
           {nav.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs whitespace-nowrap ${isActive ? "bg-gold text-ink" : "text-muted-foreground"}`}>
-              <n.icon className="w-3.5 h-3.5" /> {n.label}
+              <n.icon className="w-3.5 h-3.5" /> {n.label}{n.to === "/yonetim/danismanlik" && pending > 0 && <span className="ml-1 min-w-4 h-4 px-1 rounded-full bg-gold text-ink text-[10px] font-bold flex items-center justify-center">{pending}</span>}
             </NavLink>
           ))}
         </div>
