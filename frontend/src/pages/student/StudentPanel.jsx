@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { BookOpen, CreditCard, Award, PlayCircle, Loader2, Download, FileClock, Settings, GraduationCap, TrendingUp } from "lucide-react";
 import api, { formatPrice, formatDate, API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import ConsultingPanel from "@/components/ConsultingPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ export default function StudentPanel() {
       <Tabs defaultValue="courses">
         <TabsList className="bg-ink-surface border border-white/5">
           <TabsTrigger value="courses" data-testid="tab-courses">Eğitimlerim</TabsTrigger>
+          <TabsTrigger value="consulting" data-testid="tab-consulting">Bire Bir Danışmanlık</TabsTrigger>
           <TabsTrigger value="payments" data-testid="tab-payments">Ödemelerim</TabsTrigger>
           <TabsTrigger value="certs" data-testid="tab-certs">Sertifikalarım</TabsTrigger>
         </TabsList>
@@ -103,6 +105,10 @@ export default function StudentPanel() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="consulting" className="mt-6">
+          <ConsultingPanel />
         </TabsContent>
 
         <TabsContent value="payments" className="mt-6">

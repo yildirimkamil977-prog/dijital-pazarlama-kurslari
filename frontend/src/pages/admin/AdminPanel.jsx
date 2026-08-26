@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog, CalendarClock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCourses from "@/pages/admin/AdminCourses";
@@ -9,11 +9,13 @@ import AdminPayments from "@/pages/admin/AdminPayments";
 import AdminDiscounts from "@/pages/admin/AdminDiscounts";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminInstructors from "@/pages/admin/AdminInstructors";
+import AdminConsulting from "@/pages/admin/AdminConsulting";
 
 const nav = [
   { to: "/yonetim", label: "Genel Bakış", icon: LayoutDashboard, end: true },
   { to: "/yonetim/kurslar", label: "Kurslar", icon: BookOpen },
   { to: "/yonetim/egitmenler", label: "Eğitmenler", icon: UserCog },
+  { to: "/yonetim/danismanlik", label: "Danışmanlık", icon: CalendarClock },
   { to: "/yonetim/ogrenciler", label: "Öğrenciler", icon: Users },
   { to: "/yonetim/odemeler", label: "Ödemeler", icon: CreditCard },
   { to: "/yonetim/indirimler", label: "İndirim Kodları", icon: Tag },
@@ -64,6 +66,7 @@ export default function AdminPanel() {
             <Route path="kurslar/yeni" element={<CourseEditor />} />
             <Route path="kurslar/:id" element={<CourseEditor />} />
             <Route path="egitmenler" element={<AdminInstructors />} />
+            <Route path="danismanlik" element={<AdminConsulting />} />
             <Route path="ogrenciler" element={<AdminStudents />} />
             <Route path="odemeler" element={<AdminPayments />} />
             <Route path="indirimler" element={<AdminDiscounts />} />

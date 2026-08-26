@@ -159,6 +159,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - A11y: CourseDetail önizleme dialog'una sr-only DialogTitle eklendi.
 - Test: iteration_8.json — backend 4/4 (player vimeo URL, non-enrolled 403, hero vimeo, önizleme youtube yok), frontend %100 (lesson-video src = player.vimeo.com, Hata 153 yok, filigran + sağ tık engeli korunuyor). NOT: Seçilen demo Vimeo örneği bu ortamda Vimeo'nun kendi "player error"ını gösterebilir; eğitmen kendi Vimeo videolarını (domain embed izinli) ekleyince sorunsuz oynar. Pipeline doğru.
 
+## Iteration 15 (2026-06) — Bire Bir Danışmanlık (1-on-1 consulting)
+- Yeni modül `routes_consulting.py` (+ server.py'ye register). Ayarlar: `settings.consulting {enabled, price, weekly, weeks_ahead=4}`.
+- Admin (/yonetim/danismanlik, AdminConsulting.jsx): haftalık tekrar eden müsaitlik (gün + saat aralıkları, ör. Pzt 10:00-13:00 → 1 saatlik dilimler), 1 saatlik ücret ve aktif/pasif. Talepleri Onayla/Reddet/Farklı saat öner (reschedule). Ücretli (Havale) talepleri onayla/reddet.
+- Öğrenci (StudentPanel "Bire Bir Danışmanlık" sekmesi, ConsultingPanel.jsx): kullanılabilir hak, 4 hafta ileriye kadar boş slotlar (tarihe göre gruplu), slot seçip talep oluşturma (Beklemede), randevularım listesi, reschedule önerisini Kabul/Ret, "Ücretli Hak Al" (Havale/EFT + banka bilgisi).
+- Kredi mantığı: her ücretli kurs (enrollment source!='free') +1 saat; ücretsiz kurslar 0. Ücretli satın alma admin onayında +1. Aktif booking (pending/approved/rescheduled/completed) 1 hak tüketir; red/iptal iade eder. Slot kilitleme: bir slot talep edilince /consulting/slots'tan düşer, başkası aynı date+time'ı alamaz (400).
+- Test: iteration_9.json — backend 8/8, frontend %100 (config, kredi, slot üretimi, booking+kilit, kredi zorlaması, admin onay/öner, reschedule kabul, Havale satın alma+onay). Hata yok. NOT: <option> içi hydration console uyarısı (Emergent build instrumentasyonu, kullanıcıya görünmez).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

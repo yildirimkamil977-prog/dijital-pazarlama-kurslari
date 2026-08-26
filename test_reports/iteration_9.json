@@ -1,0 +1,27 @@
+{
+  "summary": "Full E2E of the new 'Bire Bir Danışmanlık' feature. Backend pytest 8/8 pass covering admin config GET/PUT, admin paid-enrollment credit (=1), fresh-student zero credit (Free courses grant nothing), Mon 10-13 + Wed 14-16 slot generation over the next 4 weeks (only :00 boundaries, ranges respected), no-credit student booking 400, admin book → slot removed + credit consumed (1→0) + rebook blocked 400 + admin approve→status 'approved', admin propose→student accept flow (booking becomes approved at the proposed date+time and clashes are blocked), Havale purchase creates awaiting_transfer + admin approve grants +1 credit. Frontend Playwright as admin (yildirimkamil977@gmail.com): /yonetim/danismanlik loads with data-testid save-consulting-config + add-range-0..6 + consulting-enabled toggle + consulting-price input (750). Save works. Student tab data-testid tab-consulting on /panel shows consulting-credits '1 saat'; 8 date groups + 20 slot buttons for Mon10-12 + Wed14-15 in next 4 weeks; buy-consulting visible; clicking slot-2026-08-31-10:00 opens confirm-booking dialog which creates a pending booking (booking-cbk_...), credits drop to '0 saat'; admin sees admin-booking-<id>, clicking approve-booking-<id> flips status label to 'Onaylandı'; Ücretli Hak Al opens Havale/EFT dialog with bank_accounts, and approve-purchase-<id> in admin flashes 'Ödeme onaylandı, hak tanımlandı'. All flows fully wired to backend.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin > Danışmanlık", "issues": ["Hydration console warning: React 'In HTML, <span> cannot be a child of <option>' — caused by Emergent's build-time instrumentation wrapping <option> children with a <span data-ve-dynamic>. Not user-visible, but pollutes console. Can be ignored or wrapped differently in the map key/expression."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_consulting.py", "/app/test_reports/pytest/consulting.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_consulting._available_credits counts enrollments with source!='free' as granting credit — correct per spec. Note edge case: if an enrollment doc is later deleted/refunded, the corresponding used credit could go negative; max(0, granted-consumed) hides it. Consider tracking explicit credit ledger long-term.",
+    "admin_set_config always sets weeks_ahead=4 (spec-compliant), but ignores any client-provided value silently — acceptable.",
+    "admin_reject and cancel do not lock: an approved booking can be rejected which frees the credit. This is used for cleanup and matches spec, but you may want an audit log.",
+    "Reschedule uses window.prompt (three prompts) — spec-consistent but not automatable in Playwright without dialog handlers; consider a small modal for better UX + testability (add propose-date-input, propose-time-input, propose-submit)."
+  ],
+  "updated_files": ["/app/backend/tests/test_consulting.py"],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Fresh students registered per run as TEST_consult_<hex>@example.com.",
+  "seed_data_creation": "Admin consulting config PUT to enabled=true, price=750, weekly {Mon 10-13, Wed 14-16}. Ephemeral TEST_consult_* students registered. All test bookings/purchases created during backend + frontend runs were rejected in cleanup so admin ends with granted=1, used=0, available_credits=1.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Consulting feature is fully verified. Test suite lives at /app/backend/tests/test_consulting.py (run with REACT_APP_BACKEND_URL exported). Admin currently has 1 paid course enrollment → exactly 1 consulting credit; a fresh student has 0. Config is enabled=true, price=750, weekly Mon10-13 + Wed14-16 (weeks_ahead=4). If future tests re-book with admin, they must reject/cancel the created booking afterward to restore the credit. Purchase approval grants +1 credit; reject reverses.",
+  "rca of the issue": "N/A — new-feature testing, no bugs found."
+}

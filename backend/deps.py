@@ -167,6 +167,7 @@ DEFAULT_SETTINGS = {
         "configured": False,
     },
     "email_enabled": True,
+    "consulting": {"enabled": True, "price": 1500, "weekly": {}, "weeks_ahead": 4},
 }
 
 
@@ -203,6 +204,8 @@ async def get_public_settings() -> dict:
         "address": doc.get("address", ""),
         "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
         "payment_configured": paytr.get("configured", False),
+        "consulting": {"enabled": (doc.get("consulting") or {}).get("enabled", True),
+                       "price": (doc.get("consulting") or {}).get("price", 0)},
     }
 
 
