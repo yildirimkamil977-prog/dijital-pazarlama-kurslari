@@ -9,42 +9,26 @@ import { Badge } from "@/components/ui/badge";
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     document.title = "Kurslar - Dijital Pazarlama Kursları";
     api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const isFreeCourse = (c) => (c.discount_price != null && c.discount_price < c.price ? c.discount_price : c.price) === 0;
-  const freeCount = courses.filter(isFreeCourse).length;
-  const filtered = filter === "free" ? courses.filter(isFreeCourse) : filter === "paid" ? courses.filter((c) => !isFreeCourse(c)) : courses;
-
   return (
     <div className="max-w-6xl mx-auto px-5 sm:px-8 py-16">
-      <div className="max-w-2xl mb-8">
+      <div className="max-w-2xl mb-16">
         <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter leading-none">Butik eğitim programları</h1>
         <p className="mt-4 text-muted-foreground text-lg">Az ama öz. Her biri sahadan gelen gerçek deneyimle, baştan sona uygulamalı hazırlanmış özenli eğitimler.</p>
       </div>
-
-      {!loading && courses.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-12">
-          {[["all", `Tümü (${courses.length})`], ["free", `Ücretsiz${freeCount ? ` (${freeCount})` : ""}`], ["paid", "Ücretli"]].map(([k, l]) => (
-            <button key={k} onClick={() => setFilter(k)} data-testid={`course-filter-${k}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${filter === k ? (k === "free" ? "bg-green-500 text-white" : "bg-gold text-ink") : "bg-ink-surface border border-white/10 text-muted-foreground hover:border-white/25"}`}>{l}</button>
-          ))}
-        </div>
-      )}
 
       {loading ? (
         <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>
       ) : courses.length === 0 ? (
         <p className="text-center text-muted-foreground py-24">Yakında yeni eğitimler eklenecek.</p>
-      ) : filtered.length === 0 ? (
-        <p className="text-center text-muted-foreground py-24" data-testid="no-courses">Bu filtreye uygun eğitim yok.</p>
       ) : (
         <div className="space-y-10">
-          {filtered.map((c, idx) => {
+          {courses.map((c, idx) => {
             const hasDiscount = c.discount_price != null && c.discount_price < c.price;
             const price = hasDiscount ? c.discount_price : c.price;
             const isFree = price === 0;
