@@ -209,7 +209,20 @@ async def student_detail(user_id: str, request: Request):
             continue
         total = sum(len(m.get("lessons", [])) for m in c.get("modules", []))
         done = await db.progress.count_documents({"user_id": user_id, "course_id": e["course_id"], "completed": True})
+        paid = 0.0
+        if e.get("source") != "free":
+            order = None
+            if e.get("order_id"):
+                order = await db.orders.find_one({"order_id": e["order_id"]}, {"_id": 0, "invoice.data": 0})
+            if not order:
+                order = await db.orders.find_one(
+                    {"user_id": user_id, "status": "paid", "items.course_id": e["course_id"]},
+                    {"_id": 0, "invoice.data": 0}, sort=[("created_at", -1)])
+            if order and order.get("total", 0):
+                item = next((it for it in order.get("items", []) if it["course_id"] == e["course_id"]), None)
+                paid = item.get("price", 0) if item else order.get("total", 0)
         courses.append({"course_id": e["course_id"], "title": c["title"], "source": e.get("source"),
+                        "paid_amount": round(paid, 2),
                         "enrolled_at": e.get("enrolled_at"), "lesson_count": total,
                         "completed_lessons": done, "progress_pct": round(100 * done / total) if total else 0})
     payments = await db.orders.find({"user_id": user_id}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)

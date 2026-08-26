@@ -1,6 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { Loader2, Search, BookOpen, Plus, Trash2, KeyRound, Upload, Download, Award, ChevronLeft, ChevronRight } from "lucide-react";
 import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
+
+const SRC_LABEL = { purchase: "Satın Alma", free: "Ücretsiz", transfer: "Havale/EFT", manual: "Manuel Kayıt", gift: "Hediye" };
+const srcLabel = (s) => SRC_LABEL[s] || "Manuel Kayıt";
+const STATUS_LABEL = { paid: "Ödendi", pending: "Bekliyor", awaiting_transfer: "Havale Bekleniyor", failed: "Başarısız", token_failed: "Başarısız" };
+const statusLabel = (s) => STATUS_LABEL[s] || s;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -87,7 +92,10 @@ export default function AdminStudents() {
                   {detail.courses.length === 0 ? <p className="text-sm text-muted-foreground">Kayıtlı kurs yok.</p> : detail.courses.map((c) => (
                     <div key={c.course_id} className="bg-ink rounded-lg p-3">
                       <div className="flex items-center justify-between"><p className="text-sm font-medium">{c.title}</p>
-                        <div className="flex items-center gap-2"><Badge className="bg-secondary text-[10px]">{c.source}</Badge><Button variant="ghost" size="sm" className="text-destructive h-7" onClick={() => unenroll(c.course_id)}><Trash2 className="w-3.5 h-3.5" /></Button></div></div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`text-[10px] ${c.paid_amount === 0 ? "bg-green-500/15 text-green-400 border-green-500/20" : "bg-gold/15 text-gold border-gold/20"}`} data-testid={`admin-paid-${c.course_id}`}>{c.paid_amount === 0 ? "Ücretsiz" : `${formatPrice(c.paid_amount)} ₺`}</Badge>
+                          <Badge className="bg-secondary text-[10px]">{srcLabel(c.source)}</Badge>
+                          <Button variant="ghost" size="sm" className="text-destructive h-7" onClick={() => unenroll(c.course_id)}><Trash2 className="w-3.5 h-3.5" /></Button></div></div>
                       <div className="flex items-center gap-2 mt-2"><Progress value={c.progress_pct} className="h-1.5 flex-1" /><span className="text-xs text-muted-foreground">%{c.progress_pct} ({c.completed_lessons}/{c.lesson_count})</span></div>
                     </div>
                   ))}
@@ -105,7 +113,7 @@ export default function AdminStudents() {
                 <div className="space-y-2">
                   {detail.payments.length === 0 ? <p className="text-sm text-muted-foreground">Ödeme yok.</p> : detail.payments.map((p) => (
                     <div key={p.order_id} className="flex items-center justify-between bg-ink rounded-lg p-3 text-sm">
-                      <div><p>{formatPrice(p.total)} ₺ <Badge className="ml-1 text-[10px] bg-secondary">{p.status}</Badge></p><p className="text-xs text-muted-foreground">{formatDate(p.created_at)}</p></div>
+                      <div><p>{formatPrice(p.total)} ₺ <Badge className="ml-1 text-[10px] bg-secondary">{statusLabel(p.status)}</Badge></p><p className="text-xs text-muted-foreground">{formatDate(p.created_at)}</p></div>
                       {p.status === "paid" && (
                         <div className="flex items-center gap-2">
                           <input type="file" accept="application/pdf" className="hidden" ref={(el) => (invRefs.current[p.order_id] = el)} onChange={(e) => uploadInvoice(p.order_id, e.target.files[0])} />

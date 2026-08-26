@@ -19,6 +19,15 @@ export default function CoursePlayer() {
 
   const flatLessons = data ? data.modules.flatMap((m) => m.lessons) : [];
 
+  const secureEmbed = (url) => {
+    if (!url) return url;
+    if (url.includes("vimeo.com")) {
+      const sep = url.includes("?") ? "&" : "?";
+      return `${url}${sep}dnt=1&title=0&byline=0&portrait=0&pip=0&badge=0`;
+    }
+    return url;
+  };
+
   const load = useCallback(async () => {
     try {
       const { data } = await api.get(`/my/courses/${courseId}/player`);
@@ -75,7 +84,7 @@ export default function CoursePlayer() {
         <div className="flex-1 min-w-0">
           <div className="relative bg-black aspect-video max-h-[70vh] w-full select-none" onContextMenu={(e) => e.preventDefault()} data-testid="player-video-area">
             {active?.video_url ? (
-              <iframe key={active.id} title={active.title} src={active.video_url} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen data-testid="lesson-video" />
+              <iframe key={active.id} title={active.title} src={secureEmbed(active.video_url)} referrerPolicy="no-referrer" className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="lesson-video" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground"><PlayCircle className="w-12 h-12" /></div>
             )}
