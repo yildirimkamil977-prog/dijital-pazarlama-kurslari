@@ -230,7 +230,7 @@ DEFAULT_TEMPLATES = {
         "key": "welcome",
         "name": "Üyelik Karşılama",
         "subject": "Aramıza hoş geldin, {{name}}!",
-        "html": "<h2>Merhaba {{name}},</h2><p>{{site_name}} ailesine katıldığın için teşekkürler. Artık eğitimlere göz atabilir ve öğrenme yolculuğuna başlayabilirsin.</p><p>Başarılar dileriz!</p>",
+        "html": "<h2 style=\"margin:0 0 14px;color:#ffffff;font-size:22px\">Hoş geldin {{name}}!</h2><p style=\"margin:0 0 14px\">{{site_name}} ailesine katıldığın için çok mutluyuz. Artık tüm eğitimlere göz atabilir, dilediğin cihazdan izleyebilir ve ömür boyu erişimle öğrenme yolculuğuna başlayabilirsin.</p><p style=\"margin:0 0 8px\">Hemen öğrenci panelinden kaldığın yerden devam edebilirsin.</p><div style=\"margin:26px 0\"><a href=\"{{login_url}}\" style=\"background:#FFB800;color:#07090f;padding:13px 28px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Panele Git</a></div><p style=\"font-size:13px;color:#8a92a6;margin:0\">Sorularında bize her zaman yazabilirsin. Başarılar dileriz!</p>",
         "enabled": True,
     },
     "purchase": {
@@ -265,7 +265,7 @@ DEFAULT_TEMPLATES = {
         "key": "password_reset",
         "name": "Şifre Sıfırlama",
         "subject": "Şifreni sıfırla - {{site_name}}",
-        "html": "<h2>Merhaba {{name}},</h2><p>Şifreni sıfırlamak için bir talep aldık. Şifren <strong>{{new_password}}</strong> olarak güncellendi. Güvenliğin için giriş yaptıktan sonra ayarlardan değiştirmeni öneririz.</p>",
+        "html": "<h2 style=\"margin:0 0 14px;color:#ffffff;font-size:22px\">Şifre sıfırlama talebi</h2><p style=\"margin:0 0 14px\">Merhaba {{name}},</p><p style=\"margin:0 0 20px\">Hesabının şifresini sıfırlamak için bir talep aldık. Yeni şifreni belirlemek için aşağıdaki butona tıkla:</p><div style=\"margin:26px 0\"><a href=\"{{reset_url}}\" style=\"background:#FFB800;color:#07090f;padding:14px 30px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Şifremi Sıfırla</a></div><p style=\"font-size:13px;color:#8a92a6;margin:0 0 8px\">Bu bağlantı güvenlik için 1 saat içinde geçerliliğini yitirir.</p><p style=\"font-size:13px;color:#8a92a6;margin:0 0 8px\">Buton çalışmazsa bu adresi tarayıcına yapıştır:<br/>{{reset_url}}</p><p style=\"font-size:13px;color:#8a92a6;margin:16px 0 0\">Bu talebi sen yapmadıysan bu e-postayı dikkate almana gerek yok; şifren değişmeden kalır.</p>",
         "enabled": True,
     },
     "account_created": {

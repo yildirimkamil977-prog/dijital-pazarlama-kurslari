@@ -1,6 +1,10 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr
 import httpx
+import os
+import secrets
+import hashlib
+from datetime import timedelta
 
 from deps import (
     db, now_utc, new_id, hash_password, verify_password, create_session,
@@ -9,6 +13,8 @@ from deps import (
 )
 
 router = APIRouter(prefix="/auth")
+
+FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 
 
 class ProfileIn(BaseModel):
@@ -57,7 +63,7 @@ async def register(body: RegisterIn, response: Response):
     await db.users.insert_one(user)
     token = await create_session(user["user_id"])
     set_session_cookie(response, token)
-    schedule_email("welcome", email, {"name": user["name"]})
+    schedule_email("welcome", email, {"name": user["name"], "login_url": f"{FRONTEND_URL}/panel"})
     await push_notification("registration", "Yeni öğrenci kaydı", f"{user['name']} · {email}", {"email": email})
     return public_user(user)
 
@@ -100,7 +106,7 @@ async def google_session(body: SessionIn, response: Response):
             "created_at": now_utc().isoformat(),
         }
         await db.users.insert_one(user)
-        schedule_email("welcome", email, {"name": user["name"]})
+        schedule_email("welcome", email, {"name": user["name"], "login_url": f"{FRONTEND_URL}/panel"})
         await push_notification("registration", "Yeni öğrenci kaydı", f"{user['name']} · {email}", {"email": email})
     else:
         await db.users.update_one({"user_id": user["user_id"]},
@@ -149,4 +155,47 @@ async def logout(request: Request, response: Response):
     if token:
         await db.user_sessions.delete_one({"session_token": token})
     clear_session_cookie(response)
+    return {"ok": True}
+
+
+class ForgotIn(BaseModel):
+    email: EmailStr
+
+
+class ResetIn(BaseModel):
+    token: str
+    new_password: str
+
+
+def _hash_token(t: str) -> str:
+    return hashlib.sha256(t.encode("utf-8")).hexdigest()
+
+
+@router.post("/forgot-password")
+async def forgot_password(body: ForgotIn):
+    email = body.email.lower().strip()
+    user = await db.users.find_one({"email": email})
+    if user:
+        token = secrets.token_urlsafe(32)
+        await db.password_resets.insert_one({
+            "token_hash": _hash_token(token), "user_id": user["user_id"],
+            "expires_at": (now_utc() + timedelta(hours=1)).isoformat(),
+            "used": False, "created_at": now_utc().isoformat(),
+        })
+        reset_url = f"{FRONTEND_URL}/sifre-sifirla?token={token}"
+        schedule_email("password_reset", email, {"name": user.get("name", ""), "reset_url": reset_url})
+    return {"ok": True}
+
+
+@router.post("/reset-password")
+async def reset_password(body: ResetIn):
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Yeni şifre en az 6 karakter olmalı")
+    rec = await db.password_resets.find_one({"token_hash": _hash_token(body.token), "used": False})
+    if not rec:
+        raise HTTPException(status_code=400, detail="Bağlantı geçersiz veya daha önce kullanılmış")
+    if rec["expires_at"] < now_utc().isoformat():
+        raise HTTPException(status_code=400, detail="Bağlantının süresi dolmuş. Lütfen yeni bir talep oluşturun.")
+    await db.users.update_one({"user_id": rec["user_id"]}, {"$set": {"password_hash": hash_password(body.new_password)}})
+    await db.password_resets.update_many({"user_id": rec["user_id"], "used": False}, {"$set": {"used": True}})
     return {"ok": True}

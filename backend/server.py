@@ -96,6 +96,10 @@ async def seed():
     if bt and "{{notify_url}}" not in bt.get("html", ""):
         await db.email_templates.update_one({"key": "bank_transfer"},
                                             {"$set": {"html": DEFAULT_TEMPLATES["bank_transfer"]["html"]}})
+    # Migration: refresh welcome + password_reset to link-based branded HTML
+    for _k in ("welcome", "password_reset"):
+        await db.email_templates.update_one({"key": _k},
+                                            {"$set": {"html": DEFAULT_TEMPLATES[_k]["html"], "subject": DEFAULT_TEMPLATES[_k]["subject"]}})
 
     # Demo courses
     if await db.courses.count_documents({}) == 0:

@@ -140,6 +140,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Seed: "Kamil Yıldırım" eğitmeni (slug kamil-yildirim) oluşturuldu ve mevcut 3 kurs ona bağlandı.
 - Test: iteration_6.json — backend 4/4 (pytest), frontend 8/8 (admin CRUD, editör atama kalıcılığı, kurs detay/liste/eğitmen sayfası). Ekran görüntüleriyle de doğrulandı.
 
+## Iteration 12 (2026-06) — Şifremi unuttum akışı + e-posta düzeltmeleri
+- Şifre sıfırlama (token-tabanlı, integration_expert playbook'una uygun): POST /api/auth/forgot-password (secrets.token_urlsafe(32), sha256 hash'lenip password_resets'e 1 saat TTL ile saklanır, e-posta ifşası yok — her zaman ok döner) + POST /api/auth/reset-password (token doğrulama: geçerli/süresi dolmamış/tek kullanımlık, bcrypt password_hash güncelleme, kullanıcının diğer token'ları geçersizleştirilir). Min şifre 6 karakter.
+- Frontend: /giris sayfasında "Şifremi unuttum?" linki; /sifremi-unuttum (ForgotPassword — e-posta formu + "E-postanı kontrol et" onayı) ve /sifre-sifirla?token= (ResetPassword — yeni şifre + tekrar).
+- Şık HTML e-posta: password_reset şablonu artık markalı kabuk içinde "Şifremi Sıfırla" butonu + {{reset_url}} + 1 saat uyarısı ile gönderiliyor.
+- Hoşgeldin e-postası düzeltildi: DB'deki bozuk "hi {{name}}" içeriği, Türkçe zengin HTML + "Panele Git" butonlu ({{login_url}}) yeni şablonla değiştirildi. server.py'ye welcome + password_reset için force-update migration eklendi.
+- Test: backend curl ile uçtan uca doğrulandı (forgot ok, reset ok, yeni şifre login 200, eski 401, token tek kullanımlık 400, kısa şifre 400, bilinmeyen e-posta ifşasız); frontend 3 sayfa ekran görüntüsüyle doğrulandı. Test kullanıcıları temizlendi.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

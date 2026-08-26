@@ -66,7 +66,10 @@ export default function Login() {
               <Input data-testid="login-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1.5 bg-ink border-white/10 h-11" placeholder="ornek@email.com" />
             </div>
             <div>
-              <Label className="text-sm">Şifre</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">Şifre</Label>
+                <Link to="/sifremi-unuttum" data-testid="forgot-password-link" className="text-xs text-gold hover:underline">Şifremi unuttum?</Link>
+              </div>
               <Input data-testid="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1.5 bg-ink border-white/10 h-11" placeholder="••••••••" />
             </div>
             <Button type="submit" disabled={loading} data-testid="login-submit" className="w-full h-11 bg-gold hover:bg-gold-hover text-ink font-bold">

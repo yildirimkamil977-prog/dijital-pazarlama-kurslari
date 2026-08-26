@@ -18,6 +18,8 @@ import PaymentResult from "@/pages/PaymentResult";
 import TransferNotify from "@/pages/TransferNotify";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import LegalPage from "@/pages/LegalPage";
 import Contact from "@/pages/Contact";
 import AuthCallback from "@/pages/AuthCallback";
@@ -47,6 +49,8 @@ function AppRouter() {
         <Route path="/sozlesmeler/:type" element={<LegalPage />} />
         <Route path="/giris" element={<Login />} />
         <Route path="/kayit-ol" element={<Register />} />
+        <Route path="/sifremi-unuttum" element={<ForgotPassword />} />
+        <Route path="/sifre-sifirla" element={<ResetPassword />} />
         <Route path="/panel" element={<ProtectedRoute><StudentPanel /></ProtectedRoute>} />
         <Route path="/panel/ayarlar" element={<ProtectedRoute><StudentSettings /></ProtectedRoute>} />
       </Route>
