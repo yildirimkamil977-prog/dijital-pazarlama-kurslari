@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle2, Circle, ChevronLeft, Download, FileText, Menu, X, Award, PlayCircle } from "lucide-react";
 import api, { apiError, formatDuration } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 export default function CoursePlayer() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
@@ -71,11 +73,17 @@ export default function CoursePlayer() {
       <div className="flex flex-1 relative">
         {/* Main */}
         <div className="flex-1 min-w-0">
-          <div className="bg-black aspect-video max-h-[70vh] w-full">
+          <div className="relative bg-black aspect-video max-h-[70vh] w-full select-none" onContextMenu={(e) => e.preventDefault()} data-testid="player-video-area">
             {active?.video_url ? (
               <iframe key={active.id} title={active.title} src={active.video_url} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen data-testid="lesson-video" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground"><PlayCircle className="w-12 h-12" /></div>
+            )}
+            {user && (
+              <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[18deg] text-white/10 text-2xl sm:text-4xl font-bold whitespace-nowrap select-none">{user.email}</span>
+                <span className="absolute bottom-3 right-3 text-white/30 text-[11px] font-mono bg-black/30 px-2 py-0.5 rounded" data-testid="video-watermark">{user.email}</span>
+              </div>
             )}
           </div>
 

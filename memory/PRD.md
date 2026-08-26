@@ -147,6 +147,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Hoşgeldin e-postası düzeltildi: DB'deki bozuk "hi {{name}}" içeriği, Türkçe zengin HTML + "Panele Git" butonlu ({{login_url}}) yeni şablonla değiştirildi. server.py'ye welcome + password_reset için force-update migration eklendi.
 - Test: backend curl ile uçtan uca doğrulandı (forgot ok, reset ok, yeni şifre login 200, eski 401, token tek kullanımlık 400, kısa şifre 400, bilinmeyen e-posta ifşasız); frontend 3 sayfa ekran görüntüsüyle doğrulandı. Test kullanıcıları temizlendi.
 
+## Iteration 13 (2026-06) — Öğrenci ödenen tutar (bug) + içerik güvenliği
+- BUG FIX: Öğrenci panelinde "Eğitimlerim" kartlarında artık öğrencinin o eğitime ödediği tutar görünüyor. Backend /api/my/courses her kayda `paid_amount` ekliyor (source=='free' → 0; aksi halde ilgili sipariş kaleminin fiyatı; sipariş total 0 ise 0). Frontend rozet: 0 ise yeşil "Ücretsiz", aksi halde "X ₺ ödendi" (paid-amount-<course_id>).
+- İçerik güvenliği (Ders İzleyici): video alanına giriş yapan öğrencinin e-postasıyla dinamik filigran (büyük çapraz + sağ alt köşe), sağ tık (context menu) ve metin seçimi engellendi. Backend zaten ders video URL'lerini ve kaynakları yalnızca kayıtlı öğrenciye sunuyor (player endpoint kayıtsıza 403). Not: iframe/DevTools ile tam DRM mümkün değil; filigran gündelik hırsızlığı/paylaşımı caydırır, erişim kontrolü asıl korumadır.
+- Test: iteration_7.json — backend 4/4 (paid_amount paid=1999 & free=0, player 403/200), frontend %100 (rozet '1.999 ₺ ödendi', filigran e-posta, sağ tık engeli). Test kullanıcıları temizlendi.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

@@ -1,0 +1,22 @@
+{
+  "summary": "Verified BUG-FIX (paid_amount in /api/my/courses) and SECURITY (dynamic watermark + right-click / text-selection block on course player). Backend pytest 4/4 pass: (1) admin's Meta enrollment returns paid_amount=1999 (order item price), (2) fresh guest checkout for a course with discount_price=0 -> order status='free', /api/my/courses returns paid_amount=0 for that enrollment, (3) newly-registered non-enrolled student gets 403 on /api/my/courses/{id}/player, (4) enrolled admin gets 200 on player endpoint with modules payload. Frontend Playwright: admin /panel shows paid-amount-course_4f638d946cb2 badge with text '1.999 ₺ ödendi' (Turkish locale thousand-separator, gold styling); /panel/izle/course_4f638d946cb2 renders player-video-area with 'select-none' class and video-watermark data-testid showing 'yildirimkamil977@gmail.com' (both large diagonal overlay and small bottom-right label visible); a dispatched contextmenu MouseEvent on the video area returns defaultPrevented=true, confirming right-click is blocked. Free-course discount_price was reverted to the original value by the fixture teardown.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_paid_amount_and_player.py",
+    "/app/test_reports/pytest/paid_amount.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_courses.py my_courses paid_amount fallback: when source!='free' and no matching order is found, paid=0 is returned (looks like 'free'). Rare edge case (data-migration or manually inserted enrollments without order linkage) but worth logging so historic 'purchase' enrollments without stored order_id aren't silently rendered as 'Ücretsiz'.",
+    "CoursePlayer watermark uses a low-opacity text overlay (text-white/10, text-6xl, rotate-12). Any moderately motivated user can strip it via DevTools since it's just a DOM node. This is anti-casual-theft only — consider server-side burn-in for higher assurance videos in future.",
+    "onContextMenu preventDefault + select-none deters right-click/copy but the video URL is still readable via DevTools/Network tab. Player endpoint gating (403 for non-enrolled) is the real access control and is verified working."
+  ],
+  "updated_files": ["/app/backend/tests/test_paid_amount_and_player.py"],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel. Free-scenario student is auto-created per run with email TEST_free_<uuid>@example.com.",
+  "seed_data_creation": "Temporarily set discount_price=0 on the first non-Meta published course (course_id captured at runtime) to exercise free-checkout path, then guest-checkout with a throwaway TEST_free_* email creates an ephemeral student + enrollment. Fixture reverts discount_price to its original value on teardown. Throwaway TEST_free_* and TEST_nonenr_* users remain in DB (login credentials not retained by test).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Student panel route is /panel (NOT /panel/egitimlerim — that path 404s). Tabs inside: tab-courses / tab-payments / tab-certs. Course card testid = my-course-<course_id>; paid badge testid = paid-amount-<course_id>; continue button = continue-<course_id>. Player route /panel/izle/<course_id> with data-testid=player-video-area (has select-none, onContextMenu preventDefault) and data-testid=video-watermark showing user.email. Turkish price formatter renders 1999 as '1.999 ₺' — assert on '1.999' rather than '1999' when matching text. Admin already has a paid Meta enrollment (course_id=course_4f638d946cb2, paid_amount=1999) — reliable target for the paid-badge case."
+}

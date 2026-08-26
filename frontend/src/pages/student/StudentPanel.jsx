@@ -88,6 +88,9 @@ export default function StudentPanel() {
                   <div className="relative w-36 shrink-0 overflow-hidden"><img src={c.thumbnail} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                   <div className="flex-1 p-5">
                     <h3 className="font-heading font-semibold leading-snug line-clamp-2">{c.title}</h3>
+                    <Badge className={`mt-2 ${c.paid_amount === 0 ? "bg-green-500/15 text-green-400 border-green-500/20" : "bg-gold/15 text-gold border-gold/20"}`} data-testid={`paid-amount-${c.course_id}`}>
+                      {c.paid_amount === 0 ? "Ücretsiz" : `${formatPrice(c.paid_amount)} ₺ ödendi`}
+                    </Badge>
                     <div className="mt-3">
                       <div className="flex justify-between text-xs text-muted-foreground mb-1.5"><span>%{c.progress_pct} tamamlandı</span><span>{c.completed_lessons}/{c.lesson_count}</span></div>
                       <Progress value={c.progress_pct} className="h-1.5" />

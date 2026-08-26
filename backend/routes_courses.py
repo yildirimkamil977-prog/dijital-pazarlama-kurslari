@@ -165,6 +165,19 @@ async def my_courses(request: Request):
         s["completed_lessons"] = len(progress)
         s["progress_pct"] = round(100 * len(progress) / s["lesson_count"]) if s["lesson_count"] else 0
         s["enrolled_at"] = e.get("enrolled_at")
+        paid = 0.0
+        if e.get("source") != "free":
+            order = None
+            if e.get("order_id"):
+                order = await db.orders.find_one({"order_id": e["order_id"]}, {"_id": 0, "invoice.data": 0})
+            if not order:
+                order = await db.orders.find_one(
+                    {"user_id": user["user_id"], "status": "paid", "items.course_id": c["course_id"]},
+                    {"_id": 0, "invoice.data": 0}, sort=[("created_at", -1)])
+            if order and order.get("total", 0):
+                item = next((it for it in order.get("items", []) if it["course_id"] == c["course_id"]), None)
+                paid = item.get("price", 0) if item else order.get("total", 0)
+        s["paid_amount"] = round(paid, 2)
         result.append(s)
     return result
 
