@@ -367,11 +367,33 @@ def render_email_shell(inner_html: str, s: dict) -> str:
     )
 
 
+async def _email_admin_notification(title: str, body: str):
+    try:
+        settings = await get_settings_doc()
+        if not settings.get("email_enabled", True):
+            return
+        admin_email = settings.get("notify_email") or settings.get("contact_email")
+        if not admin_email:
+            return
+        frontend = os.environ.get("CORS_ORIGINS", "").split(",")[0]
+        inner = (
+            '<span style="display:inline-block;background:#FFB80022;color:#FFB800;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:14px">Yönetim Bildirimi</span>'
+            f'<h2 style="margin:0 0 10px;color:#fff;font-size:20px">{title}</h2>'
+            f'<p style="margin:0 0 18px;color:#cbd2e0">{body or ""}</p>'
+            f'<div style="margin:22px 0"><a href="{frontend}/yonetim" style="background:#FFB800;color:#07090f;padding:11px 24px;border-radius:9px;text-decoration:none;font-weight:bold">Yönetim Paneline Git</a></div>'
+        )
+        html = render_email_shell(inner, settings)
+        await send_email(admin_email, f"[Bildirim] {title}", html, reply_to=settings.get("contact_email"))
+    except Exception:
+        pass
+
+
 async def push_notification(ntype: str, title: str, body: str = "", meta: dict = None):
     await db.notifications.insert_one({
         "notif_id": new_id("ntf"), "type": ntype, "title": title, "body": body,
         "meta": meta or {}, "read": False, "created_at": now_utc().isoformat(),
     })
+    asyncio.create_task(_email_admin_notification(title, body))
 
 
 async def send_templated(key: str, to_email: str, ctx: dict):

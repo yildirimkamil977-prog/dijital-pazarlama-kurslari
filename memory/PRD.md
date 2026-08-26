@@ -175,6 +175,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Ücret sabit (settings.consulting.price, admin belirler).
 - Test: iteration_10.json — backend 9/9, frontend %100 (rozet artış/azalış, öner-modalı→rescheduled, e-posta şablonları, takvim+booking, kart 503, mobil, slot kilit regresyonu). Hata yok.
 
+## Iteration 17 (2026-06) — Admin e-posta bildirimleri (tüm süreçler)
+- `push_notification` artık her tetiklendiğinde admin'e de şık HTML e-posta gönderiyor (fire-and-forget, `_email_admin_notification`). Alıcı: settings.notify_email || contact_email. "Yönetim Paneline Git" butonlu markalı şablon.
+- Kapsanan tüm süreçler (mevcut push_notification çağrıları): yeni öğrenci kaydı, Havale ödeme onayı, Havale bildirimi alındı, eğitim tamamlandı, yeni danışmanlık talebi, danışmanlık kart ödeme talebi.
+- PayTR kart callback'ine ödeme başarılı bildirimi eklendi (kurs + danışmanlık ayrımıyla). Danışmanlık siparişlerinde sahte kurs kaydı/purchase e-postası engellendi.
+- Doğrulama: backend hatasız yeniden başladı; register akışı push_notification→admin e-posta tetikliyor (traceback yok). E-posta gönderimi mevcut kanıtlı send_email kanalını kullanır (welcome/purchase ile aynı). NOT: gerçek e-posta teslimi otomatik testle assert edilmedi; aynı proven kanal kullanıldığı için güvenli.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

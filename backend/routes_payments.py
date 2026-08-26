@@ -275,16 +275,23 @@ async def paytr_callback(request: Request):
     if order and new_status == "paid":
         if order.get("discount_code"):
             await db.discount_codes.update_one({"code": order["discount_code"]}, {"$inc": {"used_count": 1}})
-        for it in order["items"]:
-            if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
-                await db.enrollments.insert_one({
-                    "enrollment_id": new_id("enr"), "user_id": order["user_id"],
-                    "course_id": it["course_id"], "source": "purchase",
-                    "order_id": order["order_id"], "enrolled_at": now_utc().isoformat(),
-                })
-            schedule_email("purchase", order["user_email"],
-                           {"name": order.get("user_name"), "course_title": it["title"],
-                            "amount": f"{order['total']:.2f}"})
+        is_consulting = order.get("kind") == "consulting"
+        if not is_consulting:
+            for it in order["items"]:
+                if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
+                    await db.enrollments.insert_one({
+                        "enrollment_id": new_id("enr"), "user_id": order["user_id"],
+                        "course_id": it["course_id"], "source": "purchase",
+                        "order_id": order["order_id"], "enrolled_at": now_utc().isoformat(),
+                    })
+                schedule_email("purchase", order["user_email"],
+                               {"name": order.get("user_name"), "course_title": it["title"],
+                                "amount": f"{order['total']:.2f}"})
+        await push_notification(
+            "payment",
+            "Danışmanlık ödemesi alındı (kart)" if is_consulting else "Kredi kartı ödemesi alındı",
+            f"{order.get('user_name', '')} · {order.get('total', 0):.0f} ₺ · {order['order_id']}",
+            {"order_id": order["order_id"]})
     return "OK"
 
 
