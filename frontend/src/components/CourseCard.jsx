@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function CourseCard({ course, index = 0 }) {
   const hasDiscount = course.discount_price != null && course.discount_price < course.price;
+  const isFree = (hasDiscount ? course.discount_price : course.price) === 0;
   return (
     <Link
       to={`/kurslar/${course.slug}`}
@@ -20,7 +21,9 @@ export function CourseCard({ course, index = 0 }) {
           <div className="w-full h-full flex items-center justify-center"><PlayCircle className="w-10 h-10 text-muted-foreground" /></div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-ink-surface via-transparent to-transparent opacity-60" />
-        {course.category && (
+        {isFree ? (
+          <Badge className="absolute top-3 left-3 bg-green-500 text-white font-bold border-0 shadow-lg text-[11px]">Ücretsiz</Badge>
+        ) : course.category && (
           <Badge className="absolute top-3 left-3 bg-ink/80 backdrop-blur text-foreground border-white/10 text-[11px]">{course.category}</Badge>
         )}
       </div>
