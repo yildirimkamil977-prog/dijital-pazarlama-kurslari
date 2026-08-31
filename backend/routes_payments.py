@@ -289,6 +289,10 @@ async def paytr_callback(request: Request):
             await push_notification("payment", "Grup eğitimi satışı (kart)",
                                     f"{order.get('user_name','')} · {order.get('total',0):.0f} ₺", {"order_id": order["order_id"]})
         is_consulting = kind == "consulting"
+        if is_consulting:
+            schedule_email("consulting_granted", order["user_email"], {
+                "name": order.get("user_name", ""),
+                "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
         if not is_consulting and kind != "group":
             for it in order["items"]:
                 if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):

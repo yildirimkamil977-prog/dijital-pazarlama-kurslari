@@ -412,7 +412,9 @@ async def mark_paid(order_id: str, request: Request):
             "name": order.get("user_name", ""), "training": g["title"] if g else "",
             "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
     elif kind == "consulting":
-        pass  # danışmanlık hakkı, ödenen danışmanlık siparişinin kendisiyle tanımlanır; kurs kaydı açılmaz
+        schedule_email("consulting_granted", order["user_email"], {
+            "name": order.get("user_name", ""),
+            "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
     else:
         for it in order["items"]:
             if not it.get("course_id"):

@@ -194,6 +194,10 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 23 (2026-06) — Danışmanlık hakkı tanımlandı e-postası
+- Öğrenci danışmanlık hakkını kart (PayTR webhook) veya Havale/EFT (`mark_paid`) ile aldığında otomatik "Danışmanlık hakkın tanımlandı" bilgilendirme e-postası gidiyor (yeni `consulting_granted` şablonu; panele "Randevu Oluştur" butonu). Her iki fulfillment yoluna da eklendi.
+- Test (curl+DB): şablon seed edildi; Havale danışmanlık siparişi mark-paid → paid, sahte kurs kaydı yok (bug fix korunuyor), öğrenciye e-posta gönderim isteği atıldı.
+
 ## Iteration 22 (2026-06) — Danışmanlık: Google Meet + Onaylı sayfa + ücretsiz hak bug fix
 - BUG FIX (P0): Grup eğitimi / danışmanlık siparişleri Havale/EFT ile onaylandığında (`mark_paid`) tüm kalemler körlemesine `enrollments`'a eklenip course_id="" ile sahte kayıt oluşturuyor, bu da ÜCRETSİZ danışmanlık hakkı kazandırıyordu. `mark_paid` artık sipariş türüne (kind) göre dallanıyor: group→group_enrollments, consulting→yalnız ödeme, course→gerçek course_id'li kayıt. Ek koruma: `_available_credits` yalnız `course_id != ""` kayıtları sayıyor. Sonuç: danışmanlık hakkı SADECE kurs satın alan öğrencilere tanımlanıyor.
 - Google Meet: Bire bir danışmanlıklar Google Meet üzerinden. Yeni ayrı admin sayfası "Onaylı Danışmanlıklar" (/yonetim/danismanlik-onay): onaylanmış danışmanlıkları listeler, her birine Meet linki eklenir; kaydedince öğrenciye `consulting_meet` e-postası gider. Öğrenci panelinde onaylı+linkli randevularda "Google Meet'e Katıl" butonu.
