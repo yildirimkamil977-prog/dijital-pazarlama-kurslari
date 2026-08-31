@@ -37,7 +37,7 @@ def _cfg(doc: dict) -> dict:
 
 
 async def _available_credits(user_id: str):
-    granted_courses = await db.enrollments.count_documents({"user_id": user_id, "source": {"$ne": "free"}})
+    granted_courses = await db.enrollments.count_documents({"user_id": user_id, "source": {"$ne": "free"}, "course_id": {"$ne": ""}})
     granted_paid = await db.orders.count_documents({"user_id": user_id, "kind": "consulting", "status": "paid"})
     granted = granted_courses + granted_paid
     consumed = await db.consulting_bookings.count_documents({"user_id": user_id, "status": {"$in": ACTIVE_STATUSES}})
@@ -80,6 +80,7 @@ async def _email_booking(booking, template_key):
         "datetime": _fmt_dt(booking.get("date", ""), booking.get("time", "")),
         "proposed": _fmt_dt(booking.get("proposed_date", ""), booking.get("proposed_time", "")),
         "note": booking.get("admin_note", "") or "-",
+        "meet_link": booking.get("meet_link", "") or f"{FRONTEND_URL}/panel",
         "panel_url": f"{FRONTEND_URL}/panel",
         "site_name": settings.get("site_name", ""),
     })
@@ -128,7 +129,7 @@ async def consulting_book(body: BookIn, request: Request):
         raise HTTPException(status_code=400, detail="Bu zaman dilimi az önce doldu, lütfen başka bir saat seçin")
     booking = {"booking_id": new_id("cbk"), "user_id": user["user_id"], "user_name": user.get("name", ""),
                "user_email": user.get("email", ""), "date": body.date, "time": body.time, "status": "pending",
-               "admin_note": "", "proposed_date": "", "proposed_time": "",
+               "admin_note": "", "proposed_date": "", "proposed_time": "", "meet_link": "",
                "created_at": now_utc().isoformat(), "updated_at": now_utc().isoformat()}
     await db.consulting_bookings.insert_one({**booking})
     await push_notification("consulting_request", "Yeni danışmanlık talebi",
@@ -154,6 +155,8 @@ async def respond_proposal(booking_id: str, body: RespondIn, request: Request):
         await db.consulting_bookings.update_one({"booking_id": booking_id}, {"$set": {
             "date": b["proposed_date"], "time": b["proposed_time"], "status": "approved",
             "proposed_date": "", "proposed_time": "", "updated_at": now_utc().isoformat()}})
+        await push_notification("consulting_request", "Danışmanlık önerisi kabul edildi",
+                                f"{b.get('user_name', '')} · {b['proposed_date']} {b['proposed_time']}", {"booking_id": booking_id})
     else:
         await db.consulting_bookings.update_one({"booking_id": booking_id}, {"$set": {
             "status": "cancelled", "updated_at": now_utc().isoformat()}})
@@ -301,4 +304,24 @@ async def admin_propose(booking_id: str, body: ProposeIn, request: Request):
         "admin_note": body.note, "updated_at": now_utc().isoformat()}})
     b["proposed_date"] = body.date; b["proposed_time"] = body.time; b["admin_note"] = body.note
     await _email_booking(b, "consulting_proposed")
+    return {"ok": True}
+
+
+class MeetIn(BaseModel):
+    meet_link: str = ""
+
+
+@router.post("/admin/consulting/bookings/{booking_id}/meet")
+async def admin_set_meet(booking_id: str, body: MeetIn, request: Request):
+    await require_admin(request)
+    b = await db.consulting_bookings.find_one({"booking_id": booking_id})
+    if not b:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    if b.get("status") not in ("approved", "completed"):
+        raise HTTPException(status_code=400, detail="Sadece onaylanmış danışmanlıklara Google Meet linki eklenebilir")
+    link = body.meet_link.strip()
+    await db.consulting_bookings.update_one({"booking_id": booking_id}, {"$set": {"meet_link": link, "updated_at": now_utc().isoformat()}})
+    if link:
+        b["meet_link"] = link
+        await _email_booking(b, "consulting_meet")
     return {"ok": True}

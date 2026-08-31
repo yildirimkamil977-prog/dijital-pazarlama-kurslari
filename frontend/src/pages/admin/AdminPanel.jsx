@@ -1,7 +1,7 @@
 import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog, CalendarClock } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog, CalendarClock, Video } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCourses from "@/pages/admin/AdminCourses";
@@ -12,6 +12,7 @@ import AdminDiscounts from "@/pages/admin/AdminDiscounts";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminInstructors from "@/pages/admin/AdminInstructors";
 import AdminConsulting from "@/pages/admin/AdminConsulting";
+import AdminApprovedConsulting from "@/pages/admin/AdminApprovedConsulting";
 import AdminGroupTrainings from "@/pages/admin/AdminGroupTrainings";
 
 const nav = [
@@ -19,6 +20,7 @@ const nav = [
   { to: "/yonetim/kurslar", label: "Kurslar", icon: BookOpen },
   { to: "/yonetim/egitmenler", label: "Eğitmenler", icon: UserCog },
   { to: "/yonetim/danismanlik", label: "Danışmanlık", icon: CalendarClock },
+  { to: "/yonetim/danismanlik-onay", label: "Onaylı Danışmanlıklar", icon: Video },
   { to: "/yonetim/grup-egitimleri", label: "Grup Eğitimleri", icon: Users },
   { to: "/yonetim/ogrenciler", label: "Öğrenciler", icon: Users },
   { to: "/yonetim/odemeler", label: "Ödemeler", icon: CreditCard },
@@ -84,6 +86,7 @@ export default function AdminPanel() {
             <Route path="kurslar/:id" element={<CourseEditor />} />
             <Route path="egitmenler" element={<AdminInstructors />} />
             <Route path="danismanlik" element={<AdminConsulting />} />
+            <Route path="danismanlik-onay" element={<AdminApprovedConsulting />} />
             <Route path="grup-egitimleri" element={<AdminGroupTrainings />} />
             <Route path="ogrenciler" element={<AdminStudents />} />
             <Route path="odemeler" element={<AdminPayments />} />

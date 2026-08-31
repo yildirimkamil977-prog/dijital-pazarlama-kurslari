@@ -194,6 +194,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 22 (2026-06) — Danışmanlık: Google Meet + Onaylı sayfa + ücretsiz hak bug fix
+- BUG FIX (P0): Grup eğitimi / danışmanlık siparişleri Havale/EFT ile onaylandığında (`mark_paid`) tüm kalemler körlemesine `enrollments`'a eklenip course_id="" ile sahte kayıt oluşturuyor, bu da ÜCRETSİZ danışmanlık hakkı kazandırıyordu. `mark_paid` artık sipariş türüne (kind) göre dallanıyor: group→group_enrollments, consulting→yalnız ödeme, course→gerçek course_id'li kayıt. Ek koruma: `_available_credits` yalnız `course_id != ""` kayıtları sayıyor. Sonuç: danışmanlık hakkı SADECE kurs satın alan öğrencilere tanımlanıyor.
+- Google Meet: Bire bir danışmanlıklar Google Meet üzerinden. Yeni ayrı admin sayfası "Onaylı Danışmanlıklar" (/yonetim/danismanlik-onay): onaylanmış danışmanlıkları listeler, her birine Meet linki eklenir; kaydedince öğrenciye `consulting_meet` e-postası gider. Öğrenci panelinde onaylı+linkli randevularda "Google Meet'e Katıl" butonu.
+- Yeniden planlama akışı (mevcut): admin farklı gün/saat önerir → öğrenci onaylar → status approved → Onaylı Danışmanlıklar sayfasında görünür + admin'e bildirim. Ana "Danışmanlık" sayfası artık yalnız bekleyen talepleri gösteriyor.
+- Test: iteration_14.json — backend 3/3, frontend %100. Hata yok.
+
 ## Iteration 21 (2026-06) — Ders Kaydı Hazır e-posta bildirimi
 - Admin bir derse ilk kez `recording_url` eklediğinde (boş → dolu), o gruba kayıtlı TÜM öğrencilere otomatik "Ders kaydın hazır" e-postası gidiyor. Yeni `group_recording` şablonu (deps.py DEFAULT_TEMPLATES, başlangıçta seed) + `_notify_new_recordings` (routes_group.admin_update).
 - Tekrar bildirimi önleme: `group_recording_sent` koleksiyonu (group_id+lesson_id) ve zaten kaydı olan derse tekrar e-posta gönderilmiyor. Lesson id'leri admin formunda korunduğu için güvenilir eşleşme.

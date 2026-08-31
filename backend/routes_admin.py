@@ -1,4 +1,5 @@
 import re
+import os
 import base64
 import secrets
 from fastapi import APIRouter, Request, HTTPException, UploadFile, File
@@ -399,14 +400,30 @@ async def mark_paid(order_id: str, request: Request):
     await db.orders.update_one({"order_id": order_id}, {"$set": {"status": "paid", "updated_at": now_utc().isoformat()}})
     if order.get("discount_code"):
         await db.discount_codes.update_one({"code": order["discount_code"]}, {"$inc": {"used_count": 1}})
-    for it in order["items"]:
-        if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
-            await db.enrollments.insert_one({
-                "enrollment_id": new_id("enr"), "user_id": order["user_id"], "course_id": it["course_id"],
-                "source": "purchase", "order_id": order_id, "enrolled_at": now_utc().isoformat(),
-            })
-        schedule_email("purchase", order["user_email"], {"name": order.get("user_name"),
-                       "course_title": it["title"], "amount": f"{order.get('total', 0):.2f}"})
+    kind = order.get("kind")
+    if kind == "group" and order.get("group_id"):
+        if not await db.group_enrollments.find_one({"group_id": order["group_id"], "user_id": order["user_id"]}):
+            await db.group_enrollments.insert_one({
+                "enr_id": new_id("genr"), "group_id": order["group_id"], "user_id": order["user_id"],
+                "user_name": order.get("user_name", ""), "user_email": order["user_email"],
+                "order_id": order_id, "enrolled_at": now_utc().isoformat()})
+        g = await db.group_trainings.find_one({"group_id": order["group_id"]})
+        schedule_email("group_purchase", order["user_email"], {
+            "name": order.get("user_name", ""), "training": g["title"] if g else "",
+            "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
+    elif kind == "consulting":
+        pass  # danışmanlık hakkı, ödenen danışmanlık siparişinin kendisiyle tanımlanır; kurs kaydı açılmaz
+    else:
+        for it in order["items"]:
+            if not it.get("course_id"):
+                continue
+            if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
+                await db.enrollments.insert_one({
+                    "enrollment_id": new_id("enr"), "user_id": order["user_id"], "course_id": it["course_id"],
+                    "source": "purchase", "order_id": order_id, "enrolled_at": now_utc().isoformat(),
+                })
+            schedule_email("purchase", order["user_email"], {"name": order.get("user_name"),
+                           "course_title": it["title"], "amount": f"{order.get('total', 0):.2f}"})
     await push_notification("payment", "Yeni ödeme alındı", f"{order.get('user_name','')} · {order.get('total',0):.0f} ₺ · {order_id}", {"order_id": order_id})
     return {"ok": True}
 

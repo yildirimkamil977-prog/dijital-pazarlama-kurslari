@@ -53,6 +53,8 @@ export default function AdminConsulting() {
 
   if (loading) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
 
+  const requests = bookings.filter((b) => !["approved", "completed"].includes(b.status));
+
   return (
     <div className="space-y-8">
       <div>
@@ -105,9 +107,10 @@ export default function AdminConsulting() {
       {/* Bookings */}
       <div>
         <h2 className="font-heading font-bold text-xl mb-4 flex items-center gap-2"><CalendarClock className="w-5 h-5 text-gold" /> Randevu Talepleri</h2>
-        {bookings.length === 0 ? <p className="text-muted-foreground text-sm">Henüz talep yok.</p> : (
+        <p className="text-xs text-muted-foreground -mt-2 mb-4">Onayladığın danışmanlıklar <strong>Onaylı Danışmanlıklar</strong> sayfasında görünür; Google Meet linkini oradan ekleyebilirsin.</p>
+        {requests.length === 0 ? <p className="text-muted-foreground text-sm">Bekleyen talep yok.</p> : (
           <div className="space-y-3">
-            {bookings.map((b) => {
+            {requests.map((b) => {
               const [t, c] = B_STATUS[b.status] || [b.status, "bg-secondary"];
               return (
                 <div key={b.booking_id} data-testid={`admin-booking-${b.booking_id}`} className="bg-ink-surface border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">

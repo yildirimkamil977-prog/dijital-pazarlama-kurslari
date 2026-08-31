@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, CalendarDays, Clock, Ticket, CreditCard, CheckCircle2, X } from "lucide-react";
+import { Loader2, CalendarDays, Clock, Ticket, CreditCard, CheckCircle2, X, Video } from "lucide-react";
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +68,7 @@ export default function ConsultingPanel() {
           <div>
             <p className="text-sm text-muted-foreground">Kullanılabilir Danışmanlık Hakkın</p>
             <p className="font-heading font-black text-3xl text-gold" data-testid="consulting-credits">{credits} <span className="text-lg text-foreground">saat</span></p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5"><Video className="w-3.5 h-3.5 text-gold" /> Görüşmeler Google Meet üzerinden yapılır.</p>
           </div>
         </div>
         {data.price > 0 && (
@@ -124,9 +125,15 @@ export default function ConsultingPanel() {
                   <p className="text-sm font-medium capitalize">{trDate(b.date)} · {b.time}</p>
                   {b.status === "rescheduled" && b.proposed_date && <p className="text-xs text-blue-300 mt-1">Önerilen: <span className="capitalize">{trDate(b.proposed_date)}</span> · {b.proposed_time}</p>}
                   {b.admin_note && <p className="text-xs text-muted-foreground mt-1">Not: {b.admin_note}</p>}
+                  {["approved", "completed"].includes(b.status) && !b.meet_link && <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5"><Video className="w-3.5 h-3.5" /> Google Meet linki randevu saatinden önce burada görünecek.</p>}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={STATUS_STYLE[b.status] || "bg-secondary"}>{b.status_label}</Badge>
+                  {["approved", "completed"].includes(b.status) && b.meet_link && (
+                    <a href={b.meet_link} target="_blank" rel="noreferrer" data-testid={`consulting-meet-${b.booking_id}`}>
+                      <Button size="sm" className="h-8 bg-gold hover:bg-gold-hover text-ink font-semibold"><Video className="w-3.5 h-3.5 mr-1.5" /> Google Meet'e Katıl</Button>
+                    </a>
+                  )}
                   {b.status === "rescheduled" && (
                     <>
                       <Button size="sm" className="h-8 bg-green-500 hover:bg-green-600 text-white" onClick={() => respond(b.booking_id, "accept")} data-testid={`accept-${b.booking_id}`}><CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Kabul</Button>
