@@ -7,6 +7,7 @@ import { useSite } from "@/context/SiteContext";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { CourseCard } from "@/components/CourseCard";
+import { GroupCard } from "@/components/GroupCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
@@ -63,11 +64,13 @@ export default function Home() {
   const { settings } = useSite();
   const { user } = useAuth();
   const [courses, setCourses] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [videoOpen, setVideoOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState("");
 
   useEffect(() => {
     api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {});
+    api.get("/group-trainings").then(({ data }) => setGroups(data)).catch(() => {});
     document.title = `${settings.site_name || "Akademi"} - Dijital Pazarlama Eğitimleri`;
   }, [settings.site_name]);
 
@@ -133,7 +136,17 @@ export default function Home() {
             <div className="mt-10 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-gold" /> Uygulamalı dersler</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-gold" /> Ömür boyu erişim</span>
+              <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> Canlı grup eğitimleri</span>
             </div>
+            {groups.length > 0 && (
+              <Link to="/canli-grup-egitimleri" data-testid="hero-group-cta" className="mt-8 inline-flex items-center gap-3 bg-gradient-to-r from-red-500/10 to-gold/10 border border-white/10 rounded-2xl pl-3 pr-4 py-2.5 hover:border-gold/40 transition-colors duration-200 group">
+                <span className="inline-flex items-center gap-1.5 bg-red-500 text-white text-[11px] font-bold px-2 py-1 rounded-full">
+                  <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" /></span> CANLI
+                </span>
+                <span className="text-sm text-foreground/90">Google Meet ile <b className="text-gold">Canlı Grup Eğitimleri</b> başladı</span>
+                <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform duration-200" />
+              </Link>
+            )}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="lg:col-span-6">
@@ -233,6 +246,27 @@ export default function Home() {
           {courses.slice(0, 6).map((c, i) => <CourseCard key={c.course_id} course={c} index={i} />)}
         </div>
       </section>
+
+      {/* LIVE GROUP TRAININGS */}
+      {groups.length > 0 && (
+        <section className="relative border-y border-white/10 bg-ink-surface/30 py-24 overflow-hidden" data-testid="home-group-section">
+          <div className="absolute -top-20 right-0 w-[520px] h-[520px] bg-red-600/10 rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 -left-32 w-[420px] h-[420px] bg-gold/10 rounded-full blur-[150px]" />
+          <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
+            <div className="flex items-end justify-between flex-wrap gap-4 mb-12">
+              <div className="max-w-2xl">
+                <span className="inline-flex items-center gap-2 overline text-gold"><Radio className="w-3.5 h-3.5" /> Canlı Eğitimler</span>
+                <h2 className="mt-3 font-heading font-bold text-3xl sm:text-4xl tracking-tight">Google Meet ile canlı, birlikte öğren.</h2>
+                <p className="mt-3 text-muted-foreground max-w-xl leading-relaxed">Sınırlı kontenjan, gerçek zamanlı soru-cevap ve uygulamalı canlı derslerle bir topluluğun parçası ol.</p>
+              </div>
+              <Link to="/canli-grup-egitimleri"><Button variant="outline" className="rounded-full border-white/15" data-testid="home-all-groups">Tümünü Gör <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {groups.slice(0, 3).map((g, i) => <GroupCard key={g.group_id} g={g} index={i} />)}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* VIDEO TESTIMONIALS */}
       {testimonials.length > 0 && (

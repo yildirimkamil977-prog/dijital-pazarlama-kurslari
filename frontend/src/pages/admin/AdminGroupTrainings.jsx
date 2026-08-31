@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, Save, Users, Video, X, Link2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Users, Video, X, Link2, PlayCircle } from "lucide-react";
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ export default function AdminGroupTrainings() {
   const openNew = () => { setForm(empty); setEditing("new"); };
   const openEdit = async (id) => { const { data } = await api.get(`/admin/group-trainings/${id}`); setForm({ ...empty, ...data, lessons: data.lessons || [] }); setEditing(id); };
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const addLesson = () => set("lessons", [...form.lessons, { id: "", title: "", date: "", time: "20:00", meet_link: "" }]);
+  const addLesson = () => set("lessons", [...form.lessons, { id: "", title: "", date: "", time: "20:00", meet_link: "", recording_url: "" }]);
   const updLesson = (i, k, v) => set("lessons", form.lessons.map((l, idx) => idx === i ? { ...l, [k]: v } : l));
   const delLesson = (i) => set("lessons", form.lessons.filter((_, idx) => idx !== i));
 
@@ -73,16 +73,21 @@ export default function AdminGroupTrainings() {
         <div className="flex items-center gap-3"><Switch checked={form.is_published} onCheckedChange={(v) => set("is_published", v)} data-testid="group-published" /><Label>Yayında</Label></div>
 
         <div className="pt-2 border-t border-white/10">
-          <div className="flex items-center justify-between mb-3"><Label className="flex items-center gap-2"><Video className="w-4 h-4 text-gold" /> Ders Takvimi & Meet Linkleri</Label>
+          <div className="flex items-center justify-between mb-3"><Label className="flex items-center gap-2"><Video className="w-4 h-4 text-gold" /> Ders Takvimi · Meet & Kayıt Linkleri</Label>
             <Button size="sm" variant="ghost" className="text-gold" onClick={addLesson} data-testid="add-lesson"><Plus className="w-4 h-4 mr-1" /> Ders</Button></div>
           <div className="space-y-2">
             {form.lessons.map((l, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-center bg-ink border border-white/8 rounded-xl p-2">
-                <Input value={l.title} onChange={(e) => updLesson(i, "title", e.target.value)} placeholder="Ders adı" className="col-span-3 bg-ink-surface border-white/10 h-9 text-sm" />
-                <Input type="date" value={l.date} onChange={(e) => updLesson(i, "date", e.target.value)} className="col-span-3 bg-ink-surface border-white/10 h-9 text-sm" />
-                <Input type="time" value={l.time} onChange={(e) => updLesson(i, "time", e.target.value)} className="col-span-2 bg-ink-surface border-white/10 h-9 text-sm" />
-                <div className="col-span-3 relative"><Link2 className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={l.meet_link} onChange={(e) => updLesson(i, "meet_link", e.target.value)} placeholder="Meet linki" className="bg-ink-surface border-white/10 h-9 text-sm pl-7" /></div>
-                <Button size="sm" variant="ghost" className="col-span-1 text-destructive h-9" onClick={() => delLesson(i)}><Trash2 className="w-3.5 h-3.5" /></Button>
+              <div key={i} className="bg-ink border border-white/8 rounded-xl p-3 space-y-2" data-testid={`lesson-row-${i}`}>
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  <Input value={l.title} onChange={(e) => updLesson(i, "title", e.target.value)} placeholder="Ders adı" className="col-span-5 bg-ink-surface border-white/10 h-9 text-sm" />
+                  <Input type="date" value={l.date} onChange={(e) => updLesson(i, "date", e.target.value)} className="col-span-4 bg-ink-surface border-white/10 h-9 text-sm" />
+                  <Input type="time" value={l.time} onChange={(e) => updLesson(i, "time", e.target.value)} className="col-span-2 bg-ink-surface border-white/10 h-9 text-sm" />
+                  <Button size="sm" variant="ghost" className="col-span-1 text-destructive h-9 px-0" onClick={() => delLesson(i)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative"><Video className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={l.meet_link} onChange={(e) => updLesson(i, "meet_link", e.target.value)} placeholder="Google Meet linki" className="bg-ink-surface border-white/10 h-9 text-sm pl-7" data-testid={`lesson-meet-${i}`} /></div>
+                  <div className="relative"><PlayCircle className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={l.recording_url || ""} onChange={(e) => updLesson(i, "recording_url", e.target.value)} placeholder="Ders kaydı linki (Vimeo/YouTube)" className="bg-ink-surface border-white/10 h-9 text-sm pl-7" data-testid={`lesson-recording-${i}`} /></div>
+                </div>
               </div>
             ))}
           </div>

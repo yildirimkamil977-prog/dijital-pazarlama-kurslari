@@ -194,6 +194,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 20 (2026-06) — Grup Ders Kaydı + Liste redesign + Anasayfa canlı bölüm
+- Grup Ders Kaydı: LessonIn'e `recording_url`; her derse admin editöründe "Ders kaydı linki" alanı (lesson-recording-<i>). recording_url SADECE kayıtlı öğrenciye (/my/group-trainings) açılır; public detay/liste id/title/date/time dışında hiçbir link vermez. Öğrenci panelinde (GroupPanel) kaydı olan derste "Kaydı İzle" butonu (recording-link-<id>) — canlıyı kaçıranlar için.
+- Ortak `GroupCard.jsx` bileşeni (CANLI + Google Meet rozeti, eğitmen mini-satırı, kontenjan progress bar, fiyat/İncele). GroupList.jsx premium yeniden tasarlandı (gradient hero + özellik çipleri + kart grid).
+- Anasayfa: hero'ya "CANLI · Canlı Grup Eğitimleri başladı" pill (hero-group-cta) + üçüncü güven maddesi; kurslar altına yeni "Canlı Grup Eğitimleri" bölümü (home-group-section, home-all-groups, en fazla 3 GroupCard).
+- Test: iteration_13.json — backend 5/5 (recording görünürlük kuralları + kalıcılık), frontend %100 (admin kayıt alanı, öğrenci "Kaydı İzle", anasayfa pill+bölüm, liste redesign). Hata yok.
+
 ## Iteration 19 (2026-06) — Grup Eğitimi detay premium redesign + eğitmen sosyal medya
 - GroupDetail.jsx tamamen yeniden tasarlandı (premium): CANLI YAYIN rozeti + Google Meet logolu badge, breadcrumb, hero meta çipleri; sol kolonda tanıtım videosu, Google Meet şeridi, "Eğitim Hakkında", "Neler Öğreneceksin" (what_you_learn grid), "Canlı Ders Programı" (takvim + Canlı çipleri), "Gereksinimler", zengin eğitmen kartı (bio + sosyal ikonlar), 9:16 video öğrenci yorumları; sağda sticky sidebar (fiyat, kontenjan, kalan yer, kontenjan progress bar, urgency alarmı, **"Eğitime Kaydol"** butonu, güven rozetleri). Mobil sticky alt bar. SEO meta + JSON-LD Course schema.
 - Eğitmen sosyal medya linkleri: InstructorIn'e `social_links: dict`; AdminInstructors formuna 7 alan (instagram/linkedin/youtube/twitter/facebook/tiktok/website — sadece dolu olanlar görünür). Yeni paylaşılan `SocialLinks.jsx` bileşeni (lucide ikonlar + tiktok inline SVG).

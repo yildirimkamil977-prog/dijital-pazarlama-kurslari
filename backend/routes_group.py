@@ -51,7 +51,7 @@ async def _public(doc, imap, with_links=False):
     remaining = max(0, cap - enrolled)
     lessons = sorted(doc.get("lessons", []), key=lambda l: (l.get("date", ""), l.get("time", "")))
     pub_lessons = [{"id": l.get("id"), "title": l.get("title"), "date": l.get("date"), "time": l.get("time"),
-                    **({"meet_link": l.get("meet_link", "")} if with_links else {})} for l in lessons]
+                    **({"meet_link": l.get("meet_link", ""), "recording_url": l.get("recording_url", "")} if with_links else {})} for l in lessons]
     return {"group_id": doc["group_id"], "title": doc["title"], "slug": doc["slug"],
             "description": doc.get("description", ""), "image": doc.get("image", ""),
             "what_you_learn": doc.get("what_you_learn", []), "requirements": doc.get("requirements", []),
@@ -147,6 +147,7 @@ class LessonIn(BaseModel):
     date: str = ""
     time: str = ""
     meet_link: str = ""
+    recording_url: str = ""
 
 
 class GroupIn(BaseModel):
@@ -167,7 +168,7 @@ def _norm_lessons(lessons):
     out = []
     for l in lessons:
         out.append({"id": l.get("id") or new_id("gl"), "title": l.get("title", ""), "date": l.get("date", ""),
-                    "time": l.get("time", ""), "meet_link": l.get("meet_link", "")})
+                    "time": l.get("time", ""), "meet_link": l.get("meet_link", ""), "recording_url": l.get("recording_url", "")})
     return out
 
 

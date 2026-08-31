@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="5" time="2.492" timestamp="2026-08-31T15:46:02.464179+00:00" hostname="agent-env-61168001-9284-4208-8839-56b318f0aa1e"><testcase classname="tests.test_recording_url" name="test_public_detail_hides_recording_and_meet" time="0.372" /><testcase classname="tests.test_recording_url" name="test_public_listing_hides_recording" time="0.245" /><testcase classname="tests.test_recording_url" name="test_admin_get_reveals_recording_url_seed" time="0.577" /><testcase classname="tests.test_recording_url" name="test_admin_create_update_persists_recording_url" time="0.561" /><testcase classname="tests.test_recording_url" name="test_enrolled_student_sees_recording_url_on_seed" time="0.077"><failure message="pymongo.errors.InvalidURI: Invalid URI scheme: URI must begin with 'mongodb://' or 'mongodb+srv://'">backend/tests/test_recording_url.py:121: in test_enrolled_student_sees_recording_url_on_seed
+    client = MongoClient(mongo_url)
+             ^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pymongo/mongo_client.py:771: in __init__
+    res = uri_parser.parse_uri(
+/root/.venv/lib/python3.11/site-packages/pymongo/uri_parser.py:497: in parse_uri
+    raise InvalidURI(f"Invalid URI scheme: URI must begin with '{SCHEME}' or '{SRV_SCHEME}'")
+E   pymongo.errors.InvalidURI: Invalid URI scheme: URI must begin with 'mongodb://' or 'mongodb+srv://'</failure></testcase></testsuite></testsuites>
