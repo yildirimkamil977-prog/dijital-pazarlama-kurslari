@@ -7,9 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ImageUpload } from "@/components/ImageUpload";
+import { SocialLinks } from "@/components/SocialLinks";
 import { toast } from "sonner";
 
-const empty = { name: "", title: "", bio: "", avatar: "" };
+const emptySocial = { instagram: "", linkedin: "", youtube: "", twitter: "", facebook: "", tiktok: "", website: "" };
+const empty = { name: "", title: "", bio: "", avatar: "", social_links: { ...emptySocial } };
+const SOCIAL_FIELDS = [
+  { key: "instagram", label: "Instagram", ph: "https://instagram.com/..." },
+  { key: "linkedin", label: "LinkedIn", ph: "https://linkedin.com/in/..." },
+  { key: "youtube", label: "YouTube", ph: "https://youtube.com/@..." },
+  { key: "twitter", label: "X (Twitter)", ph: "https://x.com/..." },
+  { key: "facebook", label: "Facebook", ph: "https://facebook.com/..." },
+  { key: "tiktok", label: "TikTok", ph: "https://tiktok.com/@..." },
+  { key: "website", label: "Web Sitesi", ph: "https://..." },
+];
 
 export default function AdminInstructors() {
   const [items, setItems] = useState([]);
@@ -22,9 +33,10 @@ export default function AdminInstructors() {
   const load = () => { setLoading(true); api.get("/admin/instructors").then(({ data }) => setItems(data)).catch((e) => toast.error(apiError(e))).finally(() => setLoading(false)); };
   useEffect(() => { document.title = "Yönetim - Eğitmenler"; load(); }, []);
 
-  const openNew = () => { setEditing(null); setForm(empty); setOpen(true); };
-  const openEdit = (it) => { setEditing(it); setForm({ name: it.name, title: it.title || "", bio: it.bio || "", avatar: it.avatar || "" }); setOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ ...empty, social_links: { ...emptySocial } }); setOpen(true); };
+  const openEdit = (it) => { setEditing(it); setForm({ name: it.name, title: it.title || "", bio: it.bio || "", avatar: it.avatar || "", social_links: { ...emptySocial, ...(it.social_links || {}) } }); setOpen(true); };
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const setSocial = (k, v) => setForm((f) => ({ ...f, social_links: { ...f.social_links, [k]: v } }));
 
   const save = async () => {
     if (!form.name.trim()) { toast.error("Eğitmen adı zorunlu"); return; }
@@ -72,6 +84,7 @@ export default function AdminInstructors() {
                 </div>
               </div>
               {it.bio && <p className="text-sm text-muted-foreground mt-4 line-clamp-3 flex-1">{it.bio}</p>}
+              <div className="mt-3"><SocialLinks links={it.social_links} /></div>
               <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
                 <Button onClick={() => openEdit(it)} data-testid={`edit-instructor-${it.instructor_id}`} variant="outline" size="sm" className="border-white/15 flex-1"><Pencil className="w-3.5 h-3.5 mr-1.5" /> Düzenle</Button>
                 <Button onClick={() => remove(it)} data-testid={`delete-instructor-${it.instructor_id}`} variant="outline" size="sm" className="border-white/15 text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
@@ -82,13 +95,25 @@ export default function AdminInstructors() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg bg-ink-surface border-white/10">
+        <DialogContent className="max-w-lg bg-ink-surface border-white/10 max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editing ? "Eğitmeni Düzenle" : "Yeni Eğitmen"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div><Label>Ad Soyad *</Label><Input value={form.name} onChange={(e) => set("name", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="instructor-name" /></div>
             <div><Label>Ünvan</Label><Input value={form.title} onChange={(e) => set("title", e.target.value)} className="bg-ink border-white/10 mt-1.5" placeholder="Dijital Pazarlama Uzmanı" data-testid="instructor-title" /></div>
             <div><Label>Biyografi</Label><Textarea value={form.bio} onChange={(e) => set("bio", e.target.value)} className="bg-ink border-white/10 mt-1.5" rows={5} placeholder="Eğitmenin deneyimi, uzmanlık alanları..." data-testid="instructor-bio" /></div>
             <div><Label>Profil Resmi</Label><div className="mt-1.5"><ImageUpload value={form.avatar} onChange={(v) => set("avatar", v)} testId="instructor-avatar-upload" /></div></div>
+            <div className="pt-2 border-t border-white/5">
+              <Label className="text-gold">Sosyal Medya Bağlantıları</Label>
+              <p className="text-xs text-muted-foreground mt-1 mb-3">Sadece doldurduğun bağlantılar sitede görünür.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {SOCIAL_FIELDS.map((s) => (
+                  <div key={s.key}>
+                    <Label className="text-xs">{s.label}</Label>
+                    <Input value={form.social_links[s.key]} onChange={(e) => setSocial(s.key, e.target.value)} className="bg-ink border-white/10 mt-1" placeholder={s.ph} data-testid={`instructor-social-${s.key}`} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" className="border-white/15" onClick={() => setOpen(false)}>Vazgeç</Button>

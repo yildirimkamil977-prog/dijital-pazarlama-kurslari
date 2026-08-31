@@ -1,0 +1,37 @@
+{
+  "summary": "Verified the GroupDetail premium redesign + instructor social_links feature end-to-end. Backend pytest 5/5 pass in /app/backend/tests/test_social_and_group_extras.py: (1) GET /api/group-trainings/google-ads-canli-grup-egitimi returns instructor.social_links (instagram, linkedin, youtube, website all populated), what_you_learn has exactly 6 items, requirements has exactly 3 items, reviews is an array, and NO lesson exposes meet_link publicly; (2) GET /api/instructors returns kamil-yildirim with all 4 social_links; (3) GET /api/instructors/kamil-yildirim (public detail) exposes social_links; (4) GET /api/courses/{slug} returns instructor with social_links; (5) admin POST /api/admin/instructors persists social_links, PUT updates them, GET reflects the change, DELETE cleans up. Frontend Playwright: /canli-grup-egitimleri/google-ads-canli-grup-egitimi renders CANLI YAYIN badge, Google Meet badge (4 occurrences of 'Google Meet' text/badge), title, meta chips (2 canlı ders, 12 kişilik kontenjan, Başlangıç 07 Eylül 2026 Pazartesi), sticky sidebar with 4.999₺, Kontenjan 12, Kalan Yer 12, and an 'Eğitime Kaydol' button (data-testid group-buy). All required sections render (group-outcomes with 6 items, group-schedule with 2 lessons, group-requirements with 3 items, group-instructor-card with SocialLinks icons, and 3 group-review-* cards). meet.google.com does NOT appear in public HTML. Havale/EFT is absent from the purchase sidebar (the 'Havale/EFT %2 indirim' text belongs to the site-wide top marquee banner, unrelated to group purchase). Logged-in admin clicking group-buy triggers POST /api/group-trainings/:id/purchase which returns 503 and shows the Turkish toast 'Kart ile ödeme henüz yapılandırılmadı. Lütfen daha sonra tekrar deneyin.' — no crash. Mobile (390x844) shows the fixed bottom bar with data-testid group-mobile-bar (visible) and group-mobile-buy button. CourseDetail (/kurslar/google-ads-ile-sifirdan-uzmanliga) renders course-instructor-card with SocialLinks sub-testids [social-links, social-instagram, social-linkedin, social-youtube, social-website] and a 'Profili görüntüle' link; no nested-anchor warnings (7 anchors inside card, 0 nested). Admin /yonetim/egitmenler → click Düzenle on Kamil Yıldırım opens form with social input testids: instructor-social-instagram / -linkedin / -youtube / -facebook / -tiktok / -website; changing instagram to a new URL and clicking save-instructor produces the 'Eğitmen güncellendi' toast, and reopening the edit dialog shows the new value (persistence confirmed). Original value restored at cleanup.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "GroupDetail hero Vimeo iframe (promo_video)", "issues": ["Vimeo player shows 'Player error / The player is having trouble' in the preview env — pre-existing external-asset issue also noted in iteration_11; not a regression."]},
+      {"screen": "GroupDetail reviews cards", "issues": ["Card top area shows 'Verify to continue' in the screenshot but that is Chromium's auto-translation overlay on the empty top strip of each review card — not real content. Real testimonial text renders correctly below."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_social_and_group_extras.py",
+    "/app/backend/tests/test_group_trainings.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Naming inconsistency: The admin instructor form uses key 'twitter' (data-testid=\"instructor-social-twitter\", label 'X (Twitter)') while the review request calls it 'x'. The public API therefore stores/returns the X handle under social_links.twitter, not social_links.x. Functionally works, but the frontend SocialLinks renderer and consumers must be aligned on 'twitter' vs 'x' — please pick one consistently across backend seed, admin form, SocialLinks.jsx, and the review docs.",
+    "routes_admin.create_instructor accepts a slug-less InstructorIn — slug is always auto-generated from name via slugify(); admins cannot pick a custom slug at creation. Consider allowing an optional slug field to avoid slug drift when instructor names are edited later.",
+    "GroupDetail hero uses the same Vimeo promo_video which fails to load in the preview environment (Player error). Consider wrapping the iframe in a fallback poster/CTA so a broken external asset doesn't dominate the hero.",
+    "The public /api/courses/{slug} instructor card omits course_count/other fields that /api/instructors returns; if the frontend ever expects course_count on CourseDetail, it will be undefined. Minor — no consumer today.",
+    "GroupDetail reviews query surfaces GENERAL testimonials (no course_id) — if admins later add course-specific testimonials with course_id, none will appear on the group detail. This is by design per the current spec but should be documented."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_social_and_group_extras.py"
+  ],
+  "success_rate": {"backend": "100% (5/5 new; 13/13 pre-existing group_trainings still green)", "frontend": "100% of requested flows verified"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "Temporarily set the Kamil Yıldırım instructor's instagram to a timestamped URL to prove persistence, then restored to https://instagram.com/kamilyildirim. Created and deleted one TEST_ instructor via admin API for the CRUD test. No leftover test data. Seed group and seed instructor otherwise untouched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend suite for this feature: /app/backend/tests/test_social_and_group_extras.py. Run with REACT_APP_BACKEND_URL exported. Seed instructor slug 'kamil-yildirim' has social_links {instagram, linkedin, youtube, website}. Seed group slug 'google-ads-canli-grup-egitimi' has what_you_learn (6), requirements (3), and NO meet_link on public detail. GroupDetail testids in use: group-buy, group-outcomes, group-schedule, group-requirements, group-instructor-card, group-review-*, group-mobile-bar, group-mobile-buy. CourseDetail exposes course-instructor-card with SocialLinks child testids [social-links, social-instagram, social-linkedin, social-youtube, social-website]. Admin form uses instructor-social-{instagram,linkedin,youtube,twitter,facebook,tiktok,website} (note key is 'twitter' not 'x'). PayTR remains unconfigured → 503 with Turkish toast on group purchase. Login URL is /giris; admin instructor edit button testid is edit-instructor-<instructor_id>, save button testid is save-instructor.",
+  "rca of the issue": "N/A — feature verification pass, no functional bugs found."
+}

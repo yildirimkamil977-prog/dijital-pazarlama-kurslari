@@ -194,6 +194,14 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 19 (2026-06) — Grup Eğitimi detay premium redesign + eğitmen sosyal medya
+- GroupDetail.jsx tamamen yeniden tasarlandı (premium): CANLI YAYIN rozeti + Google Meet logolu badge, breadcrumb, hero meta çipleri; sol kolonda tanıtım videosu, Google Meet şeridi, "Eğitim Hakkında", "Neler Öğreneceksin" (what_you_learn grid), "Canlı Ders Programı" (takvim + Canlı çipleri), "Gereksinimler", zengin eğitmen kartı (bio + sosyal ikonlar), 9:16 video öğrenci yorumları; sağda sticky sidebar (fiyat, kontenjan, kalan yer, kontenjan progress bar, urgency alarmı, **"Eğitime Kaydol"** butonu, güven rozetleri). Mobil sticky alt bar. SEO meta + JSON-LD Course schema.
+- Eğitmen sosyal medya linkleri: InstructorIn'e `social_links: dict`; AdminInstructors formuna 7 alan (instagram/linkedin/youtube/twitter/facebook/tiktok/website — sadece dolu olanlar görünür). Yeni paylaşılan `SocialLinks.jsx` bileşeni (lucide ikonlar + tiktok inline SVG).
+- Public API'lerde social_links: routes_courses.instructor_card, routes_group._instructors; get_group artık genel testimonials'ı `reviews` olarak döndürüyor.
+- CourseDetail eğitmen kartı yeniden yapılandırıldı (iç içe <a> kaldırıldı) + SocialLinks ikonları eklendi.
+- Seed zenginleştirildi: grup eğitimine what_you_learn(6)+requirements(3); kamil-yildirim eğitmenine social_links (instagram/linkedin/youtube/website).
+- Test: iteration_12.json — backend 5/5 (+13/13 mevcut), frontend %100 (tüm bölümler, mobil bar, admin sosyal alan kalıcılığı, 503 kart toast). Fonksiyonel hata yok.
+
 ## Iteration 9 (2026-06) — Fork: Ödeme analitiği + zengin satış bölümleri + hero fix
 - Admin Ödemeler yeniden yapılandırıldı: 4 analitik kartı (Toplam Gelir, Ödenen Sipariş, Ortalama Sepet, Havale Bekleyen tutar+adet), günlük gelir alan grafiği (recharts), öğrenci adı/e-posta/sipariş no ile arama (400ms debounce), tarih aralığı (start/end) + hızlı presetler (Son 7/30 gün, Bu Ay, Tümü) ve durum filtreleri. Backend GET /api/admin/payments artık start_date/end_date/search query paramlarını destekliyor (sunucu tarafı filtre).
 - Anasayfa: yeni ROADMAP bölümü (4 animasyonlu adım) ve VALUE STACK + garanti bandı (pakete dahil listesi + güven kartı + CTA). Bölüm etiketlerinde ikon çeşitliliği (Zap, GraduationCap, Compass, Quote, MessageCircle, Gift vb.) — tek tip yıldız şikayeti giderildi.

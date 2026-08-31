@@ -132,6 +132,7 @@ class InstructorIn(BaseModel):
     title: str = ""
     bio: str = ""
     avatar: str = ""
+    social_links: dict = {}
 
 
 @router.get("/instructors")

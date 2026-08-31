@@ -41,7 +41,8 @@ def _fmt(date_str, time_str):
 async def _instructors():
     docs = await db.instructors.find({}, {"_id": 0}).to_list(300)
     return {d["instructor_id"]: {"instructor_id": d["instructor_id"], "slug": d["slug"], "name": d["name"],
-                                 "title": d.get("title", ""), "avatar": d.get("avatar", ""), "bio": d.get("bio", "")} for d in docs}
+                                 "title": d.get("title", ""), "avatar": d.get("avatar", ""), "bio": d.get("bio", ""),
+                                 "social_links": d.get("social_links", {})} for d in docs}
 
 
 async def _public(doc, imap, with_links=False):
@@ -53,6 +54,7 @@ async def _public(doc, imap, with_links=False):
                     **({"meet_link": l.get("meet_link", "")} if with_links else {})} for l in lessons]
     return {"group_id": doc["group_id"], "title": doc["title"], "slug": doc["slug"],
             "description": doc.get("description", ""), "image": doc.get("image", ""),
+            "what_you_learn": doc.get("what_you_learn", []), "requirements": doc.get("requirements", []),
             "promo_video": doc.get("promo_video", ""), "price": doc.get("price", 0),
             "capacity": cap, "enrolled": enrolled, "remaining": remaining, "low_stock": remaining <= 10,
             "sold_out": remaining <= 0, "lessons": pub_lessons,
@@ -73,7 +75,10 @@ async def get_group(slug):
     d = await db.group_trainings.find_one({"slug": slug}, {"_id": 0})
     if not d:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
-    return await _public(d, await _instructors())
+    res = await _public(d, await _instructors())
+    allt = (await get_settings_doc()).get("testimonials", [])
+    res["reviews"] = [t for t in allt if not t.get("course_id")]
+    return res
 
 
 # ---------- Student ----------
@@ -149,6 +154,8 @@ class GroupIn(BaseModel):
     description: str = ""
     image: str = ""
     promo_video: str = ""
+    what_you_learn: list = []
+    requirements: list = []
     price: float = 0
     capacity: int = 0
     instructor_id: str = ""

@@ -34,7 +34,8 @@ async def settings_public():
 
 def instructor_card(d: dict) -> dict:
     return {"instructor_id": d["instructor_id"], "slug": d["slug"], "name": d["name"],
-            "title": d.get("title", ""), "bio": d.get("bio", ""), "avatar": d.get("avatar", "")}
+            "title": d.get("title", ""), "bio": d.get("bio", ""), "avatar": d.get("avatar", ""),
+            "social_links": d.get("social_links", {})}
 
 
 async def _instructor_map() -> dict:

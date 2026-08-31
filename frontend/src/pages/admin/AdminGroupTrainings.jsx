@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
 import { toast } from "sonner";
 
-const empty = { title: "", description: "", image: "", promo_video: "", price: 0, capacity: 20, instructor_id: "", lessons: [], is_published: false };
+const empty = { title: "", description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, capacity: 20, instructor_id: "", lessons: [], is_published: false };
 
 export default function AdminGroupTrainings() {
   const [items, setItems] = useState([]);
@@ -56,6 +56,10 @@ export default function AdminGroupTrainings() {
       <div className="space-y-4 bg-ink-surface border border-white/5 rounded-2xl p-6">
         <div><Label>Başlık</Label><Input value={form.title} onChange={(e) => set("title", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-title" /></div>
         <div><Label>Açıklama</Label><Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} className="bg-ink border-white/10 mt-1.5" /></div>
+        <div className="grid grid-cols-2 gap-4">
+          <div><Label>Kazanımlar (her satıra bir madde)</Label><Textarea value={(form.what_you_learn || []).join("\n")} onChange={(e) => set("what_you_learn", e.target.value.split("\n").filter(Boolean))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Google Ads hesabı kurmayı öğreneceksin&#10;Dönüşüm takibi..." /></div>
+          <div><Label>Gereksinimler (her satıra bir madde)</Label><Textarea value={(form.requirements || []).join("\n")} onChange={(e) => set("requirements", e.target.value.split("\n").filter(Boolean))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Bilgisayar ve internet&#10;Temel bilgisayar kullanımı" /></div>
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div><Label>Fiyat (₺)</Label><Input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-price" /></div>
           <div><Label>Kontenjan</Label><Input type="number" value={form.capacity} onChange={(e) => set("capacity", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-capacity" /></div>

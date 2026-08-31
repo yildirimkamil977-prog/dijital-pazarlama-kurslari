@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
+import { SocialLinks } from "@/components/SocialLinks";
 import { useSite } from "@/context/SiteContext";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/track";
 import { toast } from "sonner";
@@ -148,19 +149,26 @@ export default function CourseDetail() {
           {course.instructor && (
             <div className="mt-10" data-testid="course-instructor-card">
               <h2 className="font-heading font-bold text-xl tracking-tight mb-4">Eğitmen</h2>
-              <Link to={`/egitmen/${course.instructor.slug}`} className="flex items-start gap-5 bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-2xl p-6 hover:border-gold/40 transition-colors duration-300 group">
-                {course.instructor.avatar ? (
-                  <img src={course.instructor.avatar} alt={course.instructor.name} className="w-20 h-20 rounded-2xl object-cover border border-white/10 shrink-0" />
-                ) : (
-                  <span className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0"><Users className="w-9 h-9 text-gold" /></span>
-                )}
-                <div className="min-w-0">
-                  <p className="font-heading font-semibold text-lg group-hover:text-gold transition-colors duration-200">{course.instructor.name}</p>
-                  {course.instructor.title && <p className="text-sm text-gold">{course.instructor.title}</p>}
-                  {course.instructor.bio && <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-3">{course.instructor.bio}</p>}
-                  <span className="inline-flex items-center gap-1 text-xs text-gold mt-3 font-medium">Profili görüntüle →</span>
+              <div className="bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-2xl p-6">
+                <div className="flex items-start gap-5">
+                  <Link to={`/egitmen/${course.instructor.slug}`} className="shrink-0 group">
+                    {course.instructor.avatar ? (
+                      <img src={course.instructor.avatar} alt={course.instructor.name} className="w-20 h-20 rounded-2xl object-cover border border-white/10" />
+                    ) : (
+                      <span className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center"><Users className="w-9 h-9 text-gold" /></span>
+                    )}
+                  </Link>
+                  <div className="min-w-0">
+                    <Link to={`/egitmen/${course.instructor.slug}`} className="font-heading font-semibold text-lg hover:text-gold transition-colors duration-200">{course.instructor.name}</Link>
+                    {course.instructor.title && <p className="text-sm text-gold">{course.instructor.title}</p>}
+                    {course.instructor.bio && <p className="text-sm text-muted-foreground mt-2 leading-relaxed line-clamp-3">{course.instructor.bio}</p>}
+                    <div className="mt-3 flex items-center gap-4 flex-wrap">
+                      <SocialLinks links={course.instructor.social_links} />
+                      <Link to={`/egitmen/${course.instructor.slug}`} className="text-xs text-gold font-medium hover:underline">Profili görüntüle →</Link>
+                    </div>
+                  </div>
                 </div>
-              </Link>
+              </div>
             </div>
           )}
 
