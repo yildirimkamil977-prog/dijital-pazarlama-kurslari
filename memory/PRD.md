@@ -194,6 +194,14 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 24 (2026-06) — Anasayfa düzenlemeleri (PDF talepleri)
+- Top bar: kayan yazılardaki ikonlar kaldırıldı, eşit boşluk (px-10).
+- Hero: "12345 ÖĞRENCİ" rozeti kaldırıldı; H1 korundu; alt açıklama yeni metinle güncellendi (settings.hero_subtitle DB'de). Güven satırı: Uygulamalı dersler · Ömür boyu erişim · Her ay canlı yayın · 1 saat ücretsiz danışmanlık. Görsel altındaki "Binlerce öğrenci" → "5.000'den fazla öğrenci" + gerçek profil fotoğrafları (4 stok portre, yüz odaklı kırpma).
+- 3'lü stat alanı değiştirildi: Uzman ve deneyimli eğitmenler / Telegram üzerinden soru sorma / 1 saatlik bire bir danışmanlık (ikonlar GraduationCap, Send, MessageCircle).
+- Kayan logolar kaldırıldı → statik "Öğreneceğin Araçlar" grid'i (8 araç, büyük). SimpleIcons: googleads, meta, googleanalytics, googlesearchconsole, googletagmanager, semrush; Ahrefs & Screaming Frog kelime markası (resmi ikon yok). Altına nominative-fair-use yasal notu eklendi (marka sahipleriyle resmî ilişki yoktur).
+- ERTELENDİ (kullanıcı isteğiyle): Sol kapak görseli değişimi — ZIP/kapak dosyası iletilmedi, mevcut görsel kaldı, sonra güncellenecek.
+- Doğrulama: derleme temiz, hero smoke screenshot + avatar/logo URL 200 kontrolleri geçti.
+
 ## Iteration 23 (2026-06) — Danışmanlık hakkı tanımlandı e-postası
 - Öğrenci danışmanlık hakkını kart (PayTR webhook) veya Havale/EFT (`mark_paid`) ile aldığında otomatik "Danışmanlık hakkın tanımlandı" bilgilendirme e-postası gidiyor (yeni `consulting_granted` şablonu; panele "Randevu Oluştur" butonu). Her iki fulfillment yoluna da eklendi.
 - Test (curl+DB): şablon seed edildi; Havale danışmanlık siparişi mark-paid → paid, sahte kurs kaydı yok (bug fix korunuyor), öğrenciye e-posta gönderim isteği atıldı.

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Users, Radio, FileText, Award, MessageCircle, CheckCircle2, Play, Star, TrendingUp, Target, Zap, LayoutDashboard, Rocket, ShieldCheck, Flame, Trophy, Quote, Gift, Compass, GraduationCap } from "lucide-react";
+import { ArrowRight, Sparkles, Users, Radio, FileText, Award, MessageCircle, CheckCircle2, Play, Star, TrendingUp, Target, Zap, LayoutDashboard, Rocket, ShieldCheck, Flame, Trophy, Quote, Gift, Compass, GraduationCap, Send } from "lucide-react";
 import api from "@/lib/api";
 import { useSite } from "@/context/SiteContext";
 import { useAuth } from "@/context/AuthContext";
@@ -20,23 +20,26 @@ const perks = [
   { icon: Award, title: "Doğrulanabilir Sertifika", text: "Eğitimi tamamladığında QR kod ile doğrulanabilen bir başarı sertifikası kazan." },
   { icon: Sparkles, title: "Ömür Boyu Güncel Erişim", text: "Yeni eklenen tüm derslere ve kaynaklara ek ücret ödemeden erişmeye devam et." },
 ];
-const brandLogos = [
+const tools = [
   { name: "Google Ads", slug: "googleads" },
-  { name: "Meta", slug: "meta" },
-  { name: "TikTok", slug: "tiktok" },
+  { name: "Meta Business", slug: "meta" },
   { name: "Google Analytics", slug: "googleanalytics" },
-  { name: "Tag Manager", slug: "googletagmanager" },
   { name: "Search Console", slug: "googlesearchconsole" },
+  { name: "Tag Manager", slug: "googletagmanager" },
   { name: "Semrush", slug: "semrush" },
-  { name: "HubSpot", slug: "hubspot" },
-  { name: "Mailchimp", slug: "mailchimp" },
-  { name: "WordPress", slug: "wordpress" },
-  { name: "Shopify", slug: "shopify" },
+  { name: "Ahrefs", slug: null },
+  { name: "Screaming Frog", slug: null },
+];
+const HERO_AVATARS = [
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=faces&fit=crop&w=96&h=96&q=80",
+  "https://images.unsplash.com/photo-1604904612715-47bf9d9bc670?crop=faces&fit=crop&w=96&h=96&q=80",
+  "https://images.pexels.com/photos/37148308/pexels-photo-37148308.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=96&h=96",
+  "https://images.unsplash.com/photo-1758600587730-a11917c13b85?crop=faces&fit=crop&w=96&h=96&q=80",
 ];
 const outcomes = [
-  { icon: TrendingUp, stat: "%40", label: "ortalama reklam maliyeti düşüşü" },
-  { icon: Target, stat: "3x", label: "organik trafik artışı" },
-  { icon: Zap, stat: "13+", label: "yıllık saha tecrübesi" },
+  { icon: GraduationCap, title: "Uzman ve deneyimli eğitmenler" },
+  { icon: Send, title: "Telegram üzerinden sorularını sorma imkanı" },
+  { icon: MessageCircle, title: "Dilediğin zaman 1 saatlik bire bir danışmanlık hakkı" },
 ];
 const faqs = [
   { q: "Eğitimler nasıl gerçekleşiyor?", a: "Eğitimi satın aldıktan sonra öğrenci paneline giriş yaparak dilediğin zaman, dilediğin cihazdan izlemeye başlayabilirsin." },
@@ -110,10 +113,7 @@ export default function Home() {
 
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 pt-16 pb-20 md:pt-24 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="lg:col-span-6">
-            <span className="inline-flex items-center gap-2 overline text-gold">
-              <Sparkles className="w-3.5 h-3.5" /> {settings.students_count || "10.000+"} öğrenci
-            </span>
-            <h1 className="mt-6 font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter leading-[0.95]">
+            <h1 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tighter leading-[0.95]">
               {settings.hero_title}
             </h1>
             <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">{settings.hero_subtitle}</p>
@@ -133,10 +133,11 @@ export default function Home() {
                 </Button>
               )}
             </div>
-            <div className="mt-10 flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+            <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-gold" /> Uygulamalı dersler</span>
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-gold" /> Ömür boyu erişim</span>
-              <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> Canlı grup eğitimleri</span>
+              <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> Her ay canlı yayın</span>
+              <span className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-gold" /> 1 saat ücretsiz danışmanlık</span>
             </div>
             {groups.length > 0 && (
               <Link to="/canli-grup-egitimleri" data-testid="hero-group-cta" className="mt-8 inline-flex items-center gap-3 bg-gradient-to-r from-red-500/10 to-gold/10 border border-white/10 rounded-2xl pl-3 pr-4 py-2.5 hover:border-gold/40 transition-colors duration-200 group">
@@ -160,9 +161,9 @@ export default function Home() {
               </div>
               <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 glass rounded-xl p-3">
                 <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => <span key={i} className="w-7 h-7 rounded-full bg-gold/80 border-2 border-ink" />)}
+                  {HERO_AVATARS.map((src, i) => <img key={i} src={src} alt="öğrenci" className="w-7 h-7 rounded-full object-cover border-2 border-ink" />)}
                 </div>
-                <span className="text-xs text-foreground/90">Binlerce öğrenci şimdiden izliyor</span>
+                <span className="text-xs text-foreground/90">5.000'den fazla öğrenci şimdiden izliyor</span>
               </div>
             </div>
           </motion.div>
@@ -175,19 +176,31 @@ export default function Home() {
               <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className="flex items-center gap-4 bg-ink-surface/70 backdrop-blur border border-white/5 rounded-2xl p-5">
                 <span className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0"><o.icon className="w-6 h-6 text-gold" /></span>
-                <div><p className="font-heading font-black text-2xl leading-none">{o.stat}</p><p className="text-xs text-muted-foreground mt-1">{o.label}</p></div>
+                <p className="font-heading font-bold text-base leading-snug">{o.title}</p>
               </motion.div>
             ))}
           </div>
         </div>
 
-        <div className="relative border-y border-white/10 py-7 overflow-hidden mt-6">
-          <div className="flex items-center gap-16 animate-marquee w-max">
-            {[...brandLogos, ...brandLogos].map((b, i) => (
-              <img key={i} src={`https://cdn.simpleicons.org/${b.slug}`} alt={b.name} title={b.name}
-                className="h-6 sm:h-7 w-auto opacity-80 hover:opacity-100 transition-opacity duration-200 shrink-0" />
+        <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-10 mt-2">
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 overline text-gold"><Target className="w-3.5 h-3.5" /> Öğreneceğin Araçlar</span>
+            <h2 className="mt-3 font-heading font-bold text-2xl sm:text-3xl tracking-tight">Sektörün profesyonel araçlarını uygulamalı öğren</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {tools.map((t, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                data-testid={`tool-${i}`} className="flex flex-col items-center justify-center gap-3 bg-ink-surface/60 border border-white/5 rounded-2xl py-8 px-4 hover:border-gold/30 transition-colors duration-200">
+                {t.slug
+                  ? <img src={`https://cdn.simpleicons.org/${t.slug}`} alt={t.name} title={t.name} className="h-10 w-auto" />
+                  : <span className="h-10 flex items-center font-heading font-black text-xl text-foreground/85 text-center">{t.name}</span>}
+                <span className="text-xs sm:text-sm text-muted-foreground text-center">{t.name}</span>
+              </motion.div>
             ))}
           </div>
+          <p className="text-[11px] text-muted-foreground/70 text-center mt-6 max-w-3xl mx-auto leading-relaxed">
+            Belirtilen marka adları ve logoları yalnızca eğitim içeriğinde ele alınan araçları tanıtmak amacıyla kullanılmıştır. Bu markaların sahipleriyle herhangi bir resmî iş birliği, sponsorluk veya onay ilişkisi bulunmamaktadır.
+          </p>
         </div>
       </section>
 

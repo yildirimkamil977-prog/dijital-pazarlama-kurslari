@@ -18,7 +18,7 @@ export default function PublicLayout() {
               {[0, 1].map((group) => (
                 <div key={group} className="flex shrink-0" aria-hidden={group === 1}>
                   {promos.map((p, k) => (
-                    <span key={k} className="flex items-center gap-2 whitespace-nowrap px-8"><Sparkles className="w-3.5 h-3.5 shrink-0" /> {p}</span>
+                    <span key={k} className="whitespace-nowrap px-10">{p}</span>
                   ))}
                 </div>
               ))}
