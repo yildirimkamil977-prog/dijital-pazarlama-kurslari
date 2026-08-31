@@ -204,13 +204,43 @@ async def admin_create(body: GroupIn, request: Request):
     return doc
 
 
+async def _notify_new_recordings(g_doc, old_lessons):
+    """Email enrolled students when a lesson recording is published for the first time."""
+    old_rec = {l.get("id"): (l.get("recording_url") or "").strip() for l in (old_lessons or [])}
+    settings = await get_settings_doc()
+    site_name = settings.get("site_name", "")
+    enrs = None
+    for l in g_doc.get("lessons", []):
+        new_url = (l.get("recording_url") or "").strip()
+        if not new_url or old_rec.get(l.get("id"), ""):
+            continue
+        key = {"group_id": g_doc["group_id"], "lesson_id": l.get("id")}
+        if await db.group_recording_sent.find_one(key):
+            continue
+        await db.group_recording_sent.insert_one({**key, "sent_at": now_utc().isoformat()})
+        if enrs is None:
+            enrs = await db.group_enrollments.find({"group_id": g_doc["group_id"]}, {"_id": 0}).to_list(2000)
+        for e in enrs:
+            schedule_email("group_recording", e["user_email"], {
+                "name": e.get("user_name", ""), "training": g_doc.get("title", ""), "lesson": l.get("title", ""),
+                "panel_url": f"{FRONTEND_URL}/panel", "recording_url": new_url, "site_name": site_name})
+
+
 @router.put("/admin/group-trainings/{group_id}")
 async def admin_update(group_id: str, body: GroupIn, request: Request):
     await require_admin(request)
+    old = await db.group_trainings.find_one({"group_id": group_id})
+    if not old:
+        raise HTTPException(status_code=404, detail="Bulunamadı")
     doc = body.model_dump()
     doc["lessons"] = _norm_lessons(doc.get("lessons", []))
     await db.group_trainings.update_one({"group_id": group_id}, {"$set": doc})
-    return await db.group_trainings.find_one({"group_id": group_id}, {"_id": 0})
+    updated = await db.group_trainings.find_one({"group_id": group_id}, {"_id": 0})
+    try:
+        await _notify_new_recordings(updated, old.get("lessons", []))
+    except Exception as e:
+        print(f"[group-recording] error: {e}")
+    return updated
 
 
 @router.delete("/admin/group-trainings/{group_id}")

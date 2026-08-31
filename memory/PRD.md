@@ -194,6 +194,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 21 (2026-06) — Ders Kaydı Hazır e-posta bildirimi
+- Admin bir derse ilk kez `recording_url` eklediğinde (boş → dolu), o gruba kayıtlı TÜM öğrencilere otomatik "Ders kaydın hazır" e-postası gidiyor. Yeni `group_recording` şablonu (deps.py DEFAULT_TEMPLATES, başlangıçta seed) + `_notify_new_recordings` (routes_group.admin_update).
+- Tekrar bildirimi önleme: `group_recording_sent` koleksiyonu (group_id+lesson_id) ve zaten kaydı olan derse tekrar e-posta gönderilmiyor. Lesson id'leri admin formunda korunduğu için güvenilir eşleşme.
+- Test (curl + DB): yeni kayıtlı derste bildirim tetiklendi, mevcut kayıtlı derste tetiklenmedi; e-posta API'sine gerçek istek atıldı (202 Accepted). Seed korundu, temp veriler temizlendi.
+
 ## Iteration 20 (2026-06) — Grup Ders Kaydı + Liste redesign + Anasayfa canlı bölüm
 - Grup Ders Kaydı: LessonIn'e `recording_url`; her derse admin editöründe "Ders kaydı linki" alanı (lesson-recording-<i>). recording_url SADECE kayıtlı öğrenciye (/my/group-trainings) açılır; public detay/liste id/title/date/time dışında hiçbir link vermez. Öğrenci panelinde (GroupPanel) kaydı olan derste "Kaydı İzle" butonu (recording-link-<id>) — canlıyı kaçıranlar için.
 - Ortak `GroupCard.jsx` bileşeni (CANLI + Google Meet rozeti, eğitmen mini-satırı, kontenjan progress bar, fiyat/İncele). GroupList.jsx premium yeniden tasarlandı (gradient hero + özellik çipleri + kart grid).

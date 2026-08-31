@@ -306,6 +306,13 @@ DEFAULT_TEMPLATES = {
         "html": "<h2>Bir öğrenci eğitimi tamamladı</h2><p><strong>{{name}}</strong> ({{email}}) <strong>{{course_title}}</strong> eğitimini tamamladı.</p><p>Sertifika kodu otomatik oluşturuldu: <strong>{{certificate_code}}</strong>. Dilersen yönetim panelinden bu öğrenci için özel sertifika/fatura yükleyebilirsin.</p>",
         "enabled": True,
     },
+    "group_recording": {
+        "key": "group_recording",
+        "name": "Ders Kaydı Hazır (Grup Eğitimi)",
+        "subject": "Ders kaydın hazır: {{lesson}} - {{training}}",
+        "html": "<h2 style=\"margin:0 0 14px;color:#ffffff;font-size:22px\">Ders kaydın hazır! 🎬</h2><p style=\"margin:0 0 14px\">Merhaba {{name}},</p><p style=\"margin:0 0 14px\"><strong>{{training}}</strong> eğitiminin <strong>{{lesson}}</strong> dersinin kaydı yayınlandı. Canlı derse katılamadıysan veya tekrar izlemek istersen aşağıdaki butondan ulaşabilirsin.</p><div style=\"margin:26px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:13px 28px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Kaydı İzle</a></div><p style=\"font-size:13px;color:#8a92a6;margin:0\">Kayıtlara öğrenci panelindeki \"Canlı Grup Eğitimi\" bölümünden de her zaman erişebilirsin.</p>",
+        "enabled": True,
+    },
 }
 
 
