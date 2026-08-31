@@ -181,6 +181,16 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - PayTR kart callback'ine ödeme başarılı bildirimi eklendi (kurs + danışmanlık ayrımıyla). Danışmanlık siparişlerinde sahte kurs kaydı/purchase e-postası engellendi.
 - Doğrulama: backend hatasız yeniden başladı; register akışı push_notification→admin e-posta tetikliyor (traceback yok). E-posta gönderimi mevcut kanıtlı send_email kanalını kullanır (welcome/purchase ile aynı). NOT: gerçek e-posta teslimi otomatik testle assert edilmedi; aynı proven kanal kullanıldığı için güvenli.
 
+## Iteration 18 (2026-06) — Canlı Grup Eğitimleri (Google Meet)
+- Yeni modül `routes_group.py` + `group_trainings`/`group_enrollments`/`group_reminders_sent` koleksiyonları. Router server.py'ye eklendi.
+- Admin (/yonetim/grup-egitimleri, AdminGroupTrainings.jsx): başlık, açıklama, kapak, tanıtım videosu, fiyat, KONTENJAN, eğitmen, ders takvimi (her ders: gün+saat+Google Meet linki), yayın durumu. CRUD. Kontenjan canlı değiştirilebilir; public sayfada anında yansır.
+- Public: Navbar'da "Canlı Grup Eğitimleri"; liste (/canli-grup-egitimleri) + detay (/canli-grup-egitimleri/:slug). Detayda ders takvimi, fiyat, kontenjan, kalan kontenjan; kalan <=10 olunca yanıp sönen ALARM efekti (group-urgency). Tanıtım videosu (toEmbed), müfredat, eğitmen kartı.
+- Öğrenci paneli "Canlı Grup Eğitimi" sekmesi (GroupPanel.jsx): kayıtlı eğitimin bilgileri + ders takvimi + admin link girince Google Meet "Katıl" butonları (girilmemişse "Link yakında").
+- Ödeme SADECE kredi kartı (PayTR, kind='group'). Callback'te group_enrollment + group_purchase maili (panelde tarih/saat/link uyarısı). PayTR yapılandırılmadığında 503.
+- Hatırlatma e-postaları: ders başlamadan 24 saat ve 1 saat önce (POST /api/cron/group-reminders, Bearer WEBHOOK_CRON_SECRET; .emergent/crons.yml */15). Idempotent (group_reminders_sent). Şablonlar: group_purchase, group_reminder (server.py seed).
+- Örnek seed: "google-ads-canli-grup-egitimi" (12 kontenjan, 4999₺, 2 ders).
+- Test: iteration_11.json — backend 13/13, frontend %100 (liste/detay, kontenjan canlı güncelleme, urgency toggle, 503 kart, panel meet link, kapasite 400, cron 401/200). Fonksiyonel hata yok. İyileştirme: 502'de order token_failed işaretlenir; cron hataları loglanır.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

@@ -13,6 +13,7 @@ import routes_courses
 import routes_payments
 import routes_admin
 import routes_consulting
+import routes_group
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -32,6 +33,7 @@ api_router.include_router(routes_courses.router)
 api_router.include_router(routes_payments.router)
 api_router.include_router(routes_admin.router)
 api_router.include_router(routes_consulting.router)
+api_router.include_router(routes_group.router)
 app.include_router(api_router)
 
 app.add_middleware(
@@ -109,6 +111,12 @@ async def seed():
         "consulting_proposed": ("Danışmanlık için yeni saat önerisi - {{site_name}}", "<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Yeni saat önerisi</h2><p>Merhaba {{name}},</p><p>Talep ettiğin <strong>{{datetime}}</strong> yerine yeni bir zaman öneriyoruz:</p><p style=\"font-size:18px;color:#FFB800;font-weight:bold\">{{proposed}}</p><p style=\"color:#8a92a6\">Not: {{note}}</p><p>Panelinden bu öneriyi kabul edebilir veya reddedebilirsin.</p><div style=\"margin:24px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold\">Öneriyi Görüntüle</a></div>"),
     }
     for _k, (_s, _h) in _ct.items():
+        await db.email_templates.update_one({"key": _k}, {"$set": {"key": _k, "name": _k, "subject": _s, "html": _h, "enabled": True}}, upsert=True)
+    _gt = {
+        "group_purchase": ("Grup eğitimi kaydın alındı - {{site_name}}", "<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Kaydın alındı!</h2><p>Merhaba {{name}},</p><p><strong>{{training}}</strong> canlı grup eğitimine kaydın başarıyla oluşturuldu.</p><p>Ders tarih ve saatlerini ve <strong>Google Meet katılım linklerini</strong> öğrenci panelindeki <strong>Canlı Grup Eğitimi</strong> sekmesinden görebilirsin.</p><div style=\"margin:24px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold\">Panelime Git</a></div>"),
+        "group_reminder": ("Ders hatırlatması: {{training}} - {{site_name}}", "<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Dersin {{remaining_label}} sonra başlıyor</h2><p>Merhaba {{name}},</p><p><strong>{{training}}</strong> eğitiminin <strong>{{lesson}}</strong> dersi <strong>{{when}}</strong> tarihinde başlıyor.</p><div style=\"margin:22px 0\"><a href=\"{{meet_link}}\" style=\"background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold\">Google Meet ile Katıl</a></div><p style=\"font-size:13px;color:#8a92a6\">Katılım linkini panelinden de bulabilirsin: {{panel_url}}</p>"),
+    }
+    for _k, (_s, _h) in _gt.items():
         await db.email_templates.update_one({"key": _k}, {"$set": {"key": _k, "name": _k, "subject": _s, "html": _h, "enabled": True}}, upsert=True)
 
     # Demo courses

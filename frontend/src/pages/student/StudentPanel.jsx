@@ -5,6 +5,7 @@ import { BookOpen, CreditCard, Award, PlayCircle, Loader2, Download, FileClock, 
 import api, { formatPrice, formatDate, API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import ConsultingPanel from "@/components/ConsultingPanel";
+import GroupPanel from "@/components/GroupPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function StudentPanel() {
         <TabsList className="bg-ink-surface border border-white/5">
           <TabsTrigger value="courses" data-testid="tab-courses">Eğitimlerim</TabsTrigger>
           <TabsTrigger value="consulting" data-testid="tab-consulting">Bire Bir Danışmanlık</TabsTrigger>
+          <TabsTrigger value="group" data-testid="tab-group">Canlı Grup Eğitimi</TabsTrigger>
           <TabsTrigger value="payments" data-testid="tab-payments">Ödemelerim</TabsTrigger>
           <TabsTrigger value="certs" data-testid="tab-certs">Sertifikalarım</TabsTrigger>
         </TabsList>
@@ -109,6 +111,10 @@ export default function StudentPanel() {
 
         <TabsContent value="consulting" className="mt-6">
           <ConsultingPanel />
+        </TabsContent>
+
+        <TabsContent value="group" className="mt-6">
+          <GroupPanel />
         </TabsContent>
 
         <TabsContent value="payments" className="mt-6">

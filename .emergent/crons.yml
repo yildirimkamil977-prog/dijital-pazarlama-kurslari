@@ -1,0 +1,8 @@
+crons:
+  - name: group-reminders
+    description: "Sends 24h and 1h reminder emails to live group training students"
+    cron: "*/15 * * * *"
+    endpoint: "{{BASE_URL}}/api/cron/group-reminders"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true

@@ -12,12 +12,14 @@ import AdminDiscounts from "@/pages/admin/AdminDiscounts";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminInstructors from "@/pages/admin/AdminInstructors";
 import AdminConsulting from "@/pages/admin/AdminConsulting";
+import AdminGroupTrainings from "@/pages/admin/AdminGroupTrainings";
 
 const nav = [
   { to: "/yonetim", label: "Genel Bakış", icon: LayoutDashboard, end: true },
   { to: "/yonetim/kurslar", label: "Kurslar", icon: BookOpen },
   { to: "/yonetim/egitmenler", label: "Eğitmenler", icon: UserCog },
   { to: "/yonetim/danismanlik", label: "Danışmanlık", icon: CalendarClock },
+  { to: "/yonetim/grup-egitimleri", label: "Grup Eğitimleri", icon: Users },
   { to: "/yonetim/ogrenciler", label: "Öğrenciler", icon: Users },
   { to: "/yonetim/odemeler", label: "Ödemeler", icon: CreditCard },
   { to: "/yonetim/indirimler", label: "İndirim Kodları", icon: Tag },
@@ -82,6 +84,7 @@ export default function AdminPanel() {
             <Route path="kurslar/:id" element={<CourseEditor />} />
             <Route path="egitmenler" element={<AdminInstructors />} />
             <Route path="danismanlik" element={<AdminConsulting />} />
+            <Route path="grup-egitimleri" element={<AdminGroupTrainings />} />
             <Route path="ogrenciler" element={<AdminStudents />} />
             <Route path="odemeler" element={<AdminPayments />} />
             <Route path="indirimler" element={<AdminDiscounts />} />

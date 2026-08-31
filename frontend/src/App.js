@@ -12,6 +12,8 @@ import About from "@/pages/About";
 import Courses from "@/pages/Courses";
 import CourseDetail from "@/pages/CourseDetail";
 import InstructorPage from "@/pages/InstructorPage";
+import GroupList from "@/pages/GroupList";
+import GroupDetail from "@/pages/GroupDetail";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import PaymentResult from "@/pages/PaymentResult";
@@ -41,6 +43,8 @@ function AppRouter() {
         <Route path="/kurslar" element={<Courses />} />
         <Route path="/kurslar/:slug" element={<CourseDetail />} />
         <Route path="/egitmen/:slug" element={<InstructorPage />} />
+        <Route path="/canli-grup-egitimleri" element={<GroupList />} />
+        <Route path="/canli-grup-egitimleri/:slug" element={<GroupDetail />} />
         <Route path="/sepet" element={<Cart />} />
         <Route path="/iletisim" element={<Contact />} />
         <Route path="/odeme" element={<Checkout />} />

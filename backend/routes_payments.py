@@ -275,8 +275,21 @@ async def paytr_callback(request: Request):
     if order and new_status == "paid":
         if order.get("discount_code"):
             await db.discount_codes.update_one({"code": order["discount_code"]}, {"$inc": {"used_count": 1}})
-        is_consulting = order.get("kind") == "consulting"
-        if not is_consulting:
+        kind = order.get("kind")
+        if kind == "group" and order.get("group_id"):
+            if not await db.group_enrollments.find_one({"group_id": order["group_id"], "user_id": order["user_id"]}):
+                await db.group_enrollments.insert_one({
+                    "enr_id": new_id("genr"), "group_id": order["group_id"], "user_id": order["user_id"],
+                    "user_name": order.get("user_name", ""), "user_email": order["user_email"],
+                    "order_id": order["order_id"], "enrolled_at": now_utc().isoformat()})
+            g = await db.group_trainings.find_one({"group_id": order["group_id"]})
+            schedule_email("group_purchase", order["user_email"], {
+                "name": order.get("user_name", ""), "training": g["title"] if g else "",
+                "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
+            await push_notification("payment", "Grup eğitimi satışı (kart)",
+                                    f"{order.get('user_name','')} · {order.get('total',0):.0f} ₺", {"order_id": order["order_id"]})
+        is_consulting = kind == "consulting"
+        if not is_consulting and kind != "group":
             for it in order["items"]:
                 if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
                     await db.enrollments.insert_one({
