@@ -45,13 +45,19 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const googleLogin = async (credential) => {
+    const { data } = await api.post("/auth/google", { credential });
+    setUser(data);
+    return data;
+  };
+
   const logout = async () => {
     try { await api.post("/auth/logout"); } catch {}
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, googleSession, logout, refresh: checkAuth, setUser, apiError }}>
+    <AuthContext.Provider value={{ user, loading, login, register, googleLogin, googleSession, logout, refresh: checkAuth, setUser, apiError }}>
       {children}
     </AuthContext.Provider>
   );

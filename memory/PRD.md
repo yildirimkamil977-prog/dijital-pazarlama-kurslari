@@ -194,6 +194,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 27 (2026-06) — Self-hosting hazırlığı: kendi Resend + kendi Google OAuth
+- E-posta (Resend BYO): deps.send_email çift yollu — RESEND_API_KEY + RESEND_FROM varsa doğrudan Resend API (api.resend.com/emails), yoksa Emergent yönetilen servis. Kullanıcının anahtarı .env'e eklendi; forgot-password ile uçtan uca test edildi (log: api.resend.com/emails 200 OK). Gönderen: noreply@dijitalpazarlamakurslari.com (alan adı Resend'de doğrulandı).
+- Google Auth (kendi OAuth'u): Emergent-yönetilen auth'tan kendi Client ID/Secret'a geçildi. Backend POST /api/auth/google {credential} id_token'ı https://oauth2.googleapis.com/tokeninfo ile doğrular, aud==GOOGLE_CLIENT_ID + email_verified kontrol eder, kullanıcı açar/günceller, session cookie verir. Frontend: @react-oauth/google eklendi, index.js GoogleOAuthProvider ile sarıldı, Login & Register <GoogleLogin> bileşenini kullanıyor. AuthContext.googleLogin(credential) eklendi.
+- Env: backend GOOGLE_CLIENT_ID/RESEND_API_KEY/RESEND_FROM; frontend REACT_APP_GOOGLE_CLIENT_ID. Kendi sunucuda aynı env değerleri kullanılacak.
+- Doğrulama: /auth/google geçersiz token→401 (gerçek doğrulama aktif); login & register sayfalarında resmi Google butonu render oldu. Gerçek Google hesabıyla tıklama testi kullanıcı tarafında yapılmalı.
+- Deployment durumu: DNS → sunucu (188.245.184.200) OK. Kalan: sunucu kurulumu (Docker), kod (Save to GitHub), SSL (Let's Encrypt), canlıya alma.
+
 ## Iteration 26 (2026-06) — Yakında Yayında/Erken Kayıt vurgusu güçlendirildi
 - Backend `_course_pricing`: `regular_price` eklendi (yayın sonrası satış fiyatı = discount_price varsa o, yoksa price). Upcoming'de erken kayıt fiyatı yoksa effective=regular (ön satış normal fiyattan).
 - Kurs detay: hero'da "YAKINDA YAYINDA · <tarih>" rozeti; sidebar'da gradientli kutu — "%X İNDİRİM" rozeti, "Bu eğitim henüz yayında değil, <tarih>'te yayınlanacak" ifadesi, geri sayım, struck yayın fiyatı → erken kayıt fiyatı, "%X indirim" + "Yayınlandığında <regular>₺ olacak".

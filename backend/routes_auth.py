@@ -15,6 +15,7 @@ from deps import (
 router = APIRouter(prefix="/auth")
 
 FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
 
 class ProfileIn(BaseModel):
@@ -113,6 +114,41 @@ async def google_session(body: SessionIn, response: Response):
                                   {"$set": {"picture": data.get("picture", user.get("picture", ""))}})
     await store_external_session(user["user_id"], data["session_token"])
     set_session_cookie(response, data["session_token"])
+    return public_user(user)
+
+
+class GoogleCredIn(BaseModel):
+    credential: str
+
+
+@router.post("/google")
+async def google_login(body: GoogleCredIn, response: Response):
+    async with httpx.AsyncClient(timeout=20) as c:
+        r = await c.get("https://oauth2.googleapis.com/tokeninfo", params={"id_token": body.credential})
+    if r.status_code != 200:
+        raise HTTPException(status_code=401, detail="Google kimliği doğrulanamadı")
+    data = r.json()
+    if GOOGLE_CLIENT_ID and data.get("aud") != GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=401, detail="Google istemci kimliği uyuşmuyor")
+    email = (data.get("email") or "").lower().strip()
+    if not email or str(data.get("email_verified")).lower() != "true":
+        raise HTTPException(status_code=400, detail="Google hesabından doğrulanmış e-posta alınamadı")
+    user = await db.users.find_one({"email": email})
+    if not user:
+        user = {
+            "user_id": new_id("user"), "name": data.get("name", email), "email": email,
+            "password_hash": None, "role": "student", "picture": data.get("picture", ""),
+            "auth_provider": "google", "accepted_terms": True,
+            "created_at": now_utc().isoformat(),
+        }
+        await db.users.insert_one(user)
+        schedule_email("welcome", email, {"name": user["name"], "login_url": f"{FRONTEND_URL}/panel"})
+        await push_notification("registration", "Yeni öğrenci kaydı", f"{user['name']} · {email}", {"email": email})
+    else:
+        await db.users.update_one({"user_id": user["user_id"]},
+                                  {"$set": {"picture": data.get("picture", user.get("picture", ""))}})
+    token = await create_session(user["user_id"])
+    set_session_cookie(response, token)
     return public_user(user)
 
 
