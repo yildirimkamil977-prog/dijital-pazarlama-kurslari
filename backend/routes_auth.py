@@ -119,6 +119,7 @@ async def google_session(body: SessionIn, response: Response):
 
 class GoogleCredIn(BaseModel):
     credential: str
+    accept_terms: bool = False
 
 
 @router.post("/google")
@@ -135,6 +136,8 @@ async def google_login(body: GoogleCredIn, response: Response):
         raise HTTPException(status_code=400, detail="Google hesabından doğrulanmış e-posta alınamadı")
     user = await db.users.find_one({"email": email})
     if not user:
+        if not body.accept_terms:
+            return {"terms_required": True}
         user = {
             "user_id": new_id("user"), "name": data.get("name", email), "email": email,
             "password_hash": None, "role": "student", "picture": data.get("picture", ""),

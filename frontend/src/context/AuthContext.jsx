@@ -45,8 +45,9 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const googleLogin = async (credential) => {
-    const { data } = await api.post("/auth/google", { credential });
+  const googleLogin = async (credential, accept_terms = false) => {
+    const { data } = await api.post("/auth/google", { credential, accept_terms });
+    if (data.terms_required) return data;
     setUser(data);
     return data;
   };

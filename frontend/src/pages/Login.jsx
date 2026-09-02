@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { GraduationCap, Loader2 } from "lucide-react";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import { useAuth } from "@/context/AuthContext";
 import { apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function Login() {
-  const { login, googleLogin, user } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -22,15 +22,6 @@ export default function Login() {
     if (user) navigate(user.role === "admin" ? "/yonetim" : "/panel");
   }, [user, navigate]);
 
-  const handleGoogleSuccess = async (resp) => {
-    try {
-      const u = await googleLogin(resp.credential);
-      toast.success("Giriş başarılı!");
-      navigate(u.role === "admin" ? "/yonetim" : "/panel");
-    } catch (err) {
-      toast.error(apiError(err));
-    }
-  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -56,9 +47,7 @@ export default function Login() {
         </div>
 
         <div className="bg-ink-surface border border-white/10 rounded-2xl p-8">
-          <div className="flex justify-center" data-testid="google-login-btn">
-            <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => toast.error("Google girişi başarısız")} theme="filled_black" size="large" width="320" text="signin_with" locale="tr" />
-          </div>
+          <GoogleAuthButton testId="google-login-btn" text="signin_with" />
           <div className="flex items-center gap-4 my-6"><span className="h-px bg-white/10 flex-1" /><span className="text-xs text-muted-foreground">veya</span><span className="h-px bg-white/10 flex-1" /></div>
 
           <form onSubmit={submit} className="space-y-4">

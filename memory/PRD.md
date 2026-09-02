@@ -194,6 +194,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 28 (2026-06) — Google girişinde sözleşme onayı
+- Yeni (ilk kez) Google kullanıcıları artık hesabı oluşturmadan önce sözleşmeleri onaylıyor. Backend /auth/google: kullanıcı yoksa ve accept_terms false ise {terms_required: true} döner (hesap/oturum açılmaz). accept_terms true ile çağrılınca hesap accepted_terms=true olarak açılır. Mevcut kullanıcılar doğrudan girer.
+- Frontend: paylaşımlı GoogleAuthButton bileşeni — terms_required gelince sözleşme onay Dialog'u (Üyelik/KVKK/Gizlilik checkbox) açar, onaylanınca aynı credential ile accept_terms=true tekrar çağırır. Login & Register bu bileşeni kullanıyor. AuthContext.googleLogin(credential, accept_terms).
+- Ayrıca: REACT_APP_GOOGLE_CLIENT_ID .env'e eklendikten sonra frontend restart edildi (CRA env gömme sorunu → "Missing client_id" hatası çözüldü). Bundle'da client_id doğrulandı.
+- Doğrulama: /auth/google invalid→401; login sayfasında Google butonu render; gerçek Google hesabı ile son test kullanıcıda.
+
 ## Iteration 27 (2026-06) — Self-hosting hazırlığı: kendi Resend + kendi Google OAuth
 - E-posta (Resend BYO): deps.send_email çift yollu — RESEND_API_KEY + RESEND_FROM varsa doğrudan Resend API (api.resend.com/emails), yoksa Emergent yönetilen servis. Kullanıcının anahtarı .env'e eklendi; forgot-password ile uçtan uca test edildi (log: api.resend.com/emails 200 OK). Gönderen: noreply@dijitalpazarlamakurslari.com (alan adı Resend'de doğrulandı).
 - Google Auth (kendi OAuth'u): Emergent-yönetilen auth'tan kendi Client ID/Secret'a geçildi. Backend POST /api/auth/google {credential} id_token'ı https://oauth2.googleapis.com/tokeninfo ile doğrular, aud==GOOGLE_CLIENT_ID + email_verified kontrol eder, kullanıcı açar/günceller, session cookie verir. Frontend: @react-oauth/google eklendi, index.js GoogleOAuthProvider ile sarıldı, Login & Register <GoogleLogin> bileşenini kullanıyor. AuthContext.googleLogin(credential) eklendi.
