@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Countdown } from "@/components/Countdown";
 
+const fmtDate = (s) => { try { return new Date(s).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" }); } catch { return s; } };
+
 export default function Courses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,8 +33,11 @@ export default function Courses() {
         <div className="space-y-10">
           {courses.map((c, idx) => {
             const upcoming = c.is_upcoming;
-            const price = c.effective_price != null ? c.effective_price : (c.discount_price != null && c.discount_price < c.price ? c.discount_price : c.price);
-            const hasDiscount = price < c.price;
+            const price = c.effective_price != null ? c.effective_price : c.price;
+            const regular = c.regular_price != null ? c.regular_price : c.price;
+            const base = upcoming ? regular : c.price;
+            const savePct = base > 0 && price < base ? Math.round((1 - price / base) * 100) : 0;
+            const hasDiscount = price < base;
             const isFree = price === 0;
             return (
               <motion.div key={c.course_id} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
@@ -45,8 +50,8 @@ export default function Courses() {
                   {isFree ? (
                     <Badge className="absolute top-4 right-4 bg-green-500 text-white font-bold border-0 shadow-lg">Ücretsiz</Badge>
                   ) : upcoming ? (
-                    <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">Erken Kayıt</Badge>
-                  ) : hasDiscount && <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">%{Math.round((1 - price / c.price) * 100)} indirim</Badge>}
+                    <Badge className="absolute top-4 right-4 bg-gold text-ink font-black shadow-lg">{savePct > 0 ? `%${savePct} Erken Kayıt` : "Erken Kayıt"}</Badge>
+                  ) : hasDiscount && <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">%{savePct} indirim</Badge>}
                 </Link>
 
                 <div className="p-2 lg:p-4">
@@ -68,9 +73,13 @@ export default function Courses() {
                   </div>
 
                   {upcoming && (
-                    <div className="mt-5 rounded-xl bg-blue-500/10 border border-blue-500/20 p-4">
-                      <span className="text-xs text-blue-300 font-semibold flex items-center gap-2"><Clock className="w-4 h-4" /> Yayına kalan süre — erken kayıt fırsatı</span>
-                      <div className="mt-3"><Countdown target={c.publish_at} /></div>
+                    <div className="mt-5 rounded-xl bg-gradient-to-br from-gold/15 to-blue-500/10 border border-gold/25 p-4">
+                      <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                        <span className="text-xs text-gold font-black uppercase tracking-wide flex items-center gap-2"><Clock className="w-4 h-4" /> Yakında · Ön Kayıt Fırsatı</span>
+                        {savePct > 0 && <span className="bg-gold text-ink text-xs font-black px-2.5 py-1 rounded-full">%{savePct} indirim</span>}
+                      </div>
+                      <Countdown target={c.publish_at} />
+                      <p className="text-[11px] text-muted-foreground mt-2">Yayın: {fmtDate(c.publish_at)} · Yayınlandığında <b className="text-foreground/90">{formatPrice(regular)} ₺</b> olacak</p>
                     </div>
                   )}
 
@@ -83,11 +92,15 @@ export default function Courses() {
                   )}
 
                   <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
-                    <div className="flex items-end gap-2">
-                      {hasDiscount && <span className="text-sm text-muted-foreground line-through">{formatPrice(c.price)} ₺</span>}
-                      <span className="font-heading font-black text-3xl text-gold">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                    <div className="flex flex-col">
+                      <div className="flex items-end gap-2">
+                        {hasDiscount && <span className="text-sm text-muted-foreground line-through">{formatPrice(base)} ₺</span>}
+                        <span className="font-heading font-black text-3xl text-gold">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                        {savePct > 0 && <span className="mb-1 bg-gold/15 text-gold border border-gold/25 rounded-md px-2 py-0.5 text-xs font-bold">%{savePct}</span>}
+                      </div>
+                      {upcoming && <span className="text-[11px] text-gold mt-1">Erken kayıt fiyatı</span>}
                     </div>
-                    <Link to={`/kurslar/${c.slug}`}><Button className="bg-gold hover:bg-gold-hover text-ink font-semibold rounded-full">İncele <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
+                    <Link to={`/kurslar/${c.slug}`}><Button className="bg-gold hover:bg-gold-hover text-ink font-semibold rounded-full">{upcoming ? "Ön Kayıt" : "İncele"} <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
                   </div>
                 </div>
               </motion.div>

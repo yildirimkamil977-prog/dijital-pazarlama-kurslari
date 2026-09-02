@@ -40,8 +40,11 @@ export default function CourseDetail() {
   if (!course) return <div className="text-center py-40 text-muted-foreground">Eğitim bulunamadı.</div>;
 
   const upcoming = course.is_upcoming;
-  const price = course.effective_price != null ? course.effective_price : (course.discount_price != null && course.discount_price < course.price ? course.discount_price : course.price);
-  const hasDiscount = price < course.price;
+  const price = course.effective_price != null ? course.effective_price : course.price;
+  const regular = course.regular_price != null ? course.regular_price : course.price;
+  const base = upcoming ? regular : course.price;
+  const savePct = base > 0 && price < base ? Math.round((1 - price / base) * 100) : 0;
+  const hasDiscount = price < base;
   const inCart = has(course.course_id);
   const isFree = price === 0;
   const handleAdd = () => { add(course); toast.success("Sepete eklendi"); };
@@ -83,6 +86,11 @@ export default function CourseDetail() {
         </div>
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-14 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           <div className="lg:col-span-7">
+            {upcoming && (
+              <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-blue-500/15 border border-blue-500/25 text-blue-200 text-xs font-bold" data-testid="detail-coming-soon-badge">
+                <Clock className="w-3.5 h-3.5" /> YAKINDA YAYINDA · {fmtDate(course.publish_at)}
+              </div>
+            )}
             <h1 className="font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter leading-[0.95]">{course.title}</h1>
             <p className="mt-4 text-lg text-muted-foreground leading-relaxed max-w-2xl">{course.subtitle}</p>
             <div className="flex flex-wrap items-center gap-5 mt-6 text-sm text-muted-foreground">
@@ -218,18 +226,23 @@ export default function CourseDetail() {
               ) : (
                 <>
                   {upcoming && (
-                    <div className="mb-5 rounded-xl bg-blue-500/10 border border-blue-500/20 p-4">
-                      <span className="inline-flex items-center gap-2 text-xs font-bold text-blue-300"><Clock className="w-4 h-4" /> YAKINDA YAYINDA</span>
-                      <p className="text-sm text-foreground/90 mt-2">Yayına kalan süre — <span className="text-gold font-semibold">erken kayıt indirimli fiyatı</span> sadece bu süre boyunca geçerli.</p>
-                      <Countdown target={course.publish_at} className="mt-3" />
-                      <p className="text-[11px] text-muted-foreground mt-2">Yayın tarihi: {fmtDate(course.publish_at)}</p>
+                    <div className="mb-5 rounded-2xl bg-gradient-to-br from-gold/20 to-blue-500/10 border border-gold/30 p-5" data-testid="course-upcoming-box">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <span className="inline-flex items-center gap-2 text-xs font-black text-gold uppercase tracking-wide"><Clock className="w-4 h-4" /> Yakında Yayında · Ön Kayıt</span>
+                        {savePct > 0 && <span className="bg-gold text-ink font-black text-sm px-3 py-1 rounded-full">%{savePct} İNDİRİM</span>}
+                      </div>
+                      <p className="text-sm text-foreground/90 mt-3 leading-relaxed">Bu eğitim henüz yayında değil. <b className="text-gold">{fmtDate(course.publish_at)}</b> tarihinde yayınlanacak. Ön kayıt ol, erken kayıt fiyatını kaçırma — fiyat yayınla birlikte artacak.</p>
+                      <Countdown target={course.publish_at} className="mt-4" />
                     </div>
                   )}
-                  <div className="flex items-end gap-3">
-                    {hasDiscount && <span className="text-muted-foreground line-through">{formatPrice(course.price)} ₺</span>}
+                  <div className="flex items-end gap-3 flex-wrap">
+                    {hasDiscount && <span className="text-muted-foreground line-through text-lg">{formatPrice(base)} ₺</span>}
                     <span className="font-heading font-black text-4xl text-gold">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                    {savePct > 0 && <span className="mb-1.5 bg-gold text-ink rounded-md px-2 py-0.5 text-xs font-black">%{savePct} indirim</span>}
                   </div>
-                  {hasDiscount && <Badge className="mt-2 bg-gold/15 text-gold border-gold/20">{upcoming ? "Erken Kayıt Avantajı" : `%${Math.round((1 - price / course.price) * 100)} indirim`}</Badge>}
+                  {upcoming && (
+                    <p className="text-xs text-muted-foreground mt-2">Bu erken kayıt fiyatıdır · Yayınlandığında <b className="text-foreground/90">{formatPrice(regular)} ₺</b> olacak</p>
+                  )}
                   <div className="mt-6 space-y-3">
                     {isFree ? (
                       <Button onClick={handleFreeEnroll} disabled={enrolling} data-testid="free-enroll" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">

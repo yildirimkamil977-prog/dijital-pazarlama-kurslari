@@ -23,12 +23,13 @@ def _course_pricing(c: dict) -> dict:
         except Exception:
             is_upcoming = False
     eb = c.get("early_bird_price")
-    if is_upcoming and eb is not None and eb >= 0:
-        eff = float(eb)
+    dp = c.get("discount_price")
+    regular = float(dp) if (dp is not None and dp >= 0) else float(c.get("price", 0))
+    if is_upcoming:
+        eff = float(eb) if (eb is not None and eb >= 0) else regular
     else:
-        dp = c.get("discount_price")
-        eff = float(dp) if (dp is not None and dp >= 0) else float(c.get("price", 0))
-    return {"publish_at": pub, "early_bird_price": eb, "is_upcoming": is_upcoming, "effective_price": eff}
+        eff = regular
+    return {"publish_at": pub, "early_bird_price": eb, "is_upcoming": is_upcoming, "effective_price": eff, "regular_price": regular}
 
 
 def course_summary(c: dict) -> dict:

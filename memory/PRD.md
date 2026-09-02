@@ -194,6 +194,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 26 (2026-06) — Yakında Yayında/Erken Kayıt vurgusu güçlendirildi
+- Backend `_course_pricing`: `regular_price` eklendi (yayın sonrası satış fiyatı = discount_price varsa o, yoksa price). Upcoming'de erken kayıt fiyatı yoksa effective=regular (ön satış normal fiyattan).
+- Kurs detay: hero'da "YAKINDA YAYINDA · <tarih>" rozeti; sidebar'da gradientli kutu — "%X İNDİRİM" rozeti, "Bu eğitim henüz yayında değil, <tarih>'te yayınlanacak" ifadesi, geri sayım, struck yayın fiyatı → erken kayıt fiyatı, "%X indirim" + "Yayınlandığında <regular>₺ olacak".
+- Kurs listesi: "Yakında Yayında" + "%X Erken Kayıt" rozeti, gradientli geri sayım kutusu (indirim% + "Yayınlandığında <regular>₺ olacak"), fiyat alanında struck yayın fiyatı + erken fiyat + %indirim + "Ön Kayıt" butonu.
+- Not: Önceki oturumda kullanıcının `meta` kursunda early_bird=3000 (>1999) girilmiş — yanlış yapılandırma; erken fiyat normalden düşük olmalı.
+- Doğrulama: API is_upcoming/effective/regular doğru; detay ekran görüntüsü (rozet+geri sayım+999₺/1799₺+%44) onaylandı. Test kursu geri alındı.
+
 ## Iteration 25 (2026-06) — Yakında Yayında + Erken Kayıt + Logo/Footer düzenlemeleri
 - Anasayfa "Öğreneceğin Araçlar": Ahrefs & Semrush kaldırıldı; grid 3 sütuna güncellendi (kalan 6 araç, ortalanmış).
 - Footer en altına küçük punto Facebook feragat notu eklendi (data-testid footer-facebook-disclaimer).
