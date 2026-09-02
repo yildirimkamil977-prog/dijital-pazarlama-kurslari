@@ -200,6 +200,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - BUG FIX: Bazı sayfalarda mobilde ilk açılışta üstte büyük boşluk oluşup scroll'da düzeliyordu. Kök neden: Courses.jsx kartları `whileInView`+`initial opacity:0` kullanıyordu; mobilde IntersectionObserver geç tetiklenince kartlar görünmez kalıp yer kaplıyordu (boşluk). `whileInView`→`animate` (anında görünür, kademeli delay) yapıldı.
 - Test: iteration_16.json — frontend %100 (mobil 390 & desktop 1920). İlk kart opacity ~0.92 anında görünür (scroll gerekmiyor); tüm fiyatlar tek satır; buton mobilde alta yığılıyor. Regresyon yok.
 
+## Iteration 31 (2026-06) — Production deployment altyapısı (Docker + Caddy)
+- Repoya production yayına alma dosyaları eklendi: backend/Dockerfile (python:3.11-slim, emergentintegrations strip'lenir — kullanılmıyor, uvicorn 2 worker), frontend/Dockerfile (node:20 build → nginx:alpine static serve + SPA fallback, REACT_APP_* build args), frontend/nginx.conf, Caddyfile (otomatik Let's Encrypt HTTPS; /api/* → backend:8001, diğer → frontend:80; www→apex redirect), docker-compose.yml (mongo+backend+frontend+caddy, kalıcı mongo_data/caddy volume'ları), env.production.example (secretsız şablon; not: .gitignore `.env.*`'i dışladığı için dosya adı noktasız), DEPLOYMENT.md (TR adım adım rehber).
+- Alan adı: dijitalpazarlamakurslari.com (DNS + www → 188.245.184.200, doğrulandı). DB: sunucuda mongo container. Portlar boş.
+- Kritik not: `.env` git-ignore'lu → gerçek secretlar (JWT, SETTINGS_ENCRYPTION_KEY, RESEND, GOOGLE, admin) GitHub'a gitmez; sunucuda .env'e elle girilir (değerler kullanıcıya sohbette verildi). Frontend API: `${REACT_APP_BACKEND_URL}/api` → aynı domain, Caddy /api yönlendirir. emergentintegrations backend'de hiç import edilmiyor; e-posta Resend üzerinden gider.
+- Durum: dosyalar hazır & yerelde doğrulandı (compose YAML, yarn.lock, craco prod-safe). Docker bu pod'da yok, sunucuda build edilecek. Bekleyen: kullanıcı Save to GitHub → sunucuda git clone + .env + `docker compose up -d --build`.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

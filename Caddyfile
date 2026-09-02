@@ -1,0 +1,23 @@
+{
+	# E-posta, Let's Encrypt sertifika bildirimleri için (isteğe bağlı ama önerilir)
+	email yildirimkamil977@gmail.com
+}
+
+dijitalpazarlamakurslari.com {
+	encode gzip zstd
+
+	# API istekleri backend'e
+	handle /api/* {
+		reverse_proxy backend:8001
+	}
+
+	# Diğer tüm istekler React frontend'e
+	handle {
+		reverse_proxy frontend:80
+	}
+}
+
+# www -> apex yönlendirmesi (DNS www de sunucuya bakıyor)
+www.dijitalpazarlamakurslari.com {
+	redir https://dijitalpazarlamakurslari.com{uri} permanent
+}
