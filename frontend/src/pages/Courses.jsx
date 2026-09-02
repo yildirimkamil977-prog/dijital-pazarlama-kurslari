@@ -5,6 +5,7 @@ import { Loader2, Layers, Clock, CheckCircle2, ArrowRight, Award, Infinity as In
 import api, { formatPrice, formatDuration } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Countdown } from "@/components/Countdown";
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
@@ -29,8 +30,9 @@ export default function Courses() {
       ) : (
         <div className="space-y-10">
           {courses.map((c, idx) => {
-            const hasDiscount = c.discount_price != null && c.discount_price < c.price;
-            const price = hasDiscount ? c.discount_price : c.price;
+            const upcoming = c.is_upcoming;
+            const price = c.effective_price != null ? c.effective_price : (c.discount_price != null && c.discount_price < c.price ? c.discount_price : c.price);
+            const hasDiscount = price < c.price;
             const isFree = price === 0;
             return (
               <motion.div key={c.course_id} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
@@ -39,9 +41,12 @@ export default function Courses() {
                 <Link to={`/kurslar/${c.slug}`} className="relative block rounded-2xl overflow-hidden group aspect-video">
                   <img src={c.thumbnail} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
+                  {upcoming && <Badge className="absolute top-4 left-4 bg-blue-500 text-white font-bold border-0 shadow-lg" data-testid={`coming-soon-${c.slug}`}>Yakında Yayında</Badge>}
                   {isFree ? (
                     <Badge className="absolute top-4 right-4 bg-green-500 text-white font-bold border-0 shadow-lg">Ücretsiz</Badge>
-                  ) : hasDiscount && <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">%{Math.round((1 - c.discount_price / c.price) * 100)} indirim</Badge>}
+                  ) : upcoming ? (
+                    <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">Erken Kayıt</Badge>
+                  ) : hasDiscount && <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">%{Math.round((1 - price / c.price) * 100)} indirim</Badge>}
                 </Link>
 
                 <div className="p-2 lg:p-4">
@@ -61,6 +66,13 @@ export default function Courses() {
                     <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Sertifikalı</span>
                     <span className="flex items-center gap-2"><InfinityIcon className="w-4 h-4 text-gold" /> Ömür boyu</span>
                   </div>
+
+                  {upcoming && (
+                    <div className="mt-5 rounded-xl bg-blue-500/10 border border-blue-500/20 p-4">
+                      <span className="text-xs text-blue-300 font-semibold flex items-center gap-2"><Clock className="w-4 h-4" /> Yayına kalan süre — erken kayıt fırsatı</span>
+                      <div className="mt-3"><Countdown target={c.publish_at} /></div>
+                    </div>
+                  )}
 
                   {c.what_you_learn?.length > 0 && (
                     <ul className="mt-5 grid sm:grid-cols-2 gap-2">

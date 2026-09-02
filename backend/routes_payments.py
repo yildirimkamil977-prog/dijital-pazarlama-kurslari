@@ -51,6 +51,20 @@ class CheckoutIn(BaseModel):
 
 
 async def _price_of(course: dict) -> float:
+    from datetime import datetime, timezone
+    pub = course.get("publish_at") or ""
+    is_upcoming = False
+    if pub:
+        try:
+            dt = datetime.fromisoformat(str(pub).replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            is_upcoming = dt > datetime.now(timezone.utc)
+        except Exception:
+            is_upcoming = False
+    eb = course.get("early_bird_price")
+    if is_upcoming and eb is not None and eb >= 0:
+        return float(eb)
     dp = course.get("discount_price")
     if dp is not None and dp >= 0:
         return float(dp)

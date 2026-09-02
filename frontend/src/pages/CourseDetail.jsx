@@ -12,9 +12,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
 import { SocialLinks } from "@/components/SocialLinks";
+import { Countdown } from "@/components/Countdown";
 import { useSite } from "@/context/SiteContext";
 import { trackInitiateCheckout, trackPurchase } from "@/lib/track";
 import { toast } from "sonner";
+
+const fmtDate = (s) => { try { return new Date(s).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" }); } catch { return s; } };
 
 export default function CourseDetail() {
   const { slug } = useParams();
@@ -36,8 +39,9 @@ export default function CourseDetail() {
   if (loading) return <div className="flex justify-center py-40"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   if (!course) return <div className="text-center py-40 text-muted-foreground">Eğitim bulunamadı.</div>;
 
-  const hasDiscount = course.discount_price != null && course.discount_price < course.price;
-  const price = hasDiscount ? course.discount_price : course.price;
+  const upcoming = course.is_upcoming;
+  const price = course.effective_price != null ? course.effective_price : (course.discount_price != null && course.discount_price < course.price ? course.discount_price : course.price);
+  const hasDiscount = price < course.price;
   const inCart = has(course.course_id);
   const isFree = price === 0;
   const handleAdd = () => { add(course); toast.success("Sepete eklendi"); };
@@ -213,11 +217,19 @@ export default function CourseDetail() {
                 </>
               ) : (
                 <>
+                  {upcoming && (
+                    <div className="mb-5 rounded-xl bg-blue-500/10 border border-blue-500/20 p-4">
+                      <span className="inline-flex items-center gap-2 text-xs font-bold text-blue-300"><Clock className="w-4 h-4" /> YAKINDA YAYINDA</span>
+                      <p className="text-sm text-foreground/90 mt-2">Yayına kalan süre — <span className="text-gold font-semibold">erken kayıt indirimli fiyatı</span> sadece bu süre boyunca geçerli.</p>
+                      <Countdown target={course.publish_at} className="mt-3" />
+                      <p className="text-[11px] text-muted-foreground mt-2">Yayın tarihi: {fmtDate(course.publish_at)}</p>
+                    </div>
+                  )}
                   <div className="flex items-end gap-3">
                     {hasDiscount && <span className="text-muted-foreground line-through">{formatPrice(course.price)} ₺</span>}
                     <span className="font-heading font-black text-4xl text-gold">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
                   </div>
-                  {hasDiscount && <Badge className="mt-2 bg-destructive/15 text-red-400 border-destructive/20">%{Math.round((1 - course.discount_price / course.price) * 100)} indirim</Badge>}
+                  {hasDiscount && <Badge className="mt-2 bg-gold/15 text-gold border-gold/20">{upcoming ? "Erken Kayıt Avantajı" : `%${Math.round((1 - price / course.price) * 100)} indirim`}</Badge>}
                   <div className="mt-6 space-y-3">
                     {isFree ? (
                       <Button onClick={handleFreeEnroll} disabled={enrolling} data-testid="free-enroll" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">
@@ -225,10 +237,11 @@ export default function CourseDetail() {
                       </Button>
                     ) : (
                       <>
-                        <Button onClick={handleBuy} data-testid="buy-now" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">Hemen Kayıt Ol</Button>
+                        <Button onClick={handleBuy} data-testid="buy-now" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">{upcoming ? "Ön Kayıt Ol" : "Hemen Kayıt Ol"}</Button>
                         <Button onClick={handleAdd} disabled={inCart} variant="outline" data-testid="add-to-cart" className="w-full h-12 border-white/15">
                           {inCart ? <><Check className="w-4 h-4 mr-2" /> Sepette</> : <><ShoppingCart className="w-4 h-4 mr-2" /> Sepete Ekle</>}
                         </Button>
+                        {upcoming && <p className="text-[11px] text-muted-foreground text-center">Ön kayıt: Şimdi öde, yayınlandığında anında eriş.</p>}
                       </>
                     )}
                   </div>

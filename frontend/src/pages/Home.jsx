@@ -26,8 +26,6 @@ const tools = [
   { name: "Google Analytics", slug: "googleanalytics" },
   { name: "Search Console", slug: "googlesearchconsole" },
   { name: "Tag Manager", slug: "googletagmanager" },
-  { name: "Semrush", slug: "semrush" },
-  { name: "Ahrefs", slug: null },
   { name: "Screaming Frog", slug: null },
 ];
 const HERO_AVATARS = [
@@ -187,7 +185,7 @@ export default function Home() {
             <span className="inline-flex items-center gap-2 overline text-gold"><Target className="w-3.5 h-3.5" /> Öğreneceğin Araçlar</span>
             <h2 className="mt-3 font-heading font-bold text-2xl sm:text-3xl tracking-tight">Sektörün profesyonel araçlarını uygulamalı öğren</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
             {tools.map((t, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
                 data-testid={`tool-${i}`} className="flex flex-col items-center justify-center gap-3 bg-ink-surface/60 border border-white/5 rounded-2xl py-8 px-4 hover:border-gold/30 transition-colors duration-200">

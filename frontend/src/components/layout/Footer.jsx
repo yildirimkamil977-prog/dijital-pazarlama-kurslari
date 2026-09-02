@@ -65,6 +65,13 @@ export function Footer() {
           <div className="flex gap-4"><Link to="/iletisim" className="hover:text-gold">İletişim</Link><span>Güvenli ödeme: PayTR & Havale/EFT</span></div>
         </div>
       </div>
+      <div className="border-t border-white/10 bg-ink/40">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4">
+          <p className="text-[10px] leading-relaxed text-muted-foreground/60" data-testid="footer-facebook-disclaimer">
+            NOT FACEBOOK: This site is not a part of the Facebook website or Facebook Inc. Additionally, This site is NOT endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc.
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }

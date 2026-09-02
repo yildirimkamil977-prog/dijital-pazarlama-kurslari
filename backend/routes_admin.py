@@ -51,6 +51,8 @@ class CourseIn(BaseModel):
     level: str = "Tüm Seviyeler"
     price: float = 0
     discount_price: Optional[float] = None
+    publish_at: str = ""
+    early_bird_price: Optional[float] = None
     thumbnail: str = ""
     instructor_name: str = ""
     instructor_id: str = ""

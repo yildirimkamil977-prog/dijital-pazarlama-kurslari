@@ -15,7 +15,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
   title: "", subtitle: "", description: "", category: "", level: "Tüm Seviyeler",
-  price: 0, discount_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
+  price: 0, discount_price: null, publish_at: "", early_bird_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
   is_published: false, what_you_learn: [], requirements: [], cross_sell_ids: [], modules: [],
 };
 
@@ -36,7 +36,7 @@ export default function CourseEditor() {
     api.get("/admin/courses").then(({ data }) => setAllCourses(data)).catch(() => {});
     api.get("/admin/instructors").then(({ data }) => setInstructors(data)).catch(() => {});
     if (!isNew) {
-      api.get(`/admin/courses/${id}`).then(({ data }) => setForm({ ...empty, ...data, cross_sell_ids: data.cross_sell_ids || [], discount_price: data.discount_price ?? null }))
+      api.get(`/admin/courses/${id}`).then(({ data }) => setForm({ ...empty, ...data, cross_sell_ids: data.cross_sell_ids || [], discount_price: data.discount_price ?? null, early_bird_price: data.early_bird_price ?? null, publish_at: data.publish_at || "" }))
         .catch(() => { toast.error("Kurs yüklenemedi"); navigate("/yonetim/kurslar"); }).finally(() => setLoading(false));
     }
   }, [id, isNew, navigate]);
@@ -93,7 +93,7 @@ export default function CourseEditor() {
   const save = async () => {
     if (!form.title.trim()) { toast.error("Kurs başlığı zorunlu"); return; }
     setSaving(true);
-    const payload = { ...form, price: Number(form.price) || 0, discount_price: form.discount_price === null || form.discount_price === "" ? null : Number(form.discount_price) };
+    const payload = { ...form, price: Number(form.price) || 0, discount_price: form.discount_price === null || form.discount_price === "" ? null : Number(form.discount_price), early_bird_price: form.early_bird_price === null || form.early_bird_price === "" ? null : Number(form.early_bird_price), publish_at: form.publish_at || "" };
     try {
       if (isNew) { await api.post("/admin/courses", payload); toast.success("Kurs oluşturuldu"); }
       else { await api.put(`/admin/courses/${id}`, payload); toast.success("Kurs güncellendi"); }
@@ -140,6 +140,13 @@ export default function CourseEditor() {
           <div className="grid grid-cols-2 gap-4">
             <div><Label>Fiyat (₺)</Label><Input type="number" data-testid="course-price" value={form.price} onChange={(e) => set("price", e.target.value)} className={inputCls} /></div>
             <div><Label>İndirimli Fiyat (₺)</Label><Input type="number" value={form.discount_price ?? ""} onChange={(e) => set("discount_price", e.target.value === "" ? null : e.target.value)} className={inputCls} /></div>
+          </div>
+          <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-3">
+            <div><Label className="text-blue-300">Yakında Yayında & Erken Kayıt</Label><p className="text-xs text-muted-foreground mt-1">Yayın tarihi ileri bir tarihe ayarlanırsa kurs "Yakında Yayında" olarak görünür, geri sayım gösterilir ve o tarihe kadar erken kayıt fiyatından ön satışa açılır. Boş bırakılırsa normal satılır.</p></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><Label>Yayın Tarihi & Saati</Label><Input type="datetime-local" value={form.publish_at || ""} onChange={(e) => set("publish_at", e.target.value)} className={inputCls} data-testid="course-publish-at" /></div>
+              <div><Label>Erken Kayıt Fiyatı (₺)</Label><Input type="number" value={form.early_bird_price ?? ""} onChange={(e) => set("early_bird_price", e.target.value === "" ? null : e.target.value)} className={inputCls} placeholder="Yayına kadar geçerli fiyat" data-testid="course-early-bird-price" /></div>
+            </div>
           </div>
           <div className="flex items-center justify-between pt-2">
             <div><Label>Yayında</Label><p className="text-xs text-muted-foreground">Açık olduğunda öğrenciler görebilir</p></div>

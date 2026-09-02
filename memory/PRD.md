@@ -194,6 +194,14 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
+## Iteration 25 (2026-06) — Yakında Yayında + Erken Kayıt + Logo/Footer düzenlemeleri
+- Anasayfa "Öğreneceğin Araçlar": Ahrefs & Semrush kaldırıldı; grid 3 sütuna güncellendi (kalan 6 araç, ortalanmış).
+- Footer en altına küçük punto Facebook feragat notu eklendi (data-testid footer-facebook-disclaimer).
+- Kurs "Yakında Yayında + Erken Kayıt (ön satış)": Course modeline `publish_at` (tarih+saat) ve `early_bird_price` eklendi (CourseIn + admin editör: "course-publish-at", "course-early-bird-price"). `publish_at` gelecekteyse kurs `is_upcoming=true`; sunucu `effective_price` = erken kayıt fiyatı (indirim/normal fiyatın önüne geçer). Ödeme `_price_of` de aynı mantıkla erken kayıt fiyatını uygular → ön satış indirimli fiyatla çalışır.
+- Frontend: yeni `Countdown` bileşeni. Kurslar listesinde "Yakında Yayında" + "Erken Kayıt" rozetleri ve geri sayım. Kurs detayında YAKINDA YAYINDA kutusu, publish_at'e geri sayım, erken kayıt fiyatı + "Erken Kayıt Avantajı" rozeti ve "Ön Kayıt Ol" butonu (ön satış: şimdi öde, yayında eriş).
+- Not: Kursun "Yakında" görünmesi için hem is_published=true olmalı hem publish_at ileri tarih olmalı. Erken kayıt bitişi = yayın tarihi (kullanıcı isteği).
+- Doğrulama: API is_upcoming=true & effective_price=erken fiyat; detay sayfası ekran görüntüsü (geri sayım + 499₺ + Ön Kayıt Ol) doğrulandı. Test kursu eski değerlerine geri alındı.
+
 ## Iteration 24 (2026-06) — Anasayfa düzenlemeleri (PDF talepleri)
 - Top bar: kayan yazılardaki ikonlar kaldırıldı, eşit boşluk (px-10).
 - Hero: "12345 ÖĞRENCİ" rozeti kaldırıldı; H1 korundu; alt açıklama yeni metinle güncellendi (settings.hero_subtitle DB'de). Güven satırı: Uygulamalı dersler · Ömür boyu erişim · Her ay canlı yayın · 1 saat ücretsiz danışmanlık. Görsel altındaki "Binlerce öğrenci" → "5.000'den fazla öğrenci" + gerçek profil fotoğrafları (4 stok portre, yüz odaklı kırpma).

@@ -10,6 +10,27 @@ FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 router = APIRouter()
 
 
+def _course_pricing(c: dict) -> dict:
+    from datetime import datetime, timezone
+    pub = c.get("publish_at") or ""
+    is_upcoming = False
+    if pub:
+        try:
+            dt = datetime.fromisoformat(str(pub).replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            is_upcoming = dt > datetime.now(timezone.utc)
+        except Exception:
+            is_upcoming = False
+    eb = c.get("early_bird_price")
+    if is_upcoming and eb is not None and eb >= 0:
+        eff = float(eb)
+    else:
+        dp = c.get("discount_price")
+        eff = float(dp) if (dp is not None and dp >= 0) else float(c.get("price", 0))
+    return {"publish_at": pub, "early_bird_price": eb, "is_upcoming": is_upcoming, "effective_price": eff}
+
+
 def course_summary(c: dict) -> dict:
     modules = c.get("modules", [])
     lessons = [l for m in modules for l in m.get("lessons", [])]
@@ -24,6 +45,7 @@ def course_summary(c: dict) -> dict:
         "is_published": c.get("is_published", False),
         "lesson_count": len(lessons), "total_seconds": total_seconds,
         "what_you_learn": c.get("what_you_learn", []),
+        **_course_pricing(c),
     }
 
 
