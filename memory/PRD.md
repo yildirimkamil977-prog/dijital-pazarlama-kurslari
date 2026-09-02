@@ -206,6 +206,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Kritik not: `.env` git-ignore'lu → gerçek secretlar (JWT, SETTINGS_ENCRYPTION_KEY, RESEND, GOOGLE, admin) GitHub'a gitmez; sunucuda .env'e elle girilir (değerler kullanıcıya sohbette verildi). Frontend API: `${REACT_APP_BACKEND_URL}/api` → aynı domain, Caddy /api yönlendirir. emergentintegrations backend'de hiç import edilmiyor; e-posta Resend üzerinden gider.
 - Durum: dosyalar hazır & yerelde doğrulandı (compose YAML, yarn.lock, craco prod-safe). Docker bu pod'da yok, sunucuda build edilecek. Bekleyen: kullanıcı Save to GitHub → sunucuda git clone + .env + `docker compose up -d --build`.
 
+## Iteration 32 (2026-06) — CANLIYA ALINDI (Hetzner production)
+- Uygulama Hetzner sunucusunda (188.245.184.200, /opt/akademi) Docker Compose ile yayına alındı. 4 container çalışıyor: mongo, backend, frontend(nginx), caddy.
+- Caddy hem dijitalpazarlamakurslari.com hem www için Let's Encrypt sertifikasını başarıyla aldı (TLS-ALPN-01). www → apex 301 redirect.
+- Canlı doğrulama (pod'dan curl): /api/ → "Akademi API çalışıyor"; /api/courses → gerçek veri; SSL ssl_verify=0 (geçerli); anasayfa render (screenshot) markalı UI, başlık SEO ile doğru set ediliyor.
+- GitHub: https://github.com/yildirimkamil977-prog/dijital-pazarlama-kurslari (public). Güncelleme akışı: git pull && docker compose up -d --build.
+- İYİLEŞTİRME BEKLEYEN (opsiyonel, sonraki deploy'da): frontend/public/index.html hâlâ varsayılan (lang="en", title "Emergent | Fullstack App", description "A product of emergent.sh", PostHog/emergent script'leri) — SEO/marka için lang=tr + markalı title/description yapılabilir. Google OAuth: Authorized JavaScript origins'e https://dijitalpazarlamakurslari.com eklenmeli (kullanıcı doğrulayacak).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
