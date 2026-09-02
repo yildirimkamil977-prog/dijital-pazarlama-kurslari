@@ -250,6 +250,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - ÇÖZÜM: populate_legal.py artık ham PDF metnini (kelime=2 newline, paragraf=3+ newline; ● madde işaretleri; numaralı/MADDE başlıkları; ALL-CAPS başlıklar; "Etiket:" kalın; URL→link) yapılandırılmış HTML'e çeviriyor. LegalPage.jsx body'yi dangerouslySetInnerHTML + Tailwind arbitrary variant prose stilleriyle ([&_h2]/[&_h3]/[&_ul]/[&_li]/[&_strong]/[&_a]) render ediyor. DB HTML ile yeniden dolduruldu, seed 17K yeniden üretildi.
 - Dağıtım: Save to GitHub → git pull → docker compose up -d --build frontend (LegalPage kod değişti) → seed restore (HTML içerik). Admin Sözleşmeler sekmesinden metinler HTML olarak düzenlenebilir.
 
+## Iteration 40 (2026-06) — HTML sözleşmeler CANLIDA doğrulandı
+- Race nedeniyle önceki seed düz metin kalmıştı; DB'den (HTML) seed sıralı yeniden üretildi. Sunucuda git reset --hard @{u} + seed restore (28 belge) yapıldı. Canlı /api/legal/kvkk = 5439 char, <strong>/<ul>/<a href> hepsi mevcut. Sözleşme sayfaları PDF'e yakın biçimli görünüyor.
+- ÖĞRENILEN: mongodump + populate aynı mesajda PARALEL çalıştırılırsa race olur (dump, populate bitmeden eski DB'yi alır). Bu tür bağımlı işlemleri && ile SIRALI çalıştır.
+- Deploy akışı (public repo, kalıcı): sunucuda `GIT_TERMINAL_PROMPT=0 git fetch origin && git reset --hard @{u}` (kullanıcı adı sormaz), sonra kod değiştiyse `docker compose up -d --build`, veri değiştiyse seed restore.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
