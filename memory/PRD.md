@@ -213,6 +213,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - GitHub: https://github.com/yildirimkamil977-prog/dijital-pazarlama-kurslari (public). Güncelleme akışı: git pull && docker compose up -d --build.
 - İYİLEŞTİRME BEKLEYEN (opsiyonel, sonraki deploy'da): frontend/public/index.html hâlâ varsayılan (lang="en", title "Emergent | Fullstack App", description "A product of emergent.sh", PostHog/emergent script'leri) — SEO/marka için lang=tr + markalı title/description yapılabilir. Google OAuth: Authorized JavaScript origins'e https://dijitalpazarlamakurslari.com eklenmeli (kullanıcı doğrulayacak).
 
+## Iteration 33 (2026-06) — Canlı DB veri taşıma + favicon/branding
+- SORUN: Canlı sunucuda yeni (boş) mongo, varsayılan tohumla geldi → hero fotoğrafı (settings.hero_poster), "yakında" kursu (meta publish_at=2026-11-01, early_bird=3000), yorumlar/ayarlar canlıda yok (hepsi önizleme DB'sindeydi; veri koda değil DB'ye kayıtlı).
+- ÇÖZÜM (veri): mongodump ile önizleme DB'sinden hassas olmayan koleksiyonlar (settings, courses, instructors, group_trainings, uploads, email_templates, discount_codes; users/sessions/orders HARİÇ) --archive --gzip alındı (8.6K), scratch DB'ye geri yüklenerek doğrulandı (28 belge). Kullanıcıya tmpfiles linki + `docker compose exec mongo mongorestore --nsFrom=test_database.* --nsTo=akademi.* --drop` komutu verildi (canlıda çalıştırılacak; redeploy gerektirmez).
+- ÇÖZÜM (favicon/branding): frontend/public/index.html varsayılanları düzeltildi — lang=tr, title "Dijital Pazarlama Kursları", markalı description, favicon link (favicon.png). Yeni favicon (altın mezuniyet kepi, koyu zemin) image_generation ile üretilip public/favicon.png (256x256) olarak eklendi. Bu değişiklik bir sonraki Save to GitHub + `git pull && docker compose up -d --build frontend` ile canlıya yansıyacak.
+- Admin girişi (canlı): yildirimkamil977@gmail.com / Admin!2026Panel (/giris → Yönetim Paneli).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
