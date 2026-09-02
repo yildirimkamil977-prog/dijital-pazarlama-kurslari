@@ -325,7 +325,6 @@ export default function CourseDetail() {
           {upcoming && (
             <div className="flex items-center justify-between gap-2 px-4 py-1.5 bg-gradient-to-r from-gold/20 to-blue-500/10 border-b border-gold/20">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold uppercase tracking-wide" data-testid="mobile-upcoming-label"><Clock className="w-3 h-3" /> Yakında · Ön Kayıt</span>
-              <span className="text-[11px] text-foreground/80">Yayında <b className="text-foreground">{formatPrice(regular)} ₺</b></span>
             </div>
           )}
           <div className="px-4 py-3 flex items-center gap-3">
