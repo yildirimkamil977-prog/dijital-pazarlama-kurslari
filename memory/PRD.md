@@ -219,6 +219,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - ÇÖZÜM (favicon/branding): frontend/public/index.html varsayılanları düzeltildi — lang=tr, title "Dijital Pazarlama Kursları", markalı description, favicon link (favicon.png). Yeni favicon (altın mezuniyet kepi, koyu zemin) image_generation ile üretilip public/favicon.png (256x256) olarak eklendi. Bu değişiklik bir sonraki Save to GitHub + `git pull && docker compose up -d --build frontend` ile canlıya yansıyacak.
 - Admin girişi (canlı): yildirimkamil977@gmail.com / Admin!2026Panel (/giris → Yönetim Paneli).
 
+## Iteration 34 (2026-06) — Emergent izlerini kaldırma + e-posta/veri doğrulama
+- index.html tamamen temizlendi: posthog analytics bloğu, assets.emergent.sh/emergent-main.js script'i ve DataCloneError handler kaldırıldı → sitede/kaynakta hiçbir Emergent referansı ve "Made with Emergent" rozeti yok. lang=tr, markalı title/description, favicon.png korunuyor. (frontend/src'de yalnızca kullanılmayan bir testId sabiti kaldı; render edilmiyor.)
+- E-POSTA DOĞRULAMA: Tüm e-posta buton linkleri FRONTEND_URL = CORS_ORIGINS[0] kullanıyor → canlıda https://dijitalpazarlamakurslari.com. render_email_shell markalı (site_name/iletişim/copyright), Emergent referansı yok. Şablonlar düzgün.
+- VERİ TAŞIMA: tmpfiles/0x0 bu ağda güvenilmez (HTML/boş döndü, gzip invalid header). Çözüm: 8.6K arşiv base64 (155 satır) olarak kullanıcıya inline heredoc komutuyla verildi (mongo:7'de mongorestore mevcut, doğrulandı). --nsFrom=test_database.* --nsTo=akademi.* --drop; users/orders korunuyor.
+- git pull sunucuda GitHub kullanıcı adı sordu (public repo). Alternatif: raw.githubusercontent.com'dan index.html + favicon.png doğrudan indirip `docker compose up -d --build frontend` (auth gerektirmez).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
