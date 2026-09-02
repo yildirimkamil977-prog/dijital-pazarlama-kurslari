@@ -191,9 +191,9 @@ export default function CourseDetail() {
                 {course.reviews.map((r, i) => (
                   <div key={i} className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden" data-testid={`course-review-${i}`}>
                     {r.video_url ? (
-                      <div className="relative aspect-[9/16] bg-black"><iframe title={`review-${i}`} src={r.video_url} className="w-full h-full" allow="encrypted-media; fullscreen" allowFullScreen /></div>
+                      <div className="relative aspect-[9/16] bg-black"><iframe title={`review-${i}`} src={toEmbed(r.video_url)} className="w-full h-full" allow="encrypted-media; fullscreen" allowFullScreen /></div>
                     ) : r.thumbnail ? (
-                      <div className="aspect-[9/16]"><img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" /></div>
+                      <div className="aspect-[9/16]"><img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} /></div>
                     ) : null}
                     <div className="p-4">
                       <div className="flex gap-0.5 mb-2">{Array.from({ length: r.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>

@@ -225,6 +225,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - VERİ TAŞIMA: tmpfiles/0x0 bu ağda güvenilmez (HTML/boş döndü, gzip invalid header). Çözüm: 8.6K arşiv base64 (155 satır) olarak kullanıcıya inline heredoc komutuyla verildi (mongo:7'de mongorestore mevcut, doğrulandı). --nsFrom=test_database.* --nsTo=akademi.* --drop; users/orders korunuyor.
 - git pull sunucuda GitHub kullanıcı adı sordu (public repo). Alternatif: raw.githubusercontent.com'dan index.html + favicon.png doğrudan indirip `docker compose up -d --build frontend` (auth gerektirmez).
 
+## Iteration 35 (2026-06) — Google Ads müfredatı + yorum kırık görsel fix
+- BUG FIX (yorumlar): CourseDetail öğrenci yorumları iframe'i ham `video_url` kullanıyordu (toEmbed yok) → Vimeo linkleri gömülmüyor, kırık görünüyordu. `toEmbed(r.video_url)` yapıldı + kırık `<img>`'ler için onError ile gizlenme eklendi (CourseDetail + Home testimonial). Kullanıcı Vimeo LİNKİ girmeli (embed kodu değil) veya foto yükleyip video alanını boş bırakmalı.
+- Google Ads müfredatı: kullanıcının PDF'ine göre google-ads-ile-sifirdan-uzmanliga kursu 7 bölüm / 33 derse güncellendi (önizleme DB). /app/deploy/seed.archive.gz yeniden üretildi — restore edilince müfredat + hero_poster (settings) + instructor birlikte canlıya gelir (scratch'te 28 belge doğrulandı).
+- DAĞITIM: (1) Save to GitHub. (2) Frontend rebuild için `git pull && docker compose up -d --build frontend` (yorum fix). (3) Veri için raw seed indir + mongorestore (müfredat+hero+eğitmen). NOT: git pull public repoda auth istememeli; gerekirse `git remote set-url origin <public-https>`.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

@@ -291,7 +291,7 @@ export default function Home() {
                 <motion.div key={`${tStart}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
                   className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden group">
                   <div className="relative aspect-video cursor-pointer overflow-hidden" onClick={() => t.video_url && openVideo(t.video_url)} data-testid={`testimonial-video-${i}`}>
-                    {t.thumbnail && <img src={t.thumbnail} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                    {t.thumbnail && <img src={t.thumbnail} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
                     {t.video_url && <div className="absolute inset-0 bg-ink/30 flex items-center justify-center">
                       <span className="w-12 h-12 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-5 h-5 text-ink ml-0.5" fill="currentColor" /></span>
                     </div>}
