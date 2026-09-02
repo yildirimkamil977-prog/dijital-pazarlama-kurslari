@@ -219,7 +219,7 @@ export default function Checkout() {
 
             <label className="flex items-start gap-2 text-xs text-muted-foreground mt-5 cursor-pointer">
               <Checkbox checked={accept} onCheckedChange={setAccept} data-testid="checkout-terms" className="mt-0.5" />
-              <span><Link to="/sozlesmeler/mesafeli-satis" target="_blank" className="text-gold">Mesafeli Satış</Link>, <Link to="/sozlesmeler/uyelik" target="_blank" className="text-gold">Üyelik</Link> ve <Link to="/sozlesmeler/kvkk" target="_blank" className="text-gold">KVKK</Link> metinlerini okudum, onaylıyorum.</span>
+              <span><Link to="/sozlesmeler/satis" target="_blank" className="text-gold">Satış Sözleşmesi</Link>, <Link to="/sozlesmeler/kvkk" target="_blank" className="text-gold">KVKK</Link> ve <Link to="/sozlesmeler/iptal-iade" target="_blank" className="text-gold">İptal ve İade Politikası</Link>'nı okudum, onaylıyorum.</span>
             </label>
 
             <Button onClick={pay} disabled={processing} data-testid="pay-now" className="w-full mt-5 h-12 bg-gold hover:bg-gold-hover text-ink font-bold">

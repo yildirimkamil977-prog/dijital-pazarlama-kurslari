@@ -51,9 +51,8 @@ export function GoogleAuthButton({ text = "signin_with", testId = "google-login-
           <label className="flex items-start gap-3 text-xs text-muted-foreground cursor-pointer mt-2">
             <Checkbox checked={accept} onCheckedChange={setAccept} data-testid="google-terms-checkbox" className="mt-0.5" />
             <span>
-              <Link to="/sozlesmeler/uyelik" target="_blank" className="text-gold hover:underline">Üyelik Sözleşmesi</Link>,{" "}
-              <Link to="/sozlesmeler/kvkk" target="_blank" className="text-gold hover:underline">KVKK</Link> ve{" "}
-              <Link to="/sozlesmeler/gizlilik" target="_blank" className="text-gold hover:underline">Gizlilik Politikası</Link>'nı okudum ve onaylıyorum.
+              <Link to="/sozlesmeler/kvkk" target="_blank" className="text-gold hover:underline">KVKK Aydınlatma Metni</Link> ve{" "}
+              <Link to="/sozlesmeler/gizlilik" target="_blank" className="text-gold hover:underline">Gizlilik ve Çerez Politikası</Link>'nı okudum ve onaylıyorum.
             </span>
           </label>
           <DialogFooter>

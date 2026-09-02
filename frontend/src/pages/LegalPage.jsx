@@ -1,22 +1,34 @@
 import { useParams, Link } from "react-router-dom";
-import { useEffect } from "react";
-import { legalContent } from "@/lib/legal";
-import { FileText } from "lucide-react";
+import { useEffect, useState } from "react";
+import api from "@/lib/api";
+import { FileText, Loader2 } from "lucide-react";
 
 export default function LegalPage() {
   const { type } = useParams();
-  const content = legalContent[type];
-  useEffect(() => { document.title = `${content?.title || "Sözleşme"} - Akademi`; window.scrollTo(0, 0); }, [type, content]);
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setLoading(true);
+    api.get(`/legal/${type}`)
+      .then(({ data }) => setContent(data))
+      .catch(() => setContent(null))
+      .finally(() => setLoading(false));
+  }, [type]);
+
+  useEffect(() => { document.title = `${content?.title || "Sözleşme"} - Akademi`; }, [content]);
+
+  if (loading) return <div className="flex justify-center py-40"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   if (!content) return <div className="text-center py-40 text-muted-foreground">Sayfa bulunamadı. <Link to="/" className="text-gold">Anasayfa</Link></div>;
 
   return (
-    <div className="max-w-3xl mx-auto px-5 sm:px-8 py-16">
+    <div className="max-w-3xl mx-auto px-5 sm:px-8 py-16" data-testid="legal-page">
       <div className="flex items-center gap-3 mb-8">
         <span className="w-11 h-11 rounded-xl bg-gold/10 flex items-center justify-center"><FileText className="w-5 h-5 text-gold" /></span>
         <h1 className="font-heading font-black text-3xl tracking-tighter">{content.title}</h1>
       </div>
-      <div className="bg-ink-surface border border-white/5 rounded-2xl p-8 text-muted-foreground leading-relaxed whitespace-pre-line text-sm">
+      <div className="bg-ink-surface border border-white/5 rounded-2xl p-8 text-muted-foreground leading-relaxed whitespace-pre-line text-sm" data-testid="legal-body">
         {content.body}
       </div>
     </div>

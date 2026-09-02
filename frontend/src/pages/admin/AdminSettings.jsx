@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader2, Save, CreditCard, Mail, Globe, ShieldCheck, AlertTriangle, Info, Code, Star, Plus, Trash2, Megaphone } from "lucide-react";
+import { Loader2, Save, CreditCard, Mail, Globe, ShieldCheck, AlertTriangle, Info, Code, Star, Plus, Trash2, Megaphone, FileText } from "lucide-react";
 import api, { apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ export default function AdminSettings() {
   const [seo, setSeo] = useState({ meta_title: "", meta_description: "", meta_keywords: "", og_image: "" });
   const [courses, setCourses] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
+  const [legal, setLegal] = useState([]);
   const [busy, setBusy] = useState("");
   const BACKEND = process.env.REACT_APP_BACKEND_URL;
   const callbackUrl = `${process.env.REACT_APP_BACKEND_URL}/api/payments/paytr/callback`;
@@ -32,6 +33,7 @@ export default function AdminSettings() {
     setTracking(data.tracking || tracking);
     setSeo(data.seo || { meta_title: "", meta_description: "", meta_keywords: "", og_image: "" });
     setTestimonials(data.testimonials || []);
+    setLegal(data.legal_documents || []);
     api.get("/courses").then((r) => setCourses(r.data)).catch(() => {});
   });
 
@@ -57,6 +59,7 @@ export default function AdminSettings() {
   const saveTracking = async () => { setBusy("t"); try { await api.put("/admin/settings/tracking", tracking); toast.success("Takip kodları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveSeo = async () => { setBusy("seo"); try { await api.put("/admin/settings/seo", seo); toast.success("SEO ayarları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveTestimonials = async () => { setBusy("tt"); try { await api.put("/admin/settings/testimonials", testimonials); toast.success("Yorumlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
+  const saveLegal = async () => { setBusy("lg"); try { await api.put("/admin/settings/legal", legal); toast.success("Sözleşmeler kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveTemplate = async (tpl) => { try { await api.put(`/admin/email-templates/${tpl.key}`, { subject: tpl.subject, html: tpl.html, enabled: tpl.enabled }); toast.success("Şablon kaydedildi"); } catch (e) { toast.error(apiError(e)); } };
 
   if (!s) return <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
@@ -73,6 +76,7 @@ export default function AdminSettings() {
           <TabsTrigger value="tracking" data-testid="settings-tab-tracking"><Code className="w-4 h-4 mr-2" /> Takip Kodları</TabsTrigger>
           <TabsTrigger value="seo" data-testid="settings-tab-seo"><Globe className="w-4 h-4 mr-2" /> SEO</TabsTrigger>
           <TabsTrigger value="testimonials" data-testid="settings-tab-testimonials"><Star className="w-4 h-4 mr-2" /> Yorumlar</TabsTrigger>
+          <TabsTrigger value="legal" data-testid="settings-tab-legal"><FileText className="w-4 h-4 mr-2" /> Sözleşmeler</TabsTrigger>
           <TabsTrigger value="email" data-testid="settings-tab-email"><Mail className="w-4 h-4 mr-2" /> E-posta</TabsTrigger>
         </TabsList>
 
@@ -215,6 +219,24 @@ export default function AdminSettings() {
         </TabsContent>
 
         {/* EMAIL */}
+        <TabsContent value="legal" className="mt-6 space-y-4">
+          <p className="text-sm text-muted-foreground">Site sözleşme ve politika metinlerini düzenle. Değişiklikler footer, sözleşme sayfaları ve onay bağlantılarında görünür. "Tür", URL'de kullanılır (örn. <span className="text-gold">/sozlesmeler/kvkk</span>).</p>
+          {legal.map((d, i) => (
+            <div key={i} className="bg-ink-surface border border-white/10 rounded-xl p-4 space-y-3" data-testid={`legal-doc-${i}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3">
+                <div><Label>Tür (URL)</Label><Input value={d.type || ""} onChange={(e) => setLegal(legal.map((x, j) => j === i ? { ...x, type: e.target.value } : x))} className={inputCls} data-testid={`legal-type-${i}`} /></div>
+                <div><Label>Başlık</Label><Input value={d.title || ""} onChange={(e) => setLegal(legal.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} className={inputCls} data-testid={`legal-title-${i}`} /></div>
+              </div>
+              <div><Label>İçerik</Label><Textarea value={d.body || ""} onChange={(e) => setLegal(legal.map((x, j) => j === i ? { ...x, body: e.target.value } : x))} className={inputCls} rows={10} data-testid={`legal-body-${i}`} /></div>
+              <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setLegal(legal.filter((_, j) => j !== i))}><Trash2 className="w-4 h-4 mr-1" /> Sil</Button>
+            </div>
+          ))}
+          <div className="flex gap-3">
+            <Button variant="outline" className="border-white/15" onClick={() => setLegal([...legal, { type: "", title: "", body: "" }])} data-testid="add-legal"><Plus className="w-4 h-4 mr-2" /> Sözleşme Ekle</Button>
+            <Button onClick={saveLegal} disabled={busy === "lg"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-legal">{busy === "lg" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+          </div>
+        </TabsContent>
+
         <TabsContent value="email" className="mt-6 space-y-6">
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 flex items-center justify-between">
             <div><h2 className="font-heading font-semibold">E-posta Bildirimleri</h2><p className="text-sm text-muted-foreground mt-1">Tüm otomatik e-postaları aç/kapat</p></div>

@@ -495,6 +495,7 @@ async def admin_get_settings(request: Request):
         "bundle_discount_pct": doc.get("bundle_discount_pct", 0),
         "promo_enabled": doc.get("promo_enabled", False), "promo_text": doc.get("promo_text", ""),
         "testimonials": doc.get("testimonials", []),
+        "legal_documents": doc.get("legal_documents", []),
         "address": doc.get("address", ""),
         "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
         "bank_accounts": doc.get("bank_accounts", []),
@@ -536,6 +537,19 @@ class GeneralSettingsIn(BaseModel):
 async def update_general(body: GeneralSettingsIn, request: Request):
     await require_admin(request)
     await db.settings.update_one({"_id": "site"}, {"$set": body.model_dump(exclude_unset=True)})
+    return {"ok": True}
+
+
+class LegalDocIn(BaseModel):
+    type: str
+    title: str = ""
+    body: str = ""
+
+
+@router.put("/settings/legal")
+async def update_legal(body: list[LegalDocIn], request: Request):
+    await require_admin(request)
+    await db.settings.update_one({"_id": "site"}, {"$set": {"legal_documents": [d.model_dump() for d in body]}})
     return {"ok": True}
 
 

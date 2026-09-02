@@ -67,9 +67,8 @@ export default function Register() {
             <label className="flex items-start gap-3 text-xs text-muted-foreground cursor-pointer">
               <Checkbox checked={accept} onCheckedChange={setAccept} data-testid="register-terms" className="mt-0.5" />
               <span>
-                <Link to="/sozlesmeler/uyelik" target="_blank" className="text-gold hover:underline">Üyelik Sözleşmesi</Link>,{" "}
-                <Link to="/sozlesmeler/kvkk" target="_blank" className="text-gold hover:underline">KVKK</Link> ve{" "}
-                <Link to="/sozlesmeler/gizlilik" target="_blank" className="text-gold hover:underline">Gizlilik Politikası</Link>'nı okudum ve onaylıyorum.
+                <Link to="/sozlesmeler/kvkk" target="_blank" className="text-gold hover:underline">KVKK Aydınlatma Metni</Link> ve{" "}
+                <Link to="/sozlesmeler/gizlilik" target="_blank" className="text-gold hover:underline">Gizlilik ve Çerez Politikası</Link>'nı okudum ve onaylıyorum.
               </span>
             </label>
             <Button type="submit" disabled={loading} data-testid="register-submit" className="w-full h-11 bg-gold hover:bg-gold-hover text-ink font-bold">

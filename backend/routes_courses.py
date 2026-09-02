@@ -55,6 +55,21 @@ async def settings_public():
     return await get_public_settings()
 
 
+@router.get("/legal")
+async def public_legal_list():
+    doc = await get_settings_doc()
+    return [{"type": d.get("type"), "title": d.get("title")} for d in doc.get("legal_documents", [])]
+
+
+@router.get("/legal/{doc_type}")
+async def public_legal(doc_type: str):
+    doc = await get_settings_doc()
+    for d in doc.get("legal_documents", []):
+        if d.get("type") == doc_type:
+            return {"type": d["type"], "title": d.get("title", ""), "body": d.get("body", "")}
+    raise HTTPException(status_code=404, detail="Sözleşme bulunamadı")
+
+
 def instructor_card(d: dict) -> dict:
     return {"instructor_id": d["instructor_id"], "slug": d["slug"], "name": d["name"],
             "title": d.get("title", ""), "bio": d.get("bio", ""), "avatar": d.get("avatar", ""),

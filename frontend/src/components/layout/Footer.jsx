@@ -4,9 +4,10 @@ import { useSite } from "@/context/SiteContext";
 
 const legal = [
   { to: "/sozlesmeler/kvkk", label: "KVKK Aydınlatma Metni" },
-  { to: "/sozlesmeler/gizlilik", label: "Gizlilik Politikası" },
-  { to: "/sozlesmeler/uyelik", label: "Üyelik Sözleşmesi" },
-  { to: "/sozlesmeler/mesafeli-satis", label: "Mesafeli Satış Sözleşmesi" },
+  { to: "/sozlesmeler/gizlilik", label: "Gizlilik ve Çerez Politikası" },
+  { to: "/sozlesmeler/satis", label: "Satış Sözleşmesi" },
+  { to: "/sozlesmeler/teslimat", label: "Teslimat Koşulları" },
+  { to: "/sozlesmeler/iptal-iade", label: "İptal ve İade Politikası" },
 ];
 
 export function Footer() {

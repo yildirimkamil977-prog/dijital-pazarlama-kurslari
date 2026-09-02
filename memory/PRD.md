@@ -234,6 +234,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Kullanıcının yeni "Google Ads Eğitim Müfredatı - Sayfa1.pdf"ine göre google-ads-ile-sifirdan-uzmanliga kursu 12 bölüm / 60 derse güncellendi (Strateji ve Ekosistem → ... → Bitirme Projesi). /app/deploy/seed.archive.gz yeniden üretildi (11K, scratch'te 28 belge + 12 bölüm doğrulandı). Restore edilince müfredat + hero_poster + instructor birlikte canlıya gelir.
 - Dağıtım: Save to GitHub → sunucuda raw seed indir + mongorestore (--nsFrom test_database.* --nsTo akademi.* --drop) + restart backend.
 
+## Iteration 37 (2026-06) — Yönetilebilir sözleşmeler + checkout onayları + Home dikey video
+- Yasal dokümanlar statik lib/legal.js'ten DB'ye taşındı (settings.legal_documents). 5 doküman kullanıcının PDF'lerinden pypdf ile çıkarılıp dolduruldu: kvkk, gizlilik (Gizlilik ve Çerez), satis (Satış Sözleşmesi), teslimat (Teslimat Koşulları), iptal-iade (İptal ve İade). populate_legal.py script.
+- Backend: GET /api/legal + GET /api/legal/{type} (public), PUT /api/admin/settings/legal + admin_get_settings'e legal_documents eklendi. render_email_shell footer'ına tüm e-postalar için politika linkleri eklendi (Satış, KVKK, İptal-İade, Gizlilik, Teslimat → {CORS_ORIGINS[0]}/sozlesmeler/{type}).
+- Frontend: LegalPage.jsx artık API'den çekiyor. Admin Ayarlar'a "Sözleşmeler" sekmesi (başlık+içerik düzenleme, ekle/sil/kaydet). Footer 5 yeni sözleşmeye güncellendi. Register + GoogleAuthButton onayı → KVKK + Gizlilik. Checkout onayı → Satış + KVKK + İptal-İade. Home yorumları dikey (9:16) + video modalı dikey/yatay adaptif (openVideo(url, vertical)).
+- Doğrulama (API): /api/legal 5 tür, /api/legal/kvkk içerik doğru, admin 5 belge (cookie auth), frontend temiz derlendi. Seed 18K (legal dahil) yeniden üretildi.
+- DAĞITIM (public repo): Save to GitHub → sunucuda raw ile CourseDetail.jsx/Home.jsx/Footer.jsx/Register.jsx/GoogleAuthButton.jsx/Checkout.jsx/LegalPage.jsx/AdminSettings.jsx + backend dosyaları güncelle VEYA git pull (PAT) → docker compose up -d --build (hem frontend hem backend) → seed restore.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

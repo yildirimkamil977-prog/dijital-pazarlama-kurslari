@@ -378,6 +378,8 @@ def render_email_shell(inner_html: str, s: dict) -> str:
         contact += phone + "<br/>"
     if addr:
         contact += addr + "<br/>"
+    fe = os.environ.get("CORS_ORIGINS", "").split(",")[0]
+    _pl = " · ".join(f'<a href="{fe}/sozlesmeler/{t}" style="color:#8a92a6;text-decoration:underline">{lbl}</a>' for lbl, t in [("Satış Sözleşmesi", "satis"), ("KVKK", "kvkk"), ("İptal ve İade", "iptal-iade"), ("Gizlilik", "gizlilik"), ("Teslimat", "teslimat")])
     return (
         '<!DOCTYPE html><html lang="tr"><body style="margin:0;background:#0b0d13;font-family:Arial,Helvetica,sans-serif;color:#e5e7eb">'
         '<table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0d13;padding:32px 12px"><tr><td align="center">'
@@ -386,6 +388,7 @@ def render_email_shell(inner_html: str, s: dict) -> str:
         f'<tr><td style="padding:32px;font-size:15px;line-height:1.7;color:#cbd2e0">{inner_html}</td></tr>'
         '<tr><td style="padding:24px 32px;background:#0b0d13;border-top:1px solid #1f2637;font-size:12px;color:#8a92a6;line-height:1.7">'
         f'<strong style="color:#e5e7eb">{name}</strong><br/>{contact}'
+        f'<span style="display:block;margin:6px 0 8px">{_pl}</span>'
         f'<span style="color:#5b6270">© {year} {name}. Tüm hakları saklıdır.</span>'
         '</td></tr></table></td></tr></table></body></html>'
     )

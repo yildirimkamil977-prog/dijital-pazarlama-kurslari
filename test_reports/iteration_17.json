@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend-only regression on the new legal-documents + consent + vertical testimonial video feature set. All 6 requested flows verified end-to-end against the live preview URL. All PASS.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Home - Testimonials video modal", "issues": ["Seeded testimonial Vimeo URL returns Vimeo 'Player error' (external content unavailable). Not an app bug; consider replacing the seeded video_url with a valid public asset."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AdminSettings.jsx has a stale HTML comment '{/* EMAIL */}' immediately above the 'legal' TabsContent (line 221). Cosmetic only.",
+    "Home.jsx video modal has a11y warning 'Missing Description or aria-describedby for DialogContent'. Consider adding a DialogDescription (or aria-describedby) to satisfy Radix a11y requirements.",
+    "Register.jsx returns 'No routes matched location /kayit' if any legacy link points to /kayit — actual route is /kayit-ol. Grep did not find such a link, safe to ignore."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only run)", "frontend": "100%" },
+  "test_credentials": "Admin yildirimkamil977@gmail.com / Admin!2026Panel (used, works)",
+  "seed_data_creation": "None. Injected one cart item via localStorage (akademi_cart) to reach /odeme as guest.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Register route is /kayit-ol (not /kayit). Cart is stored in localStorage under key 'akademi_cart' — inject an item to bypass browsing to add-to-cart. Admin login sets httpOnly cookie via POST /api/auth/login and redirects to /yonetim; settings page is /yonetim/ayarlar with data-testid tabs (settings-tab-legal). Verified: (1) /api/legal/{kvkk,gizlilik,satis,teslimat,iptal-iade} 200 with correct titles and bodies (KVKK contains AYDINLATMA, satis contains Satış). (2) All 5 pages render with data-testid=legal-page/legal-body. (3) Footer 'Yasal' column lists 5 links to /sozlesmeler/{type} with correct labels. (4) Admin Sözleşmeler tab lists 5 docs (legal-type-0..4, legal-title-0..4, legal-body-0..4); editing title, Save shows toast 'Sözleşmeler kaydedildi', persists after reload (verified via PUT /api/admin/settings/legal). (5) /kayit-ol consent text references 'KVKK Aydınlatma Metni' + 'Gizlilik ve Çerez Politikası'; no 'Üyelik Sözleşmesi' text. Links resolve to /sozlesmeler/kvkk and /sozlesmeler/gizlilik. GoogleAuthButton has same consent. (6) /odeme label (checkout-terms) reads: 'Satış Sözleşmesi, KVKK ve İptal ve İade Politikası'nı okudum, onaylıyorum.' Clicking pay-now while unchecked shows toast 'Devam etmek için sözleşmeleri onaylayın.' Checkbox toggles to data-state=checked. (7) Testimonial-video-0 bounding box 284x504 => 9:16 portrait; clicking opens video modal with portrait iframe 418x743 (also 9:16). One seeded testimonial has a Vimeo URL that returns Vimeo 'Player error' — external content issue, not app code."
+}

@@ -68,6 +68,7 @@ export default function Home() {
   const [groups, setGroups] = useState([]);
   const [videoOpen, setVideoOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState("");
+  const [videoVertical, setVideoVertical] = useState(false);
 
   useEffect(() => {
     api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {});
@@ -91,7 +92,7 @@ export default function Home() {
     } catch { /* ignore */ }
     return url;
   };
-  const openVideo = (url) => { setActiveVideo(toEmbed(url)); setVideoOpen(true); };
+  const openVideo = (url, vertical = false) => { setActiveVideo(toEmbed(url)); setVideoVertical(vertical); setVideoOpen(true); };
   const testimonials = settings.testimonials || [];
   const shuffledT = useMemo(() => [...testimonials].sort(() => Math.random() - 0.5), [testimonials.length]);
   const [tStart, setTStart] = useState(0);
@@ -290,7 +291,7 @@ export default function Home() {
               {visibleTestimonials.map((t, i) => (
                 <motion.div key={`${tStart}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
                   className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden group">
-                  <div className="relative aspect-video cursor-pointer overflow-hidden" onClick={() => t.video_url && openVideo(t.video_url)} data-testid={`testimonial-video-${i}`}>
+                  <div className="relative aspect-[9/16] cursor-pointer overflow-hidden bg-ink" onClick={() => t.video_url && openVideo(t.video_url, true)} data-testid={`testimonial-video-${i}`}>
                     {t.thumbnail && <img src={t.thumbnail} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
                     {t.video_url && <div className="absolute inset-0 bg-ink/30 flex items-center justify-center">
                       <span className="w-12 h-12 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-5 h-5 text-ink ml-0.5" fill="currentColor" /></span>
@@ -372,9 +373,9 @@ export default function Home() {
       )}
 
       <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
-        <DialogContent className="max-w-3xl p-0 gap-0 bg-black border-white/10 overflow-hidden">
+        <DialogContent className={`${videoVertical ? "max-w-[420px]" : "max-w-3xl"} p-0 gap-0 bg-black border-white/10 overflow-hidden`}>
           <DialogTitle className="sr-only">Tanıtım Videosu</DialogTitle>
-          <div className="aspect-video">{activeVideo && <iframe title="Video" src={activeVideo + (activeVideo.includes("?") ? "&" : "?") + "autoplay=1"} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />}</div>
+          <div className={videoVertical ? "aspect-[9/16]" : "aspect-video"}>{activeVideo && <iframe title="Video" src={activeVideo + (activeVideo.includes("?") ? "&" : "?") + "autoplay=1"} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />}</div>
         </DialogContent>
       </Dialog>
     </div>
