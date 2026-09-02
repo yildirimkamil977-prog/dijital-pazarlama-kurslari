@@ -230,6 +230,10 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Google Ads müfredatı: kullanıcının PDF'ine göre google-ads-ile-sifirdan-uzmanliga kursu 7 bölüm / 33 derse güncellendi (önizleme DB). /app/deploy/seed.archive.gz yeniden üretildi — restore edilince müfredat + hero_poster (settings) + instructor birlikte canlıya gelir (scratch'te 28 belge doğrulandı).
 - DAĞITIM: (1) Save to GitHub. (2) Frontend rebuild için `git pull && docker compose up -d --build frontend` (yorum fix). (3) Veri için raw seed indir + mongorestore (müfredat+hero+eğitmen). NOT: git pull public repoda auth istememeli; gerekirse `git remote set-url origin <public-https>`.
 
+## Iteration 36 (2026-06) — Google Ads müfredatı v2 (yeni PDF: 12 bölüm)
+- Kullanıcının yeni "Google Ads Eğitim Müfredatı - Sayfa1.pdf"ine göre google-ads-ile-sifirdan-uzmanliga kursu 12 bölüm / 60 derse güncellendi (Strateji ve Ekosistem → ... → Bitirme Projesi). /app/deploy/seed.archive.gz yeniden üretildi (11K, scratch'te 28 belge + 12 bölüm doğrulandı). Restore edilince müfredat + hero_poster + instructor birlikte canlıya gelir.
+- Dağıtım: Save to GitHub → sunucuda raw seed indir + mongorestore (--nsFrom test_database.* --nsTo akademi.* --drop) + restart backend.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
