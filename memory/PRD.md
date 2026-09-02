@@ -191,6 +191,10 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Örnek seed: "google-ads-canli-grup-egitimi" (12 kontenjan, 4999₺, 2 ders).
 - Test: iteration_11.json — backend 13/13, frontend %100 (liste/detay, kontenjan canlı güncelleme, urgency toggle, 503 kart, panel meet link, kapasite 400, cron 401/200). Fonksiyonel hata yok. İyileştirme: 502'de order token_failed işaretlenir; cron hataları loglanır.
 
+## Iteration 29 (2026-06) — Mobil sticky bar (Yakında/Erken Kayıt) hata düzeltmesi
+- BUG FIX (P0): CourseDetail.jsx mobil alt sabit bar, "Yakında Yayında / Erken Kayıt" kurslarında YANLIŞ indirim oranı (eski `1 - discount_price/price` hesabı) ve yanlış üstü çizili fiyat gösteriyordu; ön kayıt durumu için tasarım yoktu. Çözüm: bar artık sayfada zaten hesaplanan `upcoming/price/base/regular/savePct` değerlerini kullanıyor (DRY). Upcoming'de: üstte "Yakında · Ön Kayıt" etiketi (mobile-upcoming-label) + "Yayında <regular>₺", üstü çizili regular fiyat, erken kayıt fiyatı, altın "%X Erken Kayıt" rozeti (mobile-discount-badge) ve "Ön Kayıt Ol" butonu. Normal kursta standart kırmızı indirim rozeti + "Kayıt Ol".
+- Test: iteration_15.json — frontend %100. meta-reklamlari-instagram-facebook: 6.799₺ struck / 3.000₺ / %56 Erken Kayıt / Ön Kayıt Ol ✓. google-ads-ile-sifirdan-uzmanliga: upcoming etiketi yok, Kayıt Ol ✓.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

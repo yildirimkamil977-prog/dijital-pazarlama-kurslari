@@ -321,17 +321,25 @@ export default function CourseDetail() {
 
       {/* MOBILE STICKY BUY BAR */}
       {!course.enrolled && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-3" data-testid="mobile-buy-bar">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              {hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatPrice(course.price)} ₺</span>}
-              <span className="font-heading font-black text-xl text-gold" data-testid="mobile-price">{isFree ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
-              {hasDiscount && <Badge className="bg-destructive/15 text-red-400 border-destructive/20 text-[10px]">%{Math.round((1 - course.discount_price / course.price) * 100)} indirim</Badge>}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10" data-testid="mobile-buy-bar">
+          {upcoming && (
+            <div className="flex items-center justify-between gap-2 px-4 py-1.5 bg-gradient-to-r from-gold/20 to-blue-500/10 border-b border-gold/20">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold uppercase tracking-wide" data-testid="mobile-upcoming-label"><Clock className="w-3 h-3" /> Yakında · Ön Kayıt</span>
+              <span className="text-[11px] text-foreground/80">Yayında <b className="text-foreground">{formatPrice(regular)} ₺</b></span>
             </div>
+          )}
+          <div className="px-4 py-3 flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                {hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatPrice(base)} ₺</span>}
+                <span className="font-heading font-black text-xl text-gold" data-testid="mobile-price">{isFree ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                {savePct > 0 && <Badge className={`text-[10px] ${upcoming ? "bg-gold text-ink border-gold" : "bg-destructive/15 text-red-400 border-destructive/20"}`} data-testid="mobile-discount-badge">%{savePct} {upcoming ? "Erken Kayıt" : "indirim"}</Badge>}
+              </div>
+            </div>
+            <Button onClick={isFree ? handleFreeEnroll : handleBuy} disabled={enrolling} data-testid="mobile-enroll-btn" className="bg-gold hover:bg-gold-hover text-ink font-bold h-11 px-6 shrink-0">
+              {enrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : isFree ? "Ücretsiz Kayıt Ol" : upcoming ? "Ön Kayıt Ol" : "Kayıt Ol"}
+            </Button>
           </div>
-          <Button onClick={isFree ? handleFreeEnroll : handleBuy} disabled={enrolling} data-testid="mobile-enroll-btn" className="bg-gold hover:bg-gold-hover text-ink font-bold h-11 px-6 shrink-0">
-            {enrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : isFree ? "Ücretsiz Kayıt Ol" : "Kayıt Ol"}
-          </Button>
         </div>
       )}
     </div>

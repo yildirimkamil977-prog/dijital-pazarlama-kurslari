@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only visual regression of the MOBILE sticky buy bar on CourseDetail.jsx (viewport 414x896). Both target courses render the expected state after the fix.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_scenarios": [
+    {
+      "slug": "meta-reklamlari-instagram-facebook (upcoming)",
+      "mobile-upcoming-label": "YAKINDA · ÖN KAYIT (present, gold)",
+      "struck_regular_price": "6.799 ₺ (line-through)",
+      "mobile-price": "3.000 ₺",
+      "mobile-discount-badge": "%56 Erken Kayıt (gold styling)",
+      "mobile-enroll-btn": "Ön Kayıt Ol",
+      "math_check": "round((1 - 3000/6799)*100) = 56 ✓"
+    },
+    {
+      "slug": "google-ads-ile-sifirdan-uzmanliga (normal)",
+      "mobile-upcoming-label": "not present ✓",
+      "mobile-price": "1.799 ₺ (with 2.499 ₺ struck, %28 indirim red badge — course actually has discount, contrary to task note)",
+      "mobile-enroll-btn": "Kayıt Ol ✓"
+    }
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CourseDetail.jsx lines 42-48: pricing logic (upcoming ? regular : course.price) is now correctly reused by both desktop sidebar and mobile bar — good DRY.",
+    "Minor: task statement claimed google-ads course has no discount, but backend returns a discount_price so the mobile bar shows %28 indirim. Not a code bug; just verify seed data matches product expectations."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Mobile sticky buy bar fix verified. Upcoming course shows gold Erken Kayıt badge + Ön Kayıt Ol button + regular price strip; normal course shows standard red indirim badge + Kayıt Ol. Desktop `course-upcoming-box` was previously verified in iteration 12-14 and code path is unchanged."
+}
