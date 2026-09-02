@@ -241,6 +241,10 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Doğrulama (API): /api/legal 5 tür, /api/legal/kvkk içerik doğru, admin 5 belge (cookie auth), frontend temiz derlendi. Seed 18K (legal dahil) yeniden üretildi.
 - DAĞITIM (public repo): Save to GitHub → sunucuda raw ile CourseDetail.jsx/Home.jsx/Footer.jsx/Register.jsx/GoogleAuthButton.jsx/Checkout.jsx/LegalPage.jsx/AdminSettings.jsx + backend dosyaları güncelle VEYA git pull (PAT) → docker compose up -d --build (hem frontend hem backend) → seed restore.
 
+## Iteration 38 (2026-06) — Sözleşme metni normalizasyon fix
+- SORUN: pypdf çıktısı her kelimeyi ayrı satıra koyuyordu; whitespace-pre-line ile sözleşme sayfaları kelime-kelime alt alta bozuk görünüyordu.
+- ÇÖZÜM: populate_legal.py normalizasyonu güncellendi (satır sonlarını boşluğa çevir, fazla boşluk temizle, MADDE ve numaralı maddelerde \n\n paragraf araları). DB yeniden dolduruldu, tek-kelime-satır=0, akıcı paragraflar. Seed 18K yeniden üretildi. Sadece veri değişimi — canlıda seed restore yeterli.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

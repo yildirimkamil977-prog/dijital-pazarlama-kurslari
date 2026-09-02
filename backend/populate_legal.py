@@ -24,6 +24,11 @@ for t, title, url in DOCS:
     raw = urllib.request.urlopen(url, context=ctx, timeout=90).read()
     reader = PdfReader(io.BytesIO(raw))
     text = "\n".join((p.extract_text() or "") for p in reader.pages)
+    # pypdf bazı PDF'lerde her kelimeyi ayrı satıra koyar; akıcı paragraflara çevir
+    text = re.sub(r"[ \t]*\n[ \t]*", " ", text)      # tüm satır sonlarını boşluğa çevir
+    text = re.sub(r"[ \t]{2,}", " ", text).strip()   # fazla boşlukları tek boşluğa
+    text = re.sub(r"\s+(MADDE\s)", r"\n\n\1", text, flags=re.IGNORECASE)  # MADDE başlıkları
+    text = re.sub(r"\s+(\d{1,2})[.)]\s+", r"\n\n\1. ", text)  # numaralı maddeler
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
     out.append({"type": t, "title": title, "body": text})
     print(t, "->", len(text), "karakter,", len(reader.pages), "sayfa")
