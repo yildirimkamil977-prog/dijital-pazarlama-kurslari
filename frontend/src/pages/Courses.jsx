@@ -40,7 +40,7 @@ export default function Courses() {
             const hasDiscount = price < base;
             const isFree = price === 0;
             return (
-              <motion.div key={c.course_id} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+              <motion.div key={c.course_id} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: Math.min(idx * 0.08, 0.4) }}
                 data-testid={`course-card-${c.slug}`}
                 className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-ink-surface border border-white/5 rounded-3xl overflow-hidden p-4 lg:p-6 hover:border-gold/20 transition-colors duration-300 ${idx % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
                 <Link to={`/kurslar/${c.slug}`} className="relative block rounded-2xl overflow-hidden group aspect-video">
@@ -91,16 +91,16 @@ export default function Courses() {
                     </ul>
                   )}
 
-                  <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 pt-6 border-t border-white/5">
                     <div className="flex flex-col">
-                      <div className="flex items-end gap-2">
-                        {hasDiscount && <span className="text-sm text-muted-foreground line-through">{formatPrice(base)} ₺</span>}
-                        <span className="font-heading font-black text-3xl text-gold">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
-                        {savePct > 0 && <span className="mb-1 bg-gold/15 text-gold border border-gold/25 rounded-md px-2 py-0.5 text-xs font-bold">%{savePct}</span>}
+                      <div className="flex items-end gap-2 flex-wrap">
+                        {hasDiscount && <span className="text-sm text-muted-foreground line-through whitespace-nowrap">{formatPrice(base)} ₺</span>}
+                        <span className="font-heading font-black text-3xl text-gold whitespace-nowrap">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                        {savePct > 0 && <span className="mb-1 bg-gold/15 text-gold border border-gold/25 rounded-md px-2 py-0.5 text-xs font-bold whitespace-nowrap">%{savePct}</span>}
                       </div>
                       {upcoming && <span className="text-[11px] text-gold mt-1">Erken kayıt fiyatı</span>}
                     </div>
-                    <Link to={`/kurslar/${c.slug}`}><Button className="bg-gold hover:bg-gold-hover text-ink font-semibold rounded-full">{upcoming ? "Ön Kayıt" : "İncele"} <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
+                    <Link to={`/kurslar/${c.slug}`} className="shrink-0"><Button className="w-full sm:w-auto bg-gold hover:bg-gold-hover text-ink font-semibold rounded-full">{upcoming ? "Ön Kayıt" : "İncele"} <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
                   </div>
                 </div>
               </motion.div>

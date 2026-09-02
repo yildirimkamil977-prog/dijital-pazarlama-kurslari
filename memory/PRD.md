@@ -195,6 +195,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - BUG FIX (P0): CourseDetail.jsx mobil alt sabit bar, "Yakında Yayında / Erken Kayıt" kurslarında YANLIŞ indirim oranı (eski `1 - discount_price/price` hesabı) ve yanlış üstü çizili fiyat gösteriyordu; ön kayıt durumu için tasarım yoktu. Çözüm: bar artık sayfada zaten hesaplanan `upcoming/price/base/regular/savePct` değerlerini kullanıyor (DRY). Upcoming'de: üstte "Yakında · Ön Kayıt" etiketi (mobile-upcoming-label) + "Yayında <regular>₺", üstü çizili regular fiyat, erken kayıt fiyatı, altın "%X Erken Kayıt" rozeti (mobile-discount-badge) ve "Ön Kayıt Ol" butonu. Normal kursta standart kırmızı indirim rozeti + "Kayıt Ol".
 - Test: iteration_15.json — frontend %100. meta-reklamlari-instagram-facebook: 6.799₺ struck / 3.000₺ / %56 Erken Kayıt / Ön Kayıt Ol ✓. google-ads-ile-sifirdan-uzmanliga: upcoming etiketi yok, Kayıt Ol ✓.
 
+## Iteration 30 (2026-06) — Mobil fiyat kayması + üstte boşluk düzeltmesi
+- BUG FIX: Mobilde fiyat bloklarında ₺ simgesi ve indirim rozeti alt satıra kayıyordu. Courses.jsx kart fiyatı (flex-col sm:flex-row ile mobilde buton alta, tam genişlik) + CourseDetail sidebar + mobil sticky bar fiyat span'lerine `whitespace-nowrap` eklendi. Artık "3.000 ₺" tek satırda.
+- BUG FIX: Bazı sayfalarda mobilde ilk açılışta üstte büyük boşluk oluşup scroll'da düzeliyordu. Kök neden: Courses.jsx kartları `whileInView`+`initial opacity:0` kullanıyordu; mobilde IntersectionObserver geç tetiklenince kartlar görünmez kalıp yer kaplıyordu (boşluk). `whileInView`→`animate` (anında görünür, kademeli delay) yapıldı.
+- Test: iteration_16.json — frontend %100 (mobil 390 & desktop 1920). İlk kart opacity ~0.92 anında görünür (scroll gerekmiyor); tüm fiyatlar tek satır; buton mobilde alta yığılıyor. Regresyon yok.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

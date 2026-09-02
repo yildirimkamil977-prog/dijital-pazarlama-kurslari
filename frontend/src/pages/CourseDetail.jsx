@@ -236,9 +236,9 @@ export default function CourseDetail() {
                     </div>
                   )}
                   <div className="flex items-end gap-3 flex-wrap">
-                    {hasDiscount && <span className="text-muted-foreground line-through text-lg">{formatPrice(base)} ₺</span>}
-                    <span className="font-heading font-black text-4xl text-gold">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
-                    {savePct > 0 && <span className="mb-1.5 bg-gold text-ink rounded-md px-2 py-0.5 text-xs font-black">%{savePct} indirim</span>}
+                    {hasDiscount && <span className="text-muted-foreground line-through text-lg whitespace-nowrap">{formatPrice(base)} ₺</span>}
+                    <span className="font-heading font-black text-4xl text-gold whitespace-nowrap">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                    {savePct > 0 && <span className="mb-1.5 bg-gold text-ink rounded-md px-2 py-0.5 text-xs font-black whitespace-nowrap">%{savePct} indirim</span>}
                   </div>
                   {upcoming && (
                     <p className="text-xs text-muted-foreground mt-2">Bu erken kayıt fiyatıdır · Yayınlandığında <b className="text-foreground/90">{formatPrice(regular)} ₺</b> olacak</p>
@@ -330,8 +330,8 @@ export default function CourseDetail() {
           <div className="px-4 py-3 flex items-center gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                {hasDiscount && <span className="text-xs text-muted-foreground line-through">{formatPrice(base)} ₺</span>}
-                <span className="font-heading font-black text-xl text-gold" data-testid="mobile-price">{isFree ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
+                {hasDiscount && <span className="text-xs text-muted-foreground line-through whitespace-nowrap">{formatPrice(base)} ₺</span>}
+                <span className="font-heading font-black text-xl text-gold whitespace-nowrap" data-testid="mobile-price">{isFree ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
                 {savePct > 0 && <Badge className={`text-[10px] ${upcoming ? "bg-gold text-ink border-gold" : "bg-destructive/15 text-red-400 border-destructive/20"}`} data-testid="mobile-discount-badge">%{savePct} {upcoming ? "Erken Kayıt" : "indirim"}</Badge>}
               </div>
             </div>

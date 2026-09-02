@@ -1,0 +1,52 @@
+{
+  "summary": "Frontend-only visual/layout verification (iteration 16) for mobile price rendering + initial 'blank top gap' regression on /kurslar, /kurslar/meta-reklamlari-instagram-facebook, / and /hakkimda. Also desktop regression on courses list & course detail. All targeted fixes verified working.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "courses_list_mobile_390": {
+      "first_card_bounding_box": {"x": 20, "y": 407.6, "width": 350, "height": 748.75},
+      "first_card_opacity_immediate": 0.919,
+      "note": "First card is visible immediately below the 'Butik eğitim programları' heading with framer-motion animating in (opacity ~0.92 within ~1.2s). No blank-until-scroll behavior. Fix from whileInView -> animate confirmed.",
+      "cards": [
+        {"testid": "course-card-seo-ve-icerik-pazarlamasi", "price": "Ücretsiz", "struck": "1.499 ₺"},
+        {"testid": "course-card-meta-reklamlari-instagram-facebook", "price": "3.000 ₺", "struck": "6.799 ₺"},
+        {"testid": "course-card-google-ads-ile-sifirdan-uzmanliga", "price": "1.799 ₺", "struck": "2.499 ₺"}
+      ],
+      "price_line_wrap": "No ₺ orphaned to a new line. whitespace-nowrap on price/struck/badge working. Price height ~36px = single line for the gold price span.",
+      "button_layout_mobile": "İncele/Ön Kayıt button stacks BELOW the price row full-width (flex-col sm:flex-row) as required."
+    },
+    "course_detail_upcoming_mobile_390": {
+      "mobile_price_testid": "3.000 ₺ (single line, box 74x28)",
+      "mobile_discount_badge": "%56 Erken Kayıt",
+      "sidebar_price": "3.000 ₺ (single line, 40px tall = one line at text-4xl)",
+      "sidebar_struck_and_badge": "6.799 ₺ struck and %56 indirim visible, no ₺ wrap",
+      "sticky_bar": "mobile-buy-bar rendered with Ön Kayıt Ol button + %56 Erken Kayıt badge intact"
+    },
+    "top_gap_regression": {
+      "kurslar_mobile": "PASS - no abnormal blank top area; header + intro + first card visible on initial paint",
+      "home_mobile": "PASS - hero content visible immediately",
+      "hakkimda_mobile": "PASS - loaded without top gap issue"
+    },
+    "desktop_1920_regression": {
+      "courses_list": "PASS - price row and İncele button appear side-by-side within the card price footer as before",
+      "course_detail": "PASS - hero band + right sidebar layout intact"
+    }
+  },
+  "test_report_links": [".screenshots/kurslar_mobile_top.jpg", ".screenshots/kurslar_mobile_full.jpg", ".screenshots/detail_mobile.jpg", ".screenshots/home_mobile_top.jpg", ".screenshots/hakkimda_mobile_top.jpg", ".screenshots/kurslar_desktop.jpg", ".screenshots/detail_desktop.jpg"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Non-blocking: Multiple /api/auth/me 401 console errors on public pages for anonymous visitors — expected, but could be silenced by treating 401 as anonymous state (already the intent). Not a defect.",
+    "Non-blocking: 'preserveAspectRatio: Trailing garbage, xMinYMin none' SVG warnings (likely from a third-party embed/image). Consider cleaning attribute if the offending SVG is app-owned.",
+    "Non-blocking: Meta Pixel warning 'Invalid PixelID: null' when pixel id is not set — guard the pixel init to skip when id is empty."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (not tested)", "frontend": "100% for targeted fixes"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 15 changes (Courses.jsx whileInView->animate + whitespace-nowrap on price spans in Courses.jsx and CourseDetail.jsx sidebar+mobile sticky bar) are verified on mobile 390 and desktop 1920. Focus areas were purely visual. If retesting, prioritize: (1) mobile 390 & 414, (2) price spans have class whitespace-nowrap, (3) opacity of first course card > 0 immediately after DOMContentLoaded (no scroll)."
+}
