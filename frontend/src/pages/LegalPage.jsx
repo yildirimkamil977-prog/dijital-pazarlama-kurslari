@@ -28,9 +28,11 @@ export default function LegalPage() {
         <span className="w-11 h-11 rounded-xl bg-gold/10 flex items-center justify-center"><FileText className="w-5 h-5 text-gold" /></span>
         <h1 className="font-heading font-black text-3xl tracking-tighter">{content.title}</h1>
       </div>
-      <div className="bg-ink-surface border border-white/5 rounded-2xl p-8 text-muted-foreground leading-relaxed whitespace-pre-line text-sm" data-testid="legal-body">
-        {content.body}
-      </div>
+      <div
+        className="bg-ink-surface border border-white/5 rounded-2xl p-8 text-muted-foreground leading-relaxed text-sm [&_h2]:text-foreground [&_h2]:font-heading [&_h2]:font-bold [&_h2]:text-xl [&_h2]:tracking-tight [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:first:mt-0 [&_h3]:text-foreground [&_h3]:font-semibold [&_h3]:text-base [&_h3]:mt-7 [&_h3]:mb-2 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-4 [&_ul]:space-y-2 [&_li]:pl-1 [&_li]:marker:text-gold [&_strong]:text-foreground [&_strong]:font-semibold [&_a]:text-gold [&_a]:underline [&_a]:break-all"
+        data-testid="legal-body"
+        dangerouslySetInnerHTML={{ __html: content.body || "" }}
+      />
     </div>
   );
 }

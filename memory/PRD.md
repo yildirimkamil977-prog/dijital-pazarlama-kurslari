@@ -245,6 +245,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - SORUN: pypdf çıktısı her kelimeyi ayrı satıra koyuyordu; whitespace-pre-line ile sözleşme sayfaları kelime-kelime alt alta bozuk görünüyordu.
 - ÇÖZÜM: populate_legal.py normalizasyonu güncellendi (satır sonlarını boşluğa çevir, fazla boşluk temizle, MADDE ve numaralı maddelerde \n\n paragraf araları). DB yeniden dolduruldu, tek-kelime-satır=0, akıcı paragraflar. Seed 18K yeniden üretildi. Sadece veri değişimi — canlıda seed restore yeterli.
 
+## Iteration 39 (2026-06) — Sözleşme metinleri HTML formatına çevrildi
+- SORUN: Düz metin sözleşmeler PDF'teki başlık/kalın/madde işareti/paragraf düzenini kaybediyordu.
+- ÇÖZÜM: populate_legal.py artık ham PDF metnini (kelime=2 newline, paragraf=3+ newline; ● madde işaretleri; numaralı/MADDE başlıkları; ALL-CAPS başlıklar; "Etiket:" kalın; URL→link) yapılandırılmış HTML'e çeviriyor. LegalPage.jsx body'yi dangerouslySetInnerHTML + Tailwind arbitrary variant prose stilleriyle ([&_h2]/[&_h3]/[&_ul]/[&_li]/[&_strong]/[&_a]) render ediyor. DB HTML ile yeniden dolduruldu, seed 17K yeniden üretildi.
+- Dağıtım: Save to GitHub → git pull → docker compose up -d --build frontend (LegalPage kod değişti) → seed restore (HTML içerik). Admin Sözleşmeler sekmesinden metinler HTML olarak düzenlenebilir.
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 
