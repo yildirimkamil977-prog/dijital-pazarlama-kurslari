@@ -260,7 +260,7 @@ export default function GroupDetail() {
 
                 <div className="mt-5 space-y-2.5 text-xs text-muted-foreground">
                   <p className="flex items-center gap-2"><img src={MEET_LOGO} alt="" className="w-4 h-4" /> Google Meet ile canlı katılım</p>
-                  <p className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım sonrası dijital sertifika</p>
+                  <p className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım sonrası katılım belgesi</p>
                   <p className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-gold" /> Güvenli ödeme · Kredi kartı</p>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-4 text-center border-t border-white/5 pt-4">Katılım linkleri kayıt sonrası öğrenci panelinde görünür.</p>

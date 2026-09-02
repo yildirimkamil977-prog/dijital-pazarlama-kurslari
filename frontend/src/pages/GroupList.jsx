@@ -32,7 +32,7 @@ export default function GroupList() {
             <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> Canlı & interaktif dersler</span>
             <span className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-gold" /> Gerçek zamanlı soru-cevap</span>
             <span className="flex items-center gap-2"><Users className="w-4 h-4 text-gold" /> Sınırlı kontenjan</span>
-            <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım sertifikası</span>
+            <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım belgesi</span>
           </div>
         </div>
       </div>

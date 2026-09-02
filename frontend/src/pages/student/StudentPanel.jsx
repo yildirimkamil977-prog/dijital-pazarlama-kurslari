@@ -60,7 +60,7 @@ export default function StudentPanel() {
         {[
           { icon: BookOpen, v: courses.length, l: "Eğitim" },
           { icon: TrendingUp, v: `%${avgProgress}`, l: "Ort. İlerleme" },
-          { icon: Award, v: certs.length, l: "Sertifika" },
+          { icon: Award, v: certs.length, l: "Katılım Belgesi" },
           { icon: CreditCard, v: payments.filter((p) => p.status === "paid").length, l: "Ödeme" },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="bg-ink-surface border border-white/5 rounded-2xl p-5">
@@ -75,7 +75,7 @@ export default function StudentPanel() {
           <TabsTrigger value="consulting" data-testid="tab-consulting">Bire Bir Danışmanlık</TabsTrigger>
           <TabsTrigger value="group" data-testid="tab-group">Canlı Grup Eğitimi</TabsTrigger>
           <TabsTrigger value="payments" data-testid="tab-payments">Ödemelerim</TabsTrigger>
-          <TabsTrigger value="certs" data-testid="tab-certs">Sertifikalarım</TabsTrigger>
+          <TabsTrigger value="certs" data-testid="tab-certs">Belgelerim</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses" className="mt-6">
@@ -150,7 +150,7 @@ export default function StudentPanel() {
         </TabsContent>
 
         <TabsContent value="certs" className="mt-6">
-          {certs.length === 0 ? <p className="text-muted-foreground text-center py-16">Bir eğitimi tamamladığında sertifikan burada görünecek.</p> : (
+          {certs.length === 0 ? <p className="text-muted-foreground text-center py-16">Bir eğitimi tamamladığında katılım belgen burada görünecek.</p> : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {certs.map((c) => (
                 <div key={c.certificate_id} className="relative bg-gradient-to-br from-gold/15 via-ink-surface to-ink-surface border border-gold/20 rounded-2xl p-6 overflow-hidden">
@@ -159,7 +159,7 @@ export default function StudentPanel() {
                   <h3 className="relative mt-4 font-heading font-bold text-lg">{c.course_title}</h3>
                   <p className="relative text-sm text-muted-foreground mt-1">{c.user_name}</p>
                   <div className="relative flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-                    <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sertifika Kodu</p><p className="text-sm font-mono">{c.code}</p></div>
+                    <div><p className="text-[10px] text-muted-foreground uppercase tracking-wider">Belge Kodu</p><p className="text-sm font-mono">{c.code}</p></div>
                     <span className="text-xs text-muted-foreground">{formatDate(c.issued_at)}</span>
                   </div>
                 </div>

@@ -17,7 +17,7 @@ const perks = [
   { icon: Users, title: "Özel Telegram Topluluğu", text: "Sadece eğitim değil; beraber ilerleyen bir topluluğa dahil ol, network kur." },
   { icon: Radio, title: "Her Ay Canlı Yayın", text: "Güncel konulara aylık canlı yayınlarla dokun, sorularını anında sor." },
   { icon: FileText, title: "Onlarca Şablon & Checklist", text: "Uygulamada hız kazandıran hazır yapılar ve kontrol listeleriyle daha hızlı sonuç al." },
-  { icon: Award, title: "Doğrulanabilir Sertifika", text: "Eğitimi tamamladığında QR kod ile doğrulanabilen bir başarı sertifikası kazan." },
+  { icon: Award, title: "Katılım Belgesi", text: "Eğitimi tamamlayan katılımcılara katılım belgesi verilir." },
   { icon: Sparkles, title: "Ömür Boyu Güncel Erişim", text: "Yeni eklenen tüm derslere ve kaynaklara ek ücret ödemeden erişmeye devam et." },
 ];
 const tools = [
@@ -26,7 +26,7 @@ const tools = [
   { name: "Google Analytics", slug: "googleanalytics" },
   { name: "Search Console", slug: "googlesearchconsole" },
   { name: "Tag Manager", slug: "googletagmanager" },
-  { name: "Screaming Frog", slug: null },
+  { name: "Merchant Center", slug: null },
 ];
 const HERO_AVATARS = [
   "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=faces&fit=crop&w=96&h=96&q=80",
@@ -43,14 +43,14 @@ const faqs = [
   { q: "Eğitimler nasıl gerçekleşiyor?", a: "Eğitimi satın aldıktan sonra öğrenci paneline giriş yaparak dilediğin zaman, dilediğin cihazdan izlemeye başlayabilirsin." },
   { q: "Eğitimlere ne kadar süre erişebilirim?", a: "Eğitimlere ömür boyu erişebilirsin. Yeni eklenen derslere ve kaynaklara da ücretsiz olarak erişmeye devam edersin." },
   { q: "Eğitimler hangi seviyeye uygun?", a: "Eğitimler sıfırdan başlar; kurulumlardan ileri seviye stratejilere kadar uygulamalı olarak ilerler. Ön bilgi gerekmez." },
-  { q: "Sertifika veriyor musunuz?", a: "Evet. Eğitimi tamamladığında QR kod ile doğrulanabilen bir başarı sertifikası almaya hak kazanırsın." },
+  { q: "Belge veriyor musunuz?", a: "Evet. Eğitimi tamamlayan katılımcılara katılım belgesi verilir." },
   { q: "Ödeme tek seferlik mi?", a: "Evet, tek seferlik ödeme yaparsın ve ömür boyu güncellenen içeriklere erişirsin." },
 ];
 const roadmap = [
   { icon: Compass, step: "01", title: "Hedefini Belirle", text: "Ücretsiz danışmanlıkla nereden başlayacağını netleştir; sana özel bir yol haritası çizelim." },
   { icon: GraduationCap, step: "02", title: "Uygulamalı Öğren", text: "Gerçek kampanyalar üzerinden, izleyip aynı anda uygulayarak öğren. Ezber yok, saha var." },
   { icon: Rocket, step: "03", title: "Uygula & Ölçekle", text: "Şablonlar ve checklist'lerle kendi projelerinde sonuç al, bütçeni verimli büyüt." },
-  { icon: Trophy, step: "04", title: "Sertifikanı Al", text: "Eğitimi tamamla, QR ile doğrulanabilen sertifikanı kazan ve kariyerinde öne geç." },
+  { icon: Trophy, step: "04", title: "Katılım Belgeni Al", text: "Eğitimi tamamla, katılım belgeni al ve kariyerinde öne geç." },
 ];
 const valueStack = [
   "Uçtan uca video eğitim kütüphanesi",
@@ -58,7 +58,7 @@ const valueStack = [
   "Özel Telegram topluluğuna erişim",
   "Her ay güncel canlı yayınlar",
   "Onlarca hazır şablon & checklist",
-  "Doğrulanabilir başarı sertifikası",
+  "Katılım belgesi",
 ];
 
 export default function Home() {
@@ -333,7 +333,7 @@ export default function Home() {
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">13+ yıllık saha tecrübesiyle hazırlanan, binlerce öğrencinin sonuç aldığı güncel bir müfredat. Tüm sorularını topluluk ve canlı yayınlarda yanıtlıyoruz.</p>
             <div className="mt-6 flex items-center gap-3 pt-6 border-t border-white/5">
               <span className="flex items-center gap-1.5 text-sm text-gold"><Flame className="w-4 h-4" /> {settings.students_count || "10.000+"} öğrenci</span>
-              <span className="flex items-center gap-1.5 text-sm text-gold"><Trophy className="w-4 h-4" /> Sertifikalı</span>
+              <span className="flex items-center gap-1.5 text-sm text-gold"><Trophy className="w-4 h-4" /> Katılım Belgeli</span>
             </div>
             <Link to={user ? "/panel" : "/kurslar"}><Button className="w-full mt-6 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full h-12 group" data-testid="valuestack-cta">
               {user ? "Öğrenmeye Devam Et" : "Eğitimleri İncele"} <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
@@ -364,7 +364,7 @@ export default function Home() {
             <div className="absolute -top-20 -right-20 w-72 h-72 bg-gold/20 rounded-full blur-[100px]" />
             <div className="relative">
               <h2 className="font-heading font-black text-3xl sm:text-4xl tracking-tighter max-w-2xl mx-auto">Bugün başla, kariyerine altın bilezik tak.</h2>
-              <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Uygulamalı eğitimler, canlı yayınlar ve doğrulanabilir sertifika seni bekliyor.</p>
+              <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Uygulamalı eğitimler, canlı yayınlar ve katılım belgesi seni bekliyor.</p>
               <Link to="/kayit-ol"><Button size="lg" className="mt-8 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-10 gold-glow" data-testid="cta-register">Hemen Üye Ol</Button></Link>
             </div>
           </div>

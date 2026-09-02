@@ -41,7 +41,7 @@ export default function CoursePlayer() {
     try {
       const { data: res } = await api.post("/my/progress", { course_id: courseId, lesson_id: active.id, completed: true });
       toast.success("Ders tamamlandı olarak işaretlendi");
-      if (res.certificate_issued) toast.success("🎓 Tebrikler! Sertifikanı kazandın.", { duration: 6000 });
+      if (res.certificate_issued) toast.success("🎓 Tebrikler! Katılım belgeni kazandın.", { duration: 6000 });
       await load();
       const idx = flatLessons.findIndex((l) => l.id === active.id);
       const next = flatLessons[idx + 1];
@@ -134,7 +134,7 @@ export default function CoursePlayer() {
                 <Award className="w-9 h-9 text-gold shrink-0" />
                 <div>
                   <p className="font-heading font-semibold">Bu eğitimi tamamladın!</p>
-                  <p className="text-sm text-muted-foreground">Sertifika kodu: <span className="font-mono">{data.certificate.code}</span></p>
+                  <p className="text-sm text-muted-foreground">Belge kodu: <span className="font-mono">{data.certificate.code}</span></p>
                 </div>
               </div>
             )}

@@ -128,7 +128,7 @@ export default function AdminStudents() {
 
               {/* Certificate upload */}
               <div className="mt-4">
-                <h3 className="font-heading font-semibold text-sm mb-2">Sertifika Yükle</h3>
+                <h3 className="font-heading font-semibold text-sm mb-2">Katılım Belgesi Yükle</h3>
                 <div className="flex gap-2">
                   <Select value={certCourse} onValueChange={setCertCourse}><SelectTrigger className="bg-ink border-white/10 h-9" data-testid="cert-course-select"><SelectValue placeholder="Kurs seç..." /></SelectTrigger>
                     <SelectContent>{detail.courses.map((c) => <SelectItem key={c.course_id} value={c.course_id}>{c.title}</SelectItem>)}</SelectContent></Select>

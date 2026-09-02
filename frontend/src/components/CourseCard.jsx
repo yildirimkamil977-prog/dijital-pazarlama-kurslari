@@ -4,8 +4,12 @@ import { formatPrice, formatDuration } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 
 export function CourseCard({ course, index = 0 }) {
-  const hasDiscount = course.discount_price != null && course.discount_price < course.price;
-  const isFree = (hasDiscount ? course.discount_price : course.price) === 0;
+  const upcoming = course.is_upcoming;
+  const price = course.effective_price != null ? course.effective_price : course.price;
+  const regular = course.regular_price != null ? course.regular_price : course.price;
+  const base = upcoming ? regular : course.price;
+  const hasDiscount = price < base;
+  const isFree = price === 0;
   return (
     <Link
       to={`/kurslar/${course.slug}`}
@@ -21,7 +25,9 @@ export function CourseCard({ course, index = 0 }) {
           <div className="w-full h-full flex items-center justify-center"><PlayCircle className="w-10 h-10 text-muted-foreground" /></div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-ink-surface via-transparent to-transparent opacity-60" />
-        {isFree ? (
+        {upcoming ? (
+          <Badge className="absolute top-3 left-3 bg-blue-500 text-white font-bold border-0 shadow-lg text-[11px]">Yakında · Ön Kayıt</Badge>
+        ) : isFree ? (
           <Badge className="absolute top-3 left-3 bg-green-500 text-white font-bold border-0 shadow-lg text-[11px]">Ücretsiz</Badge>
         ) : course.category && (
           <Badge className="absolute top-3 left-3 bg-ink/80 backdrop-blur text-foreground border-white/10 text-[11px]">{course.category}</Badge>
@@ -48,12 +54,12 @@ export function CourseCard({ course, index = 0 }) {
 
         <div className="flex items-end justify-between mt-4 pt-4 border-t border-white/5">
           <div>
-            {hasDiscount && <span className="text-xs text-muted-foreground line-through mr-2">{formatPrice(course.price)} ₺</span>}
+            {hasDiscount && <span className="text-xs text-muted-foreground line-through mr-2">{formatPrice(base)} ₺</span>}
             <span className="font-heading font-bold text-lg text-gold">
-              {course.discount_price === 0 || course.price === 0 ? "Ücretsiz" : `${formatPrice(hasDiscount ? course.discount_price : course.price)} ₺`}
+              {price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}
             </span>
           </div>
-          <span className="text-xs font-medium text-foreground/70 group-hover:text-gold transition-colors duration-200">İncele →</span>
+          <span className="text-xs font-medium text-foreground/70 group-hover:text-gold transition-colors duration-200">{upcoming ? "Ön Kayıt →" : "İncele →"}</span>
         </div>
       </div>
     </Link>

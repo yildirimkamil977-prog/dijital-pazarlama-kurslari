@@ -96,7 +96,7 @@ export default function CourseDetail() {
             <div className="flex flex-wrap items-center gap-5 mt-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-gold" /> {course.lesson_count} ders</span>
               <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-gold" /> {formatDuration(course.total_seconds)}</span>
-              <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Sertifikalı</span>
+              <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım Belgeli</span>
               <span className="flex items-center gap-2"><InfinityIcon className="w-4 h-4 text-gold" /> Ömür boyu erişim</span>
             </div>
           </div>
@@ -262,7 +262,7 @@ export default function CourseDetail() {
               )}
               <div className="mt-6 pt-6 border-t border-white/5 space-y-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-3"><InfinityIcon className="w-4 h-4 text-gold" /> Ömür boyu erişim</span>
-                <span className="flex items-center gap-3"><Award className="w-4 h-4 text-gold" /> Tamamlama sertifikası</span>
+                <span className="flex items-center gap-3"><Award className="w-4 h-4 text-gold" /> Katılım belgesi</span>
                 <span className="flex items-center gap-3"><PlayCircle className="w-4 h-4 text-gold" /> Tüm cihazlardan izle</span>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function CourseDetail() {
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
             <span className="flex items-center gap-2"><Users className="w-4 h-4 text-gold" /> {settings.students_count || "10.000+"} öğrenci</span>
-            <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Doğrulanabilir sertifika</span>
+            <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım belgesi</span>
             <span className="flex items-center gap-2"><Zap className="w-4 h-4 text-gold" /> Anında erişim</span>
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function CourseDetail() {
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-gold/20 rounded-full blur-[100px]" />
           <div className="relative">
             <h2 className="font-heading font-black text-2xl sm:text-3xl tracking-tighter">Bu eğitimle bir adım öne geç.</h2>
-            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Ömür boyu erişim, doğrulanabilir sertifika ve uygulamalı içerikler seni bekliyor.</p>
+            <p className="mt-3 text-muted-foreground max-w-xl mx-auto">Ömür boyu erişim, katılım belgesi ve uygulamalı içerikler seni bekliyor.</p>
             {!course.enrolled && <Button onClick={isFree ? handleFreeEnroll : handleBuy} disabled={enrolling} className="mt-6 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-8 gold-glow" data-testid="cta-buy-bottom">{isFree ? "Ücretsiz Kayıt Ol" : `Hemen Kayıt Ol · ${formatPrice(price)} ₺`}</Button>}
           </div>
         </div>

@@ -68,7 +68,7 @@ export default function Courses() {
                   <div className="flex flex-wrap items-center gap-4 mt-5 text-sm text-muted-foreground">
                     <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-gold" /> {c.lesson_count} ders</span>
                     <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-gold" /> {formatDuration(c.total_seconds)}</span>
-                    <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Sertifikalı</span>
+                    <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım belgesi</span>
                     <span className="flex items-center gap-2"><InfinityIcon className="w-4 h-4 text-gold" /> Ömür boyu</span>
                   </div>
 
