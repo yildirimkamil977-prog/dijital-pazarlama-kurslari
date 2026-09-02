@@ -31,6 +31,9 @@ fernet = Fernet(os.environ["SETTINGS_ENCRYPTION_KEY"].encode())
 EMAIL_BASE_URL = "https://integrations.emergentagent.com"
 EMAIL_KEY = os.environ.get("EMERGENT_EMAIL_KEY", "")
 EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Akademi")
+# Self-hosting: kendi sunucunda kendi Resend anahtarınla gönderim için (opsiyonel).
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+RESEND_FROM = os.environ.get("RESEND_FROM", "")
 
 SESSION_DAYS = 7
 
@@ -328,6 +331,20 @@ def render_template(text: str, ctx: dict) -> str:
 
 
 async def send_email(to_email: str, subject: str, html: str, reply_to: Optional[str] = None):
+    # Kendi Resend anahtarın (self-hosting) varsa doğrudan Resend API; yoksa Emergent yönetilen servis.
+    if RESEND_API_KEY and RESEND_FROM:
+        payload = {"from": f"{EMAIL_FROM_NAME} <{RESEND_FROM}>", "to": [to_email],
+                   "subject": subject, "html": html}
+        if reply_to:
+            payload["reply_to"] = reply_to
+        try:
+            async with httpx.AsyncClient(timeout=30) as c:
+                r = await c.post("https://api.resend.com/emails",
+                                 headers={"Authorization": f"Bearer {RESEND_API_KEY}"}, json=payload)
+            r.raise_for_status()
+        except Exception as e:
+            logger.error(f"E-posta gönderilemedi (Resend, {to_email}): {e}")
+        return
     if not EMAIL_KEY:
         logger.warning("EMERGENT_EMAIL_KEY yok, e-posta atlanıyor")
         return
