@@ -255,6 +255,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - ÖĞRENILEN: mongodump + populate aynı mesajda PARALEL çalıştırılırsa race olur (dump, populate bitmeden eski DB'yi alır). Bu tür bağımlı işlemleri && ile SIRALI çalıştır.
 - Deploy akışı (public repo, kalıcı): sunucuda `GIT_TERMINAL_PROMPT=0 git fetch origin && git reset --hard @{u}` (kullanıcı adı sormaz), sonra kod değiştiyse `docker compose up -d --build`, veri değiştiyse seed restore.
 
+## Iteration 41 (2026-06) — 3 hata: sepet fiyatı, PayTR inline, grup eğitmeni
+- Sepet: CartContext add() artık effective_price (erken kayıt/indirim) kullanıyor; yakında satışa girecek kurslar erken kayıt fiyatıyla sepete ekleniyor.
+- PayTR: Checkout'ta iframe modal (Dialog) kaldırıldı; iframeUrl olunca sayfa içinde inline tam-genişlik ödeme ekranı render ediliyor (pop-up değil). "Geri dön" linki eklendi.
+- Grup eğitmeni: group_trainings.instructor_id boştu ('') → inst_105af6c86623'e bağlandı (DB). GroupDetail eğitmen kartı artık görünüyor. Seed 18K yeniden üretildi.
+- Doğrulama: frontend derlendi (200), /api/group-trainings/{slug} instructor=Kamil Yıldırım. Kod: CartContext.jsx, Checkout.jsx. Veri: group instructor_id (seed).
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

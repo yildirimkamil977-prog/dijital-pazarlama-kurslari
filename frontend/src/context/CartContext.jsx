@@ -14,7 +14,7 @@ export function CartProvider({ children }) {
   }, [items]);
 
   const add = (course) => {
-    const price = course.discount_price != null ? course.discount_price : course.price;
+    const price = course.effective_price != null ? course.effective_price : (course.discount_price != null ? course.discount_price : course.price);
     setItems((prev) => {
       if (prev.find((i) => i.course_id === course.course_id)) return prev;
       return [...prev, {

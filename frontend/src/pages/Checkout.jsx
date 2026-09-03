@@ -82,6 +82,19 @@ export default function Checkout() {
     );
   }
 
+  if (iframeUrl) {
+    return (
+      <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10" data-testid="paytr-page">
+        <h1 className="font-heading font-black text-2xl tracking-tighter mb-2">Güvenli Ödeme</h1>
+        <p className="text-sm text-muted-foreground mb-5">Kart bilgilerini aşağıdaki güvenli PayTR ekranına girerek ödemeni tamamla.</p>
+        <div className="bg-white rounded-2xl overflow-hidden border border-white/10">
+          <iframe title="PayTR Ödeme" src={iframeUrl} className="w-full border-0" style={{ height: "82vh" }} allow="payment" data-testid="paytr-iframe" />
+        </div>
+        <button onClick={() => setIframeUrl("")} className="mt-4 text-sm text-muted-foreground hover:text-foreground underline">← Ödeme yöntemine geri dön</button>
+      </div>
+    );
+  }
+
   if (transferInfo) {
     return (
       <div className="max-w-2xl mx-auto px-5 sm:px-8 py-16" data-testid="transfer-result">
@@ -231,13 +244,6 @@ export default function Checkout() {
           </div>
         </div>
       </div>
-
-      <Dialog open={!!iframeUrl} onOpenChange={(o) => !o && setIframeUrl("")}>
-        <DialogContent className="max-w-3xl h-[85vh] p-0 gap-0 bg-ink-surface">
-          <DialogHeader className="p-4 border-b border-white/10"><DialogTitle>Güvenli Ödeme</DialogTitle></DialogHeader>
-          {iframeUrl && <iframe title="PayTR Ödeme" src={iframeUrl} className="w-full h-full border-0" allow="payment" data-testid="paytr-iframe" />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
