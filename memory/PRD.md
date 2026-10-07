@@ -267,6 +267,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - UI: AdminStudents.jsx filtre çubuğu (tarih aralığı, çoklu seçim Kurslar/Grup Eğitimleri — components/admin/MultiSelectFilter.jsx, sıfırla, CSV butonu). AdminPanel main'e min-w-0 eklendi (mobil taşma düzeltmesi, tüm admin sayfalarını etkiler).
 - Test: iteration_18 backend 10/10, frontend akışlar geçti; mobil taşma düzeltildi ve doğrulandı.
 
+## Iteration 43 (2026-10-07) — Yorum medyası + Enter düzeltmesi
+- GroupDetail yorum videoları ham vimeo.com linkini iframe'e veriyordu (bozuk) → yeni components/ReviewMedia.jsx: kapak görseli + oynat butonu, tıklayınca toEmbed ile iframe (autoplay). CourseDetail de aynı bileşeni kullanıyor.
+- AdminGroupTrainings: Kazanımlar/Gereksinimler textarea'sında her tuşta filter(Boolean) boş satırı siliyordu → Enter çalışmıyordu. Artık ham satırlar tutuluyor, kayıtta trim+filter.
+- CourseEditor listField: Enter'a basınca altına yeni madde ekleyip odaklanıyor.
+- Görsel boyut rehberi kullanıcıya verildi: kart/kapak 16:9 (1280x720), yorum 9:16 (1080x1920).
+
+
 
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

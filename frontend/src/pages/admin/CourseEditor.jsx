@@ -60,7 +60,7 @@ export default function CourseEditor() {
     <div>
       {form[key].map((item, i) => (
         <div key={i} className="flex gap-2 mb-2">
-          <Input value={item} onChange={(e) => set(key, form[key].map((x, j) => j === i ? e.target.value : x))} className="bg-ink border-white/10" placeholder={ph} />
+          <Input value={item} onChange={(e) => set(key, form[key].map((x, j) => j === i ? e.target.value : x))} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const next = [...form[key]]; next.splice(i + 1, 0, ""); set(key, next); setTimeout(() => document.querySelector(`[data-testid="${key}-item-${i + 1}"]`)?.focus(), 0); } }} className="bg-ink border-white/10" placeholder={ph} data-testid={`${key}-item-${i}`} />
           <Button type="button" variant="outline" size="sm" className="border-white/15 shrink-0" onClick={() => set(key, form[key].filter((_, j) => j !== i))}><X className="w-4 h-4" /></Button>
         </div>
       ))}

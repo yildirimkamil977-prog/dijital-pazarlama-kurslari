@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { toEmbed } from "@/lib/video";
+import { ReviewMedia } from "@/components/ReviewMedia";
 import { motion } from "framer-motion";
 import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap, GraduationCap } from "lucide-react";
 import api, { formatPrice, formatDuration, apiError } from "@/lib/api";
@@ -190,11 +191,7 @@ export default function CourseDetail() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {course.reviews.map((r, i) => (
                   <div key={i} className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden" data-testid={`course-review-${i}`}>
-                    {r.video_url ? (
-                      <div className="relative aspect-[9/16] bg-black"><iframe title={`review-${i}`} src={toEmbed(r.video_url)} className="w-full h-full" allow="encrypted-media; fullscreen" allowFullScreen /></div>
-                    ) : r.thumbnail ? (
-                      <div className="aspect-[9/16]"><img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} /></div>
-                    ) : null}
+                    <ReviewMedia review={r} testId={`course-review-${i}`} />
                     <div className="p-4">
                       <div className="flex gap-0.5 mb-2">{Array.from({ length: r.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>
                       <p className="text-sm text-foreground/90 leading-relaxed line-clamp-4">"{r.quote}"</p>

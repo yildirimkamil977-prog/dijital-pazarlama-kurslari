@@ -35,7 +35,8 @@ export default function AdminGroupTrainings() {
   const save = async () => {
     if (!form.title.trim()) { toast.error("Başlık zorunlu"); return; }
     setSaving(true);
-    const body = { ...form, price: Number(form.price) || 0, capacity: Number(form.capacity) || 0 };
+    const clean = (arr) => (arr || []).map((x) => x.trim()).filter(Boolean);
+    const body = { ...form, price: Number(form.price) || 0, capacity: Number(form.capacity) || 0, what_you_learn: clean(form.what_you_learn), requirements: clean(form.requirements) };
     try {
       if (editing === "new") await api.post("/admin/group-trainings", body);
       else await api.put(`/admin/group-trainings/${editing}`, body);
@@ -57,8 +58,8 @@ export default function AdminGroupTrainings() {
         <div><Label>Başlık</Label><Input value={form.title} onChange={(e) => set("title", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-title" /></div>
         <div><Label>Açıklama</Label><Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} className="bg-ink border-white/10 mt-1.5" /></div>
         <div className="grid grid-cols-2 gap-4">
-          <div><Label>Kazanımlar (her satıra bir madde)</Label><Textarea value={(form.what_you_learn || []).join("\n")} onChange={(e) => set("what_you_learn", e.target.value.split("\n").filter(Boolean))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Google Ads hesabı kurmayı öğreneceksin&#10;Dönüşüm takibi..." /></div>
-          <div><Label>Gereksinimler (her satıra bir madde)</Label><Textarea value={(form.requirements || []).join("\n")} onChange={(e) => set("requirements", e.target.value.split("\n").filter(Boolean))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Bilgisayar ve internet&#10;Temel bilgisayar kullanımı" /></div>
+          <div><Label>Kazanımlar (her satıra bir madde)</Label><Textarea value={(form.what_you_learn || []).join("\n")} onChange={(e) => set("what_you_learn", e.target.value.split("\n"))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Google Ads hesabı kurmayı öğreneceksin&#10;Dönüşüm takibi..." /></div>
+          <div><Label>Gereksinimler (her satıra bir madde)</Label><Textarea value={(form.requirements || []).join("\n")} onChange={(e) => set("requirements", e.target.value.split("\n"))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Bilgisayar ve internet&#10;Temel bilgisayar kullanımı" /></div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div><Label>Fiyat (₺)</Label><Input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-price" /></div>

@@ -6,6 +6,7 @@ import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toEmbed } from "@/lib/video";
+import { ReviewMedia } from "@/components/ReviewMedia";
 import { useAuth } from "@/context/AuthContext";
 import { useSite } from "@/context/SiteContext";
 import { Seo } from "@/components/Seo";
@@ -199,11 +200,7 @@ export default function GroupDetail() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {g.reviews.map((r, i) => (
                     <div key={i} className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden" data-testid={`group-review-${i}`}>
-                      {r.video_url ? (
-                        <div className="relative aspect-[9/16] bg-black"><iframe title={`review-${i}`} src={r.video_url} className="w-full h-full" allow="encrypted-media; fullscreen" allowFullScreen /></div>
-                      ) : r.thumbnail ? (
-                        <div className="aspect-[9/16]"><img src={r.thumbnail} alt={r.name} className="w-full h-full object-cover" /></div>
-                      ) : null}
+                      <ReviewMedia review={r} testId={`group-review-${i}`} />
                       <div className="p-4">
                         <div className="flex gap-0.5 mb-2">{Array.from({ length: r.rating || 5 }).map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-gold" fill="currentColor" />)}</div>
                         <p className="text-sm text-foreground/90 leading-relaxed line-clamp-4">"{r.quote}"</p>
