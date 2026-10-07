@@ -100,7 +100,6 @@ async def _apply_discount(code: Optional[str], subtotal: float, items=None):
 
 @router.post("/validate-discount")
 async def validate_discount(body: dict, request: Request):
-    await get_current_user(request)
     code = body.get("code")
     subtotal = float(body.get("subtotal", 0))
     items = body.get("items") or []

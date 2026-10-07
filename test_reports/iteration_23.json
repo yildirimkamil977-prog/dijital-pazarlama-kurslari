@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 23 — Waitlist 'Haber Ver' + launch notify + launch discount auto-apply. Backend: 15/15 pytest in /app/backend/tests/test_iteration23.py. POST /api/courses/<id>/notify validates email format (400 on invalid), creates waitlist entries with $setOnInsert dedupe (duplicate submit returns ok=true but DB stays at 1 row). GET /api/admin/waitlist returns rows with course_title join and supports course_id/status(pending|notified)/search filters. GET /api/admin/courses/<id>/waitlist/summary returns {pending,total}. Launch flow: PUT /api/admin/courses/<id> persists launch_discount_code (uppercased on save by frontend). POST /api/admin/courses/<id>/waitlist/notify returns 400 when course sale_closed OR unpublished OR launch_discount_code is restricted to another course. With open+published sale and valid code, notify queues all pending entries (queued=3, code=TESTWL*), after ~3s sleep all 3 rows have notified_at set and notified_code==code. Second notify with emails=[] queues 0 (idempotent). Resend with emails=[one] queues 1. Email templates waitlist_joined & course_launch exist in GET /api/admin/email-templates and course_launch.html contains {{discount_block}}. Course restore verified: sale_closed=False, launch_discount_code='', is_published=True returned to original state. Frontend (admin logged in): /yonetim/haber-ver-listesi renders admin-waitlist-page with filters waitlist-search/waitlist-course-filter/waitlist-status-filter and waitlist-page-export; after seeding one entry it renders waitlist-row-<email> with status badge Bekliyor and resend button. /yonetim/kurslar/<id> CourseEditor shows course-launch-code select with options including codes. Popup: with sale_closed=true + 1 pending entry, toggling course-sale-closed OFF and clicking save-course opens launch-notify-dialog showing launch-pending-count='1 kişiye' + launch-code-info. launch-cancel-btn closes dialog without saving. launch-skip-btn saves (navigates back to /yonetim/kurslar) with sale_closed flipped to false and waitlist entries remaining pending (notified_at null). CourseDetail /kurslar/<slug>?kod=CODE sets localStorage.pending_discount_code=CODE on load. Cleanup: 7 total test waitlist entries (resend.dev addresses) deleted post-run, TEST discount codes removed, test course state restored.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/payments/validate-discount", "issue": "Requires authenticated session via get_current_user. Guest checkout users triggered via Checkout.jsx auto-apply (pending_discount_code) will hit 401 and the .catch(() => {}) silently swallows the error — the launch discount is NOT auto-applied for guests. Consider using get_optional_user so guest subtotal validation works."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration23.py",
+    "/app/test_reports/pytest/iteration23.xml"
+  ],
+  "action_items": [
+    "(Optional) Allow /api/payments/validate-discount for guests (switch get_current_user -> get_optional_user) so launch-code auto-apply works before guest finishes customer form on /odeme."
+  ],
+  "critical_code_review_comments": [
+    "routes_waitlist.notify_waitlist uses asyncio.create_task(_send_launch(...)) for non-blocking email sends — spec-matching (≈0.6s per entry). Entries become notified_at+notified_code only after each email send succeeds. Good.",
+    "routes_waitlist.launch_code_info correctly checks presence/active/course_ids restriction/usage_limit. Note: the check `(d.get('course_ids') or d.get('group_ids')) and course['course_id'] not in (d.get('course_ids') or [])` correctly rejects a code restricted to groups only (group_ids truthy, course_ids empty) — fine.",
+    "routes_courses.course_notify uses $setOnInsert for dedupe; `send_joined` only fires on first insert (res.upserted_id check). Good.",
+    "routes_payments.validate_discount requires get_current_user — this breaks guest auto-apply from Checkout.jsx (silently caught). Suggest get_optional_user.",
+    "AdminWaitlist.jsx CSV export is simple and includes BOM (\\ufeff) + semicolon delimiter for Excel-TR. OK.",
+    "LaunchNotifyDialog shows pending count + conditional code info; onCancel also closes on backdrop (open={!!launch} + onOpenChange={(v)=>!v && onCancel()}). Good.",
+    "CourseEditor.save flow: pre-save check runs only when `!isNew && origSaleClosed && !form.sale_closed && form.is_published` and summary.pending>0 — correct per spec. If API call fails it silently continues to doSave which is defensive.",
+    "React hydration warning in console: <span data-ve-dynamic> injected inside <option> by dev tooling — editor instrumentation artifact, not a real bug."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration23.py",
+    "/app/test_reports/iteration_23.json",
+    "/app/test_reports/pytest/iteration23.xml"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% (admin waitlist page, course editor launch code + sale_closed popup Vazgeç/Göndermeden Kaydet, ?kod localStorage)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "During tests created 3 waitlist entries (delivered+wl_*@resend.dev), 2 discount codes (TESTWL*/TESTOTHER*) + 1 UI test waitlist entry (delivered+ui_uitest1@resend.dev) + 1 UI discount code (TESTUIKOD1). All deleted after run via admin API + direct Mongo cleanup. Canonical course course_8b53eae5576a (slug google-ads-ile-sifirdan-uzmanliga) restored to sale_closed=false, launch_discount_code='', is_published=true (original state).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Scenario fully exercised. Note the one minor backend gap: /api/payments/validate-discount requires login so Checkout.jsx auto-apply (pending_discount_code) silently fails for guests until they log in during the single-session guest flow. Not tested in UI end-to-end for the final 'ödeme sayfasında otomatik uygulandı' toast with a guest, but localStorage pending key is correctly stored on CourseDetail ?kod. Full ingress POST /api/courses/<id>/notify (no auth) + /api/admin/waitlist (admin) + /api/admin/courses/<id>/waitlist/notify (admin) are all wired through server.py. Email templates are seeded on backend startup from DEFAULT_TEMPLATES in deps.py. Previous iteration canonical course + group fixtures still valid.",
+  "rca of the issue": "N/A — only one minor edge: validate_discount uses get_current_user instead of get_optional_user, blocking guest auto-apply."
+}
