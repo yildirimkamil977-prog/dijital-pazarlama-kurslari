@@ -278,6 +278,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Frontend ImageUpload ve backend upload-image boyut kontrolü kaldırıldı. 20MB test dosyası yüklendi/indirildi birebir aynı; test kaydı silindi.
 
 
+## Iteration 45 (2026-10-07) — YouTube Shorts + bilgisayardan yorum videosu yükleme
+- lib/video.js toEmbed: youtube.com/shorts/ID ve /live/ID → /embed/ID; isDirectVideo (/api/uploads/vid_ veya .mp4/.webm/.mov). Home.jsx kendi toEmbed'i yerine lib'i kullanıyor; diyalog direkt videoda <video> oynatıyor.
+- POST /api/admin/upload-video: 1MB parçalarla GridFS'e akış (limit yok). GET /api/uploads/{id}: Range (206) desteği (video ileri sarma için, 4MB parça).
+- ImageUpload kind="video" (yükleme yüzdesi, video önizleme). Admin Ayarlar > Yorumlar: link alanı + "Video Yükle". ReviewMedia yüklenen videoyu <video> ile oynatır.
+- Test: iteration_19 backend 8/8, frontend %100. Test yüklemeleri silindi.
+
+
 
 
 ## Test Credentials
