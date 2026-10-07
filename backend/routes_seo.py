@@ -99,6 +99,10 @@ def _course_hero(c: dict) -> str:
             f'<div class="flex flex-wrap items-center gap-5 mt-6 text-sm text-muted-foreground">{meta}</div></div></div></div></div>')
 
 
+def _poster(g: dict) -> str:
+    return img(g.get("promo_thumb") or g.get("image"), 1200)
+
+
 def _group_hero(g: dict) -> str:
     e = htmllib.escape
     meta = []
@@ -116,8 +120,8 @@ def _group_hero(g: dict) -> str:
             f'<div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">{spans}</div>'
             '</div></div></div></div>'
             + (f'<div class="max-w-6xl mx-auto px-5 sm:px-8 py-10"><div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="lg:col-span-2 space-y-10">'
-               f'<div class="relative aspect-video rounded-3xl overflow-hidden bg-ink border border-white/10 shadow-2xl"><img src="{e(img(g["image"], 1200))}" alt="{e(g["title"])}" fetchpriority="high" width="1200" height="675" class="w-full h-full object-cover" /></div>'
-               '</div></div></div>' if g.get("image") else "")
+               f'<div class="relative aspect-video rounded-3xl overflow-hidden bg-ink border border-white/10 shadow-2xl"><img src="{e(_poster(g))}" alt="{e(g["title"])}" fetchpriority="high" width="1200" height="675" class="w-full h-full object-cover" /></div>'
+               '</div></div></div>' if _poster(g) else "")
             + '</div>')
 
 
@@ -196,7 +200,7 @@ async def _group_seo(slug: str, s: dict, site: str) -> dict:
     out.append(crumbs([("Anasayfa", "/"), ("Canlı Grup Eğitimleri", "/canli-grup-egitimleri"), (g["title"], None)]))
     return {"title": f"{g['title']} | Canlı Grup Eğitimi | {site}", "description": desc[:160],
             "keywords": f"{g['title']}, canlı eğitim, online grup eğitimi, google meet", "image": img(g.get("image"), 1200),
-            "canonical": url, "og_type": "website", "lcp": img(g.get("image"), 1200), "jsonld": out, "prerender": _group_hero(g), "initial": {f"group:{slug}": g}}
+            "canonical": url, "og_type": "website", "lcp": _poster(g), "jsonld": out, "prerender": _group_hero(g), "initial": {f"group:{slug}": g}}
 
 
 async def build_seo(path: str) -> dict:

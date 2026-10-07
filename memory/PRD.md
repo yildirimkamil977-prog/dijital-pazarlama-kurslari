@@ -295,6 +295,12 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Lokal Lighthouse (prod build, tests/prod_preview_server.py + tests/lh.sh): grup detay mobil 82 / masaüstü 100; kurs detay mobil 77 / masaüstü 99; Erişilebilirlik/En iyi uygulamalar/SEO 100. Mobil TBT (~550-770ms JS çalıştırma) kalan darboğaz. Anasayfa mobil ~60 (prerender yok).
 - Test: iteration_20 backend 14/14; testing agent 2 kritik hatayı düzeltti (Courses idx, CourseCard optImg import); yapıştırma kenar durumu düzeltildi.
 
+## Iteration 47 (2026-10-07) — Tanıtım videosu görünürlüğü (mobil)
+- Grup eğitimi: promo videonun kendi kapak karesi otomatik (media.video_thumb: YouTube ytimg / Vimeo oEmbed→vumbnail yedek) indirilip WebP olarak uploads'a kaydediliyor; group doc'ta promo_thumb + promo_thumb_src (video değişince yenilenir). Poster: promo_thumb || image; SEO prerender & LCP preload de aynı posteri kullanır.
+- Kurs detay: satın alma/tanıtım kartı mobilde başlığın hemen altında (order-first lg:order-none).
+- Doğrulandı: mobil 390px ekran görüntüsü; tıklayınca iframe açılıyor; taşma yok.
+
+
 
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel

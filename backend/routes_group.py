@@ -77,6 +77,11 @@ async def get_group(slug):
     if not d:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
     res = await _public(d, await _instructors())
+    if d.get("promo_video") and d.get("promo_thumb_src") != d["promo_video"]:
+        from media import video_thumb
+        d["promo_thumb"] = await video_thumb(d["promo_video"])
+        await db.group_trainings.update_one({"group_id": d["group_id"]}, {"$set": {"promo_thumb": d["promo_thumb"], "promo_thumb_src": d["promo_video"]}})
+    res["promo_thumb"] = d.get("promo_thumb", "") if d.get("promo_video") else ""
     allt = (await get_settings_doc()).get("testimonials", [])
     res["reviews"] = [t for t in allt if not t.get("course_id")]
     return res

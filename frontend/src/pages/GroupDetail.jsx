@@ -96,7 +96,7 @@ export default function GroupDetail() {
               {g.promo_video && playPromo ? <iframe title="Tanıtım" src={`${toEmbed(g.promo_video)}${toEmbed(g.promo_video).includes("?") ? "&" : "?"}autoplay=1`} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="group-promo" />
                 : (
                   <button type="button" className="group w-full h-full relative" onClick={() => g.promo_video && setPlayPromo(true)} aria-label="Tanıtım videosunu oynat" data-testid="group-promo-poster" disabled={!g.promo_video}>
-                    {g.image ? <img src={optImg(g.image, 1200)} alt={g.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-gold/10 to-ink" />}
+                    {(g.promo_thumb || g.image) ? <img src={optImg(g.promo_thumb || g.image, 1200)} alt={g.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-gold/10 to-ink" />}
                     {g.promo_video && <span className="absolute inset-0 flex items-center justify-center bg-ink/30"><span className="w-20 h-20 rounded-full bg-gold text-ink flex items-center justify-center shadow-2xl transition-transform duration-300 group-hover:scale-110"><PlayCircle className="w-10 h-10" /></span></span>}
                   </button>
                 )}

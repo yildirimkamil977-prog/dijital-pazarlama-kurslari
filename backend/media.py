@@ -49,6 +49,46 @@ async def resized(upload_id: str, content: bytes, w: int) -> bytes:
     return data
 
 
+async def _remote_thumb(url: str) -> str:
+    import re
+    import httpx
+    m = re.search(r"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/|live/))([\w-]{6,})", url)
+    async with httpx.AsyncClient(timeout=8, follow_redirects=True) as cl:
+        if m:
+            for q in ("maxresdefault", "hqdefault"):
+                r = await cl.get(f"https://i.ytimg.com/vi/{m.group(1)}/{q}.jpg")
+                if r.status_code == 200 and len(r.content) > 2000:
+                    return r.content
+            return b""
+        m = re.search(r"vimeo\.com/(?:video/)?(\d+)", url)
+        if not m:
+            return b""
+        r = await cl.get("https://vimeo.com/api/oembed.json", params={"url": f"https://vimeo.com/{m.group(1)}", "width": 1280})
+        if r.status_code == 200 and r.json().get("thumbnail_url"):
+            r = await cl.get(r.json()["thumbnail_url"])
+        else:
+            r = await cl.get(f"https://vumbnail.com/{m.group(1)}_large.jpg")
+        return r.content if r.status_code == 200 and r.headers.get("content-type", "").startswith("image/") else b""
+
+
+async def video_thumb(url: str) -> str:
+    """Downloads the video's cover frame, stores it as optimized WebP, returns its /api/uploads URL."""
+    from deps import new_id, now_utc
+    if not url:
+        return ""
+    try:
+        content = await _remote_thumb(url)
+    except Exception:
+        content = b""
+    if not content:
+        return ""
+    content, ct = await optimize_image(content, "image/jpeg")
+    uid = new_id("img")
+    gid = await AsyncIOMotorGridFSBucket(db).upload_from_stream(uid, content, metadata={"content_type": ct})
+    await db.uploads.insert_one({"upload_id": uid, "content_type": ct, "gridfs_id": gid, "optimized": True, "created_at": now_utc().isoformat()})
+    return f"/api/uploads/{uid}"
+
+
 async def migrate_images():
     """One-time: convert legacy uploaded images to optimized WebP in GridFS (same upload_id/URL)."""
     bucket = AsyncIOMotorGridFSBucket(db)

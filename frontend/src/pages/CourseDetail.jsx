@@ -209,7 +209,7 @@ export default function CourseDetail() {
         </div>
 
         {/* Sticky card */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-5 order-first lg:order-none">
           <motion.div className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
             <div className="relative aspect-video bg-ink-elevated cursor-pointer group" onClick={() => { const first = course.modules?.flatMap(m => m.lessons).find(l => l.is_preview || course.enrolled); if (first) openPreview(first); }}>
               {course.thumbnail && <img src={optImg(course.thumbnail, 1200)} alt={course.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" />}
