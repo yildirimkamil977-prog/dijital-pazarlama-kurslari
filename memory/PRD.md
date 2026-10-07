@@ -319,6 +319,14 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Kurs sale_closed: kartlarda/listede/detayda "Yakında satışta", CourseNotifyForm → POST /api/courses/{id}/notify (course_waitlist, upsert). Admin CourseEditor'da CourseWaitlist + CSV. Checkout sale_closed kursu 400 ile reddeder; SEO availability OutOfStock.
 - Test: iteration_22 backend 8/8, frontend %100.
 
+## Iteration 51 (2026-10-07) — "Açılınca haber ver" otomasyonu
+- routes_waitlist.py: GET /api/admin/waitlist (kurs/durum/arama), GET /admin/courses/{id}/waitlist/summary, POST /admin/courses/{id}/waitlist/notify (emails boş → sadece bekleyenler, tek sefer; dolu → tekrar gönder). Kurs satışta+yayında olmalı; açılış kodu doğrulanır (var, aktif, bu kursa geçerli, limit). Arka planda 0.6 sn arayla gönderim, notified_at + notified_code.
+- Şablonlar: waitlist_joined (kayıtta, yalnız ilk ekleme), course_launch ({{discount_block}}, {{discount_code}}, {{discount_text}}, {{course_url}} = /kurslar/slug?kod=KOD).
+- CourseIn.launch_discount_code; CourseEditor'da kod seçimi + satışa açarken LaunchNotifyDialog (Gönder / Göndermeden Kaydet / Vazgeç). Admin menüde "Haber Ver Listesi" sayfası (CSV, tekrar gönder).
+- ?kod= → localStorage pending_discount_code → Checkout otomatik uygular; sepet temizlenince silinir. validate-discount artık misafire açık.
+- Test: iteration_23 backend 15/15, frontend %100; misafir otomatik kod düzeltmesi iteration_24.
+
+
 
 
 

@@ -1,0 +1,27 @@
+{
+  "summary": "Iteration 24 verified the fix removing auth requirement from POST /api/payments/validate-discount. Backend: 5/5 pytest in test_iteration24.py — (1) guest validates open 10% code TMPLAUNCH10 against a 1000₺ cart and gets discount=100, total=900; (2) guest invalid code returns 400 'Geçersiz indirim kodu'; (3) guest restricted code (course_ids=[B]) rejected for cart containing course A -> 400; (4) same restricted code accepted when cart contains course B (15% of 500 = 75); (5) admin session also still validates successfully (regression). Frontend (guest, logged-out session via Playwright): visited /kurslar/google-ads-ile-sifirdan-uzmanliga?kod=TMPLAUNCH10 — localStorage.pending_discount_code='TMPLAUNCH10' stored, add-to-cart clicked, then /odeme auto-applied the code: toast 'TMPLAUNCH10 indirim kodu otomatik uygulandı' shown, discount line '%10 indirim -180 ₺' rendered, Toplam went from 1.799₺ to 1.619₺. No 401 observed. All test data cleaned up (TMPLAUNCH10/TMPRESTRICT10 deleted; no leftovers).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration24.py",
+    "/app/test_reports/pytest/iteration24.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_payments.validate_discount now accepts anonymous requests (no get_current_user call). Signature kept request: Request for future rate-limit hooks — fine.",
+    "Checkout.jsx auto-apply .catch(() => {}) still swallows 400s silently (e.g., when guest cart doesn't match restricted code). Consider surfacing a soft message so launch-link visitors learn their code is not valid for their cart. Not blocking.",
+    "No new rate limiting on /payments/validate-discount — endpoint is public and performs a Mongo lookup. Low risk (indexed by code), but worth noting if traffic spikes.",
+    "CourseDetail.jsx stores kod unconditionally in localStorage; code is validated server-side at checkout so safe."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration24.py",
+    "/app/test_reports/iteration_24.json",
+    "/app/test_reports/pytest/iteration24.xml"
+  ],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "100% (guest ?kod -> /odeme auto-apply verified end-to-end)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "Created TMPLAUNCH10 (10% open) and TMPRESTRICT10 (15% restricted) during tests; both deleted post-run. Verified via GET /api/admin/discounts that no TMP* codes remain.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Launch email flow fully working for guests. If future work adds rate limiting or captcha to validate-discount, re-check guest auto-apply doesn't regress. PayTR remains mocked / not configured — only validate-discount + Checkout page rendering tested, no real order submitted."
+}
