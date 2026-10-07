@@ -1,7 +1,7 @@
 import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog, CalendarClock, Video } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, CreditCard, Tag, Settings, GraduationCap, LogOut, Home, UserCog, CalendarClock, Video, BellRing } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminCourses from "@/pages/admin/AdminCourses";
@@ -9,6 +9,7 @@ import CourseEditor from "@/pages/admin/CourseEditor";
 import AdminStudents from "@/pages/admin/AdminStudents";
 import AdminPayments from "@/pages/admin/AdminPayments";
 import AdminDiscounts from "@/pages/admin/AdminDiscounts";
+import AdminWaitlist from "@/pages/admin/AdminWaitlist";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminInstructors from "@/pages/admin/AdminInstructors";
 import AdminConsulting from "@/pages/admin/AdminConsulting";
@@ -25,6 +26,7 @@ const nav = [
   { to: "/yonetim/ogrenciler", label: "Öğrenciler", icon: Users },
   { to: "/yonetim/odemeler", label: "Ödemeler", icon: CreditCard },
   { to: "/yonetim/indirimler", label: "İndirim Kodları", icon: Tag },
+  { to: "/yonetim/haber-ver-listesi", label: "Haber Ver Listesi", icon: BellRing },
   { to: "/yonetim/ayarlar", label: "Site Ayarları", icon: Settings },
 ];
 
@@ -91,6 +93,7 @@ export default function AdminPanel() {
             <Route path="ogrenciler" element={<AdminStudents />} />
             <Route path="odemeler" element={<AdminPayments />} />
             <Route path="indirimler" element={<AdminDiscounts />} />
+            <Route path="haber-ver-listesi" element={<AdminWaitlist />} />
             <Route path="ayarlar" element={<AdminSettings />} />
           </Routes>
         </div>

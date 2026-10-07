@@ -25,6 +25,10 @@ const fmtDate = (s) => { try { return new Date(s).toLocaleString("tr-TR", { date
 
 export default function CourseDetail() {
   const { slug } = useParams();
+  useEffect(() => {
+    const k = new URLSearchParams(window.location.search).get("kod");
+    if (k) localStorage.setItem("pending_discount_code", k.trim().toUpperCase());
+  }, []);
   const navigate = useNavigate();
   const { add, has } = useCart();
   const { user } = useAuth();

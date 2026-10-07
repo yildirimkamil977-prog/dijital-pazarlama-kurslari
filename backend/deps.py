@@ -316,6 +316,20 @@ DEFAULT_TEMPLATES = {
         "html": "<h2 style=\"margin:0 0 14px;color:#ffffff;font-size:22px\">Ders kaydın hazır! 🎬</h2><p style=\"margin:0 0 14px\">Merhaba {{name}},</p><p style=\"margin:0 0 14px\"><strong>{{training}}</strong> eğitiminin <strong>{{lesson}}</strong> dersinin kaydı yayınlandı. Canlı derse katılamadıysan veya tekrar izlemek istersen aşağıdaki butondan ulaşabilirsin.</p><div style=\"margin:26px 0\"><a href=\"{{panel_url}}\" style=\"background:#FFB800;color:#07090f;padding:13px 28px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Kaydı İzle</a></div><p style=\"font-size:13px;color:#8a92a6;margin:0\">Kayıtlara öğrenci panelindeki \"Canlı Grup Eğitimi\" bölümünden de her zaman erişebilirsin.</p>",
         "enabled": True,
     },
+    "waitlist_joined": {
+        "key": "waitlist_joined",
+        "name": "Haber Ver Listesi - Kayıt Onayı",
+        "subject": "Listeye eklendin: {{course_title}}",
+        "html": "<h2 style=\"margin:0 0 14px;color:#ffffff;font-size:22px\">Listeye eklendin! 🔔</h2><p style=\"margin:0 0 14px\">Merhaba,</p><p style=\"margin:0 0 14px\"><strong>{{course_title}}</strong> eğitimi satışa açıldığında sana ilk biz haber vereceğiz. Liste üyelerine açılışta özel fırsatlar sunabiliriz, e-postalarımızı takipte kal.</p><div style=\"margin:26px 0\"><a href=\"{{course_url}}\" style=\"background:#FFB800;color:#07090f;padding:13px 28px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Eğitimi İncele</a></div>",
+        "enabled": True,
+    },
+    "course_launch": {
+        "key": "course_launch",
+        "name": "Haber Ver Listesi - Kurs Satışa Açıldı",
+        "subject": "Beklediğin an geldi: {{course_title}} satışa açıldı!",
+        "html": "<h2 style=\"margin:0 0 14px;color:#ffffff;font-size:22px\">{{course_title}} satışa açıldı! 🚀</h2><p style=\"margin:0 0 14px\">Merhaba,</p><p style=\"margin:0 0 14px\">Haber ver listesine katıldığın <strong>{{course_title}}</strong> eğitimi artık satışta. Kontenjan ve açılış fırsatları sınırlı olabilir, hemen incele.</p>{{discount_block}}<div style=\"margin:26px 0\"><a href=\"{{course_url}}\" style=\"background:#FFB800;color:#07090f;padding:14px 30px;border-radius:9px;text-decoration:none;font-weight:bold;display:inline-block\">Hemen Kaydol</a></div><p style=\"font-size:13px;color:#8a92a6;margin:0\">Bu e-postayı, eğitim için \"Açılınca haber ver\" listesine kayıt olduğun için aldın.</p>",
+        "enabled": True,
+    },
 }
 
 

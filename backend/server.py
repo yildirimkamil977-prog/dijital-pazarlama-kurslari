@@ -15,6 +15,7 @@ import routes_admin
 import routes_consulting
 import routes_group
 import routes_seo
+import routes_waitlist
 from media import migrate_images
 
 logging.basicConfig(level=logging.INFO,
@@ -37,6 +38,7 @@ api_router.include_router(routes_admin.router)
 api_router.include_router(routes_consulting.router)
 api_router.include_router(routes_group.router)
 api_router.include_router(routes_seo.router)
+api_router.include_router(routes_waitlist.router)
 app.include_router(api_router)
 
 app.add_middleware(

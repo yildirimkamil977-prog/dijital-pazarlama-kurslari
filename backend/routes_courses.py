@@ -159,12 +159,14 @@ async def course_notify(course_id: str, body: dict, request: Request):
     email = (body.get("email") or "").strip().lower()
     if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
         raise HTTPException(status_code=400, detail="Geçerli bir e-posta adresi girin")
-    c = await db.courses.find_one({"course_id": course_id, "is_published": True}, {"_id": 0, "title": 1})
+    c = await db.courses.find_one({"course_id": course_id, "is_published": True}, {"_id": 0, "title": 1, "slug": 1, "course_id": 1})
     if not c:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
-    await db.course_waitlist.update_one({"course_id": course_id, "email": email},
-                                        {"$setOnInsert": {"course_id": course_id, "email": email, "name": (body.get("name") or "").strip()[:100],
-                                                          "created_at": now_utc().isoformat()}}, upsert=True)
+    entry = {"course_id": course_id, "email": email, "name": (body.get("name") or "").strip()[:100], "created_at": now_utc().isoformat(), "notified_at": None}
+    res = await db.course_waitlist.update_one({"course_id": course_id, "email": email}, {"$setOnInsert": entry}, upsert=True)
+    if res.upserted_id:
+        from routes_waitlist import send_joined
+        send_joined(c, entry)
     return {"ok": True}
 
 

@@ -37,6 +37,15 @@ export default function Checkout() {
   const [transferInfo, setTransferInfo] = useState(null);
 
   useEffect(() => { document.title = "Ödeme - Akademi"; }, []);
+  useEffect(() => {
+    const pending = localStorage.getItem("pending_discount_code");
+    if (!pending || !items.length || discount) return;
+    setCode(pending);
+    api.post("/payments/validate-discount", { code: pending, subtotal, items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "", price: i.price })) })
+      .then(({ data }) => { setDiscount(data); toast.success(`${pending} indirim kodu otomatik uygulandı`); })
+      .catch(() => {});
+    // eslint-disable-next-line
+  }, [items.length]);
 
   const afterCode = discount ? Math.max(0, subtotal - discount.discount) : subtotal;
   const transferDisc = method === "transfer" ? Math.round(afterCode * (transferPct / 100) * 100) / 100 : 0;

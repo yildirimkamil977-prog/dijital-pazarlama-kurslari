@@ -244,7 +244,7 @@ export default function AdminSettings() {
             <Switch checked={s.email_enabled} onCheckedChange={async (v) => { g({ email_enabled: v }); await api.put("/admin/settings/general", { ...generalPayload(), email_enabled: v }); toast.success(v ? "E-postalar açıldı" : "E-postalar kapatıldı"); }} data-testid="toggle-email" />
           </section>
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-3 text-sm text-muted-foreground">
-            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" /><p>Değişkenler: <code className="text-gold">{"{{name}}"}</code>, <code className="text-gold">{"{{course_title}}"}</code>, <code className="text-gold">{"{{amount}}"}</code>, <code className="text-gold">{"{{certificate_code}}"}</code>, <code className="text-gold">{"{{new_password}}"}</code>, <code className="text-gold">{"{{site_name}}"}</code></p>
+            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" /><p>Değişkenler: <code className="text-gold">{"{{name}}"}</code>, <code className="text-gold">{"{{course_title}}"}</code>, <code className="text-gold">{"{{amount}}"}</code>, <code className="text-gold">{"{{certificate_code}}"}</code>, <code className="text-gold">{"{{new_password}}"}</code>, <code className="text-gold">{"{{site_name}}"}</code>. Haber Ver e-postaları: <code className="text-gold">{"{{course_url}}"}</code>, <code className="text-gold">{"{{discount_block}}"}</code>, <code className="text-gold">{"{{discount_code}}"}</code>, <code className="text-gold">{"{{discount_text}}"}</code></p>
           </div>
           {templates.map((t, i) => (
             <section key={t.key} className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">

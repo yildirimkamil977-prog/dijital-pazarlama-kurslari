@@ -66,6 +66,7 @@ class CourseIn(BaseModel):
     requirements: List[str] = []
     long_description: str = ""
     sale_closed: bool = False
+    launch_discount_code: str = ""
     meta_title: str = ""
     meta_description: str = ""
     meta_keywords: str = ""

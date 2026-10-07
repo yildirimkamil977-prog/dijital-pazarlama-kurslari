@@ -34,7 +34,7 @@ export function CartProvider({ children }) {
     }]));
     trackAddToCart({ id: g.group_id, title: g.title, price });
   };
-  const clear = () => setItems([]);
+  const clear = () => { setItems([]); localStorage.removeItem("pending_discount_code"); };
   const has = (course_id) => items.some((i) => i.course_id === course_id);
   const subtotal = items.reduce((s, i) => s + (i.price || 0), 0);
 

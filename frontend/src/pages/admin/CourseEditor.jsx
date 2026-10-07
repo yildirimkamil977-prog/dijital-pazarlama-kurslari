@@ -12,13 +12,14 @@ import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ImageUpload } from "@/components/ImageUpload";
 import { CourseWaitlist } from "@/components/admin/CourseWaitlist";
+import { LaunchNotifyDialog } from "@/components/admin/LaunchNotifyDialog";
 const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
   title: "", subtitle: "", description: "", category: "", level: "Tüm Seviyeler",
   price: 0, discount_price: null, publish_at: "", early_bird_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
-  is_published: false, sale_closed: false, what_you_learn: [], requirements: [], long_description: "", cross_sell_ids: [], modules: [],
+  is_published: false, sale_closed: false, launch_discount_code: "", what_you_learn: [], requirements: [], long_description: "", cross_sell_ids: [], modules: [],
 };
 
 export default function CourseEditor() {
@@ -28,6 +29,9 @@ export default function CourseEditor() {
   const [form, setForm] = useState(empty);
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [origSaleClosed, setOrigSaleClosed] = useState(false);
+  const [codes, setCodes] = useState([]);
+  const [launch, setLaunch] = useState(null);
   const [openModules, setOpenModules] = useState({});
   const [openLessons, setOpenLessons] = useState({});
   const [allCourses, setAllCourses] = useState([]);
@@ -37,8 +41,9 @@ export default function CourseEditor() {
     document.title = isNew ? "Yeni Kurs" : "Kurs Düzenle";
     api.get("/admin/courses").then(({ data }) => setAllCourses(data)).catch(() => {});
     api.get("/admin/instructors").then(({ data }) => setInstructors(data)).catch(() => {});
+    api.get("/admin/discounts").then(({ data }) => setCodes(data)).catch(() => {});
     if (!isNew) {
-      api.get(`/admin/courses/${id}`).then(({ data }) => setForm({ ...empty, ...data, cross_sell_ids: data.cross_sell_ids || [], discount_price: data.discount_price ?? null, early_bird_price: data.early_bird_price ?? null, publish_at: data.publish_at || "" }))
+      api.get(`/admin/courses/${id}`).then(({ data }) => { setOrigSaleClosed(!!data.sale_closed); setForm({ ...empty, ...data, cross_sell_ids: data.cross_sell_ids || [], discount_price: data.discount_price ?? null, early_bird_price: data.early_bird_price ?? null, publish_at: data.publish_at || "" }); })
         .catch(() => { toast.error("Kurs yüklenemedi"); navigate("/yonetim/kurslar"); }).finally(() => setLoading(false));
     }
   }, [id, isNew, navigate]);
@@ -94,11 +99,25 @@ export default function CourseEditor() {
 
   const save = async () => {
     if (!form.title.trim()) { toast.error("Kurs başlığı zorunlu"); return; }
+    if (!isNew && origSaleClosed && !form.sale_closed && form.is_published) {
+      try {
+        const { data } = await api.get(`/admin/courses/${id}/waitlist/summary`);
+        if (data.pending > 0) { setLaunch({ pending: data.pending }); return; }
+      } catch { /* continue */ }
+    }
+    await doSave(false);
+  };
+
+  const doSave = async (notify) => {
     setSaving(true);
-    const payload = { ...form, price: Number(form.price) || 0, discount_price: form.discount_price === null || form.discount_price === "" ? null : Number(form.discount_price), early_bird_price: form.early_bird_price === null || form.early_bird_price === "" ? null : Number(form.early_bird_price), publish_at: form.publish_at || "" };
+    const payload = { ...form, launch_discount_code: (form.launch_discount_code || "").trim().toUpperCase(), price: Number(form.price) || 0, discount_price: form.discount_price === null || form.discount_price === "" ? null : Number(form.discount_price), early_bird_price: form.early_bird_price === null || form.early_bird_price === "" ? null : Number(form.early_bird_price), publish_at: form.publish_at || "" };
     try {
       if (isNew) { await api.post("/admin/courses", payload); toast.success("Kurs oluşturuldu"); }
       else { await api.put(`/admin/courses/${id}`, payload); toast.success("Kurs güncellendi"); }
+      if (notify) {
+        try { const { data } = await api.post(`/admin/courses/${id}/waitlist/notify`, { emails: [] }); toast.success(`${data.queued} kişiye açılış e-postası gönderiliyor`); }
+        catch (e) { toast.error(`Kurs kaydedildi ama e-posta gönderilemedi: ${apiError(e)}`); setLaunch(null); setOrigSaleClosed(false); return; }
+      }
       navigate("/yonetim/kurslar");
     } catch (e) { toast.error(apiError(e)); } finally { setSaving(false); }
   };
@@ -109,6 +128,8 @@ export default function CourseEditor() {
 
   return (
     <div>
+      <LaunchNotifyDialog open={!!launch} pending={launch?.pending || 0} code={form.launch_discount_code} busy={saving}
+        onSend={() => doSave(true)} onSkip={() => doSave(false)} onCancel={() => setLaunch(null)} />
       <div className="flex items-center justify-between mb-8 sticky top-16 md:top-0 bg-background/90 backdrop-blur z-20 py-3">
         <button onClick={() => navigate("/yonetim/kurslar")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"><ChevronLeft className="w-4 h-4" /> Kurslara Dön</button>
         <Button onClick={save} disabled={saving} data-testid="save-course" className="bg-gold hover:bg-gold-hover text-ink font-semibold">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
@@ -160,6 +181,17 @@ export default function CourseEditor() {
               <Switch checked={!!form.sale_closed} onCheckedChange={(v) => set("sale_closed", v)} data-testid="course-sale-closed" />
             </div>
             {form.course_id && <CourseWaitlist courseId={form.course_id} />}
+            <div className="mt-4">
+              <Label>Açılış İndirim Kodu <span className="text-xs text-muted-foreground font-normal">(listedekilere giden e-postada görünür)</span></Label>
+              <select value={form.launch_discount_code || ""} onChange={(e) => set("launch_discount_code", e.target.value)} className="mt-1.5 w-full h-10 rounded-md bg-ink border border-white/10 px-3 text-sm" data-testid="course-launch-code">
+                <option value="">Kod yok (sadece duyuru)</option>
+                {codes.filter((d) => d.active !== false).map((d) => {
+                  const ok = !(d.course_ids?.length || d.group_ids?.length) || d.course_ids?.includes(form.course_id);
+                  return <option key={d.code} value={d.code} disabled={!ok}>{d.code} — {d.type === "percent" ? `%${d.value}` : `${d.value} TL`}{ok ? "" : " (bu kursa tanımlı değil)"}</option>;
+                })}
+              </select>
+              <p className="text-[11px] text-muted-foreground mt-1.5">İpucu: İndirim Kodları sayfasından sadece bu kursa özel, kullanım limitli bir kod (örn. ACILIS20) oluşturup burada seçin. E-postadaki butona tıklayan kişide kod ödeme sayfasında otomatik uygulanır.</p>
+            </div>
           </div>
         </section>
 
