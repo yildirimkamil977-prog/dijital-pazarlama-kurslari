@@ -69,10 +69,16 @@ Tarayıcıdan **https://dijitalpazarlamakurslari.com** aç. `www` otomatik ana a
 Her yeni değişiklikte (Save to GitHub sonrası):
 ```bash
 cd /opt/akademi
-git pull
+GIT_TERMINAL_PROMPT=0 git fetch origin && git reset --hard @{u}
 docker compose up -d --build
 ```
 Veritabanı `mongo_data` diskinde kalıcıdır; güncellemede silinmez.
+
+**Caddyfile değiştiyse** (ör. SEO yönlendirmeleri eklendiğinde) Caddy'yi yeniden oluştur:
+```bash
+docker compose up -d --force-recreate caddy
+```
+Kontrol: `curl -s https://dijitalpazarlamakurslari.com/robots.txt` çıktısında `Sitemap: https://dijitalpazarlamakurslari.com/sitemap.xml` görünmeli.
 
 ## Google OAuth (önemli)
 Google Cloud Console > OAuth istemcisi > **Authorized JavaScript origins** listesine şunu ekli olduğundan emin ol:

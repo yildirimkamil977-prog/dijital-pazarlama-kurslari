@@ -287,6 +287,15 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 
 
 
+## Iteration 46 (2026-10-07) — Uzun açıklama (zengin metin) + H hiyerarşisi + sunucu taraflı SEO + PageSpeed
+- Kurs & grup eğitimine `long_description` (HTML). Admin: TipTap editörü (components/admin/RichTextEditor.jsx, lazy) — Google Docs yapıştırma: docs-internal-guid sarmalayıcısı açılır, h1→h2, blok başlangıcı korunur. Sitede RichContent (DOMPurify, lazy) müfredat/ders programının hemen altında "Eğitim Hakkında Detaylı Bilgi".
+- H hiyerarşisi: Footer h4→p, GroupList kart başlığı h2 (GroupCard headingAs). Tüm ana sayfalarda tek H1, atlama yok.
+- SEO (routes_seo.py): /api/seo/html?path= index.html'i (FRONTEND_INTERNAL_URL, compose'da http://frontend:80) alıp title/description/canonical/OG/Twitter/JSON-LD (Course+Offer+CourseInstance+syllabusSections+Person, EducationEvent+subEvent, BreadcrumbList, Org/WebSite/FAQPage, ItemList, ProfilePage), __INITIAL__ veri, __SETTINGS__, LCP preload ve prerender hero (H1) enjekte eder; 404'te noindex. /api/seo/meta (SPA geçişleri), /api/seo/sitemap.xml (kurs/grup/eğitmen/sözleşme, lastmod), /api/seo/robots.txt. Caddyfile: /, /kurslar*, /canli-grup-egitimleri*, /egitmen/*, /hakkimda, /iletisim → seo/html; /sitemap.xml, /robots.txt → backend.
+- Performans: route lazy-load, framer-motion LazyMotion(m), React Query & global GoogleOAuthProvider kaldırıldı (sadece Google butonunda), fontlar self-host + preload (Outfit optional), takip kodları ilk etkileşim/5sn sonra, browserslist modern, nginx gzip + /fonts 1y cache, görseller WebP (yüklemede max 1920 + ?w= yeniden boyutlandırma, açılışta eski görseller tek seferlik dönüştürülür — media.py), promo video facade, CLS (promo bar __SETTINGS__ ile ilk render'da). /api/auth/session (anonimde 401 yerine 200).
+- Lokal Lighthouse (prod build, tests/prod_preview_server.py + tests/lh.sh): grup detay mobil 82 / masaüstü 100; kurs detay mobil 77 / masaüstü 99; Erişilebilirlik/En iyi uygulamalar/SEO 100. Mobil TBT (~550-770ms JS çalıştırma) kalan darboğaz. Anasayfa mobil ~60 (prerender yok).
+- Test: iteration_20 backend 14/14; testing agent 2 kritik hatayı düzeltti (Courses idx, CourseCard optImg import); yapıştırma kenar durumu düzeltildi.
+
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { PlayCircle, Clock, Layers, User } from "lucide-react";
 import { formatPrice, formatDuration } from "@/lib/api";
+import { optImg } from "@/lib/page";
 import { Badge } from "@/components/ui/badge";
 
 export function CourseCard({ course, index = 0 }) {

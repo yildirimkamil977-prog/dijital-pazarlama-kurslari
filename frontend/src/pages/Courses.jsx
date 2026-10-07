@@ -45,7 +45,7 @@ export default function Courses() {
                 data-testid={`course-card-${c.slug}`}
                 className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-ink-surface border border-white/5 rounded-3xl overflow-hidden p-4 lg:p-6 hover:border-gold/20 transition-colors duration-300 ${idx % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
                 <Link to={`/kurslar/${c.slug}`} className="relative block rounded-2xl overflow-hidden group aspect-video">
-                  <img src={optImg(c.thumbnail, 900)} alt={c.title} loading={i === 0 ? "eager" : "lazy"} width="900" height="506" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={optImg(c.thumbnail, 900)} alt={c.title} loading={idx === 0 ? "eager" : "lazy"} width="900" height="506" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
                   {upcoming && <Badge className="absolute top-4 left-4 bg-blue-500 text-white font-bold border-0 shadow-lg" data-testid={`coming-soon-${c.slug}`}>Yakında Yayında</Badge>}
                   {isFree ? (

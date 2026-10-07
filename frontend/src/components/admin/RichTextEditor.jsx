@@ -3,9 +3,13 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
+import { Slice } from "@tiptap/pm/model";
 import { Bold, Italic, Underline as U, Heading2, Heading3, Heading4, List, ListOrdered, Quote, Link2, AlignLeft, AlignCenter, Undo2, Redo2, RemoveFormatting, Minus } from "lucide-react";
 
-const shiftHeadings = (html) => html.replace(/<(\/?)h1(\s|>)/gi, "<$1h2$2");
+const shiftHeadings = (html) => html
+  .replace(/<b[^>]*id="docs-internal-guid[^"]*"[^>]*>([\s\S]*)<\/b>/i, "$1")
+  .replace(/<meta[^>]*>/gi, "")
+  .replace(/<(\/?)h1(\s|>)/gi, "<$1h2$2");
 
 const Btn = ({ on, active, title, children }) => (
   <button type="button" title={title} onMouseDown={(e) => { e.preventDefault(); on(); }}
@@ -21,7 +25,11 @@ export default function RichTextEditor({ value, onChange, testId = "rich-editor"
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
     content: value || "",
-    editorProps: { transformPastedHTML: shiftHeadings, attributes: { class: "rich-content min-h-[260px] max-h-[600px] overflow-y-auto px-5 py-4 focus:outline-none", "data-testid": testId } },
+    editorProps: {
+      transformPastedHTML: shiftHeadings,
+      transformPasted: (slice) => (slice.content.firstChild?.isBlock && slice.content.childCount > 1 ? new Slice(slice.content, 0, slice.openEnd) : slice),
+      attributes: { class: "rich-content min-h-[260px] max-h-[600px] overflow-y-auto px-5 py-4 focus:outline-none", "data-testid": testId },
+    },
     onUpdate: ({ editor }) => onChange(editor.isEmpty ? "" : editor.getHTML()),
   });
   if (!editor) return null;

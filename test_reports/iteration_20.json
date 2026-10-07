@@ -1,0 +1,38 @@
+{
+  "summary": "Iteration 20 — Rich text long_description (TipTap), heading hierarchy audit, server-side SEO (meta/html/sitemap/robots), /auth/session, WebP uploads, lazy routes. Backend: 14/14 pytest passing in /app/backend/tests/test_iteration20.py. Frontend: FOUND 2 CRITICAL JS BUGS crashing /kurslar and <CourseCard> (used on Home) due to undefined identifiers — fixed in place. After fix, all pages (Home, /kurslar, /canli-grup-egitimleri, course detail, group detail) have exactly ONE H1 and no skipped heading levels. Rich editor paste correctly shifts <h1>→<h2>, preserves bold and lists when pasting Google-Docs-style HTML into an empty editor. Public /kurslar/<slug> shows [data-testid=course-long-description-section] after curriculum with the saved formatted HTML. Mobile 390px — no horizontal overflow on course or group detail. Group promo poster rendered (promo_video not set so iframe correctly hidden). /auth/session returns {user:null} anon and user when authenticated; logout clears session. SEO HTML includes title/meta/canonical/og/jsonld/__INITIAL__/prerendered <h1>; 404 for unknown slug carries noindex. Sitemap lists courses+groups+instructors; robots.txt has absolute Sitemap. Image upload returns webp content-type when ?w=400 is requested.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "pages/Courses.jsx line 48", "issue": "Uncaught ReferenceError: i is not defined — map callback uses `idx` but code referenced `i`. Caused entire /kurslar page to crash with no H1 and empty root.", "selector": "img on each course card", "priority": "CRITICAL"},
+      {"component": "components/CourseCard.jsx", "issue": "`optImg` used but never imported — <CourseCard> threw at render time on Home page, resulting in missing H1 and partial render.", "selector": "img inside CourseCard", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [
+      {"flow": "Rich editor paste when cursor is inside existing paragraph", "issue": "When pasting Google-Docs-like HTML (wrapped in <b style='font-weight:normal'>...</b>) into a NON-EMPTY paragraph, the first <h2> (after h1→h2 shift) is inlined/stripped so the heading text is merged into the paragraph as plain text. Pasting into an empty editor works fine. Likely needs the transformPastedHTML to also unwrap Google Docs <b style='font-weight:normal'> wrappers before block headings so prosemirror can keep them as block nodes regardless of cursor context.", "affected_selectors": ["[data-testid=course-long-description]", "[data-testid=group-long-description]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration20.py", "/app/test_reports/pytest/iteration20.xml"],
+  "action_items": [
+    "Review the two JS fixes applied (Courses.jsx `i`→`idx`, CourseCard.jsx added `import { optImg } from '@/lib/page'`) — these were critical runtime crashes on /kurslar and Home.",
+    "Improve RichTextEditor.transformPastedHTML to also unwrap <b style='font-weight:normal' ...> wrappers (common Google Docs envelope) so pasted headings survive even when cursor is inside an existing paragraph."
+  ],
+  "critical_code_review_comments": [
+    "Courses.jsx used an undefined `i` inside the map callback — this is the kind of error that would be caught by eslint `no-undef`; ensure lint is enabled on CI.",
+    "CourseCard.jsx used `optImg` without importing — same no-undef class of bug. Both bugs crashed major pages but were only visible via browser (React just rendered an error boundary / blank root).",
+    "RichTextEditor.transformPastedHTML regex only replaces h1→h2 but doesn't unwrap Google Docs <b style='font-weight:normal'> wrappers; when pasting into non-empty paragraphs, the headings get collapsed by prosemirror's inline-mark context. Consider stripping those wrappers in the transform.",
+    "routes_seo.build_seo returns a shell cached for 60s via FRONTEND_INTERNAL_URL; works fine but if frontend restarts the shell can be stale. Minor."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration20.py",
+    "/app/frontend/src/pages/Courses.jsx",
+    "/app/frontend/src/components/CourseCard.jsx",
+    "/app/test_reports/iteration_20.json"
+  ],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "~90% (core flows pass after 2 critical fixes; one paste-into-paragraph edge case fails)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "Course `course_42e213ed6670` (seo-ve-icerik-pazarlamasi) long_description was temporarily set during UI test and RESTORED to empty via admin PUT (verified via public /api/courses/<slug>). No other data mutated. Group training long_description was round-tripped via backend test with original value restored in the test's finally block. Admin test image uploaded via /admin/upload-image was deleted via /admin/uploads/<id>.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Preview is CRA dev; server-side SEO HTML only reachable at /api/seo/html?path=... (confirmed working). Backend tests cover auth session, SEO meta/html/sitemap/robots, course+group long_description round-trip, webp image resize. Playwright confirmed heading hierarchy for 5 primary pages after the 2 JS fixes. The paste-into-existing-paragraph behavior is a known residual issue; task spec says 'h1 becomes h2' — true for empty-editor paste. Main agent should decide whether to harden the transform for Google Docs <b style=\"font-weight:normal\"> envelope.",
+  "rca of the issue": "Two unrelated frontend regressions blocked rendering: (1) /kurslar — in Courses.jsx the map callback destructures `(c, idx)` but img's `loading` prop referenced a stray `i` (likely leftover from refactor). Browser threw ReferenceError which React surfaced as a page-level error boundary. Fix: replace `i` with `idx`. (2) Home — the shared <CourseCard> component used `optImg(course.thumbnail,...)` but never imported `optImg`. Fix: add `import { optImg } from '@/lib/page'`. Both were caught by Playwright pageerror listener and the devserver error overlay."
+}
