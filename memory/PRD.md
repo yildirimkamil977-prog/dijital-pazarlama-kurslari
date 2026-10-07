@@ -273,6 +273,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - CourseEditor listField: Enter'a basınca altına yeni madde ekleyip odaklanıyor.
 - Görsel boyut rehberi kullanıcıya verildi: kart/kapak 16:9 (1280x720), yorum 9:16 (1080x1920).
 
+## Iteration 44 (2026-10-07) — Görsel yükleme 5MB limiti kaldırıldı
+- Yeni yüklemeler GridFS'e kaydediliyor (Mongo 16MB belge sınırı yok); db.uploads kaydında gridfs_id. Eski base64 kayıtlar okunmaya devam ediyor (GET /api/uploads/{id} iki yolu da destekler).
+- Frontend ImageUpload ve backend upload-image boyut kontrolü kaldırıldı. 20MB test dosyası yüklendi/indirildi birebir aynı; test kaydı silindi.
+
+
 
 
 ## Test Credentials

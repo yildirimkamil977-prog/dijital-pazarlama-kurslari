@@ -110,7 +110,13 @@ async def get_upload(upload_id: str):
     doc = await db.uploads.find_one({"upload_id": upload_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
-    return Response(content=base64.b64decode(doc["data"]),
+    if doc.get("gridfs_id"):
+        from motor.motor_asyncio import AsyncIOMotorGridFSBucket
+        stream = await AsyncIOMotorGridFSBucket(db).open_download_stream(doc["gridfs_id"])
+        content = await stream.read()
+    else:
+        content = base64.b64decode(doc["data"])
+    return Response(content=content,
                     media_type=doc.get("content_type", "image/png"),
                     headers={"Cache-Control": "public, max-age=31536000"})
 

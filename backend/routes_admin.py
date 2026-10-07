@@ -6,6 +6,7 @@ import base64
 import secrets
 from fastapi import APIRouter, Request, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
+from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
@@ -442,12 +443,10 @@ async def upload_image(request: Request, file: UploadFile = File(...)):
     if not ct.startswith("image/"):
         raise HTTPException(status_code=400, detail="Lütfen bir görsel dosyası yükleyin")
     content = await file.read()
-    if len(content) > 5 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Görsel 5MB'den büyük olamaz")
     uid = new_id("img")
+    gfs_id = await AsyncIOMotorGridFSBucket(db).upload_from_stream(uid, content, metadata={"content_type": ct})
     await db.uploads.insert_one({
-        "upload_id": uid, "content_type": ct,
-        "data": base64.b64encode(content).decode(), "created_at": now_utc().isoformat(),
+        "upload_id": uid, "content_type": ct, "gridfs_id": gfs_id, "created_at": now_utc().isoformat(),
     })
     return {"url": f"/api/uploads/{uid}"}
 

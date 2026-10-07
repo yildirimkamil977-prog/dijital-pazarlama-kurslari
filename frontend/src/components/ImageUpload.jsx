@@ -11,7 +11,6 @@ export function ImageUpload({ value, onChange, testId, className = "" }) {
   const handle = async (file) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) { toast.error("Lütfen bir görsel dosyası seçin"); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error("Görsel 5MB'den büyük olamaz"); return; }
     setBusy(true);
     const fd = new FormData(); fd.append("file", file);
     try {
