@@ -7,6 +7,7 @@ import secrets
 from fastapi import APIRouter, Request, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
+from media import optimize_image
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
@@ -63,6 +64,7 @@ class CourseIn(BaseModel):
     is_published: bool = False
     what_you_learn: List[str] = []
     requirements: List[str] = []
+    long_description: str = ""
     meta_title: str = ""
     meta_description: str = ""
     meta_keywords: str = ""
@@ -442,11 +444,11 @@ async def upload_image(request: Request, file: UploadFile = File(...)):
     ct = file.content_type or "image/png"
     if not ct.startswith("image/"):
         raise HTTPException(status_code=400, detail="Lütfen bir görsel dosyası yükleyin")
-    content = await file.read()
+    content, ct = await optimize_image(await file.read(), ct)
     uid = new_id("img")
     gfs_id = await AsyncIOMotorGridFSBucket(db).upload_from_stream(uid, content, metadata={"content_type": ct})
     await db.uploads.insert_one({
-        "upload_id": uid, "content_type": ct, "gridfs_id": gfs_id, "created_at": now_utc().isoformat(),
+        "upload_id": uid, "content_type": ct, "gridfs_id": gfs_id, "optimized": True, "created_at": now_utc().isoformat(),
     })
     return {"url": f"/api/uploads/{uid}"}
 

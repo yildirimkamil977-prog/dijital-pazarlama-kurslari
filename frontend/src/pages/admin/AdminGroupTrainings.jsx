@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Loader2, Plus, Trash2, Save, Users, Video, X, Link2, PlayCircle } from "lucide-react";
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
+const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 import { toast } from "sonner";
 
-const empty = { title: "", description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, capacity: 20, instructor_id: "", lessons: [], is_published: false };
+const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, capacity: 20, instructor_id: "", lessons: [], is_published: false };
 
 export default function AdminGroupTrainings() {
   const [items, setItems] = useState([]);
@@ -61,6 +62,8 @@ export default function AdminGroupTrainings() {
           <div><Label>Kazanımlar (her satıra bir madde)</Label><Textarea value={(form.what_you_learn || []).join("\n")} onChange={(e) => set("what_you_learn", e.target.value.split("\n"))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Google Ads hesabı kurmayı öğreneceksin&#10;Dönüşüm takibi..." /></div>
           <div><Label>Gereksinimler (her satıra bir madde)</Label><Textarea value={(form.requirements || []).join("\n")} onChange={(e) => set("requirements", e.target.value.split("\n"))} rows={4} className="bg-ink border-white/10 mt-1.5" placeholder="Bilgisayar ve internet&#10;Temel bilgisayar kullanımı" /></div>
         </div>
+        <div><Label>Uzun Açıklama <span className="text-xs text-muted-foreground font-normal">(sayfada ders programının hemen altında görünür)</span></Label>
+          <div className="mt-1.5"><Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-gold" />}><RichTextEditor key={editing} value={form.long_description || ""} onChange={(v) => set("long_description", v)} testId="group-long-description" /></Suspense></div></div>
         <div className="grid grid-cols-2 gap-4">
           <div><Label>Fiyat (₺)</Label><Input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-price" /></div>
           <div><Label>Kontenjan</Label><Input type="number" value={form.capacity} onChange={(e) => set("capacity", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-capacity" /></div>

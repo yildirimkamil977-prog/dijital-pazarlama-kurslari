@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { BookOpen, CreditCard, Award, PlayCircle, Loader2, Download, FileClock, Settings, GraduationCap, TrendingUp } from "lucide-react";
 import api, { formatPrice, formatDate, API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";

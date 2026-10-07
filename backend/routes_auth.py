@@ -9,7 +9,7 @@ from datetime import timedelta
 from deps import (
     db, now_utc, new_id, hash_password, verify_password, create_session,
     store_external_session, set_session_cookie, clear_session_cookie,
-    get_current_user, schedule_email, push_notification,
+    get_current_user, get_optional_user, schedule_email, push_notification,
 )
 
 router = APIRouter(prefix="/auth")
@@ -153,6 +153,12 @@ async def google_login(body: GoogleCredIn, response: Response):
     token = await create_session(user["user_id"])
     set_session_cookie(response, token)
     return public_user(user)
+
+
+@router.get("/session")
+async def session(request: Request):
+    user = await get_optional_user(request)
+    return {"user": public_user(user) if user else None}
 
 
 @router.get("/me")

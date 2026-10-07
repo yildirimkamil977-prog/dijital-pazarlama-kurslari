@@ -46,7 +46,7 @@ export default function GroupList() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {items.map((g, i) => <GroupCard key={g.group_id} g={g} index={i} />)}
+              {items.map((g, i) => <GroupCard key={g.group_id} g={g} index={i} headingAs="h2" />)}
             </div>
           )}
       </div>

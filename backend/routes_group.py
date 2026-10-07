@@ -53,7 +53,8 @@ async def _public(doc, imap, with_links=False):
     pub_lessons = [{"id": l.get("id"), "title": l.get("title"), "date": l.get("date"), "time": l.get("time"),
                     **({"meet_link": l.get("meet_link", ""), "recording_url": l.get("recording_url", "")} if with_links else {})} for l in lessons]
     return {"group_id": doc["group_id"], "title": doc["title"], "slug": doc["slug"],
-            "description": doc.get("description", ""), "image": doc.get("image", ""),
+            "description": doc.get("description", ""), "long_description": doc.get("long_description", ""),
+            "image": doc.get("image", ""), "updated_at": doc.get("updated_at") or doc.get("created_at"),
             "what_you_learn": doc.get("what_you_learn", []), "requirements": doc.get("requirements", []),
             "promo_video": doc.get("promo_video", ""), "price": doc.get("price", 0),
             "capacity": cap, "enrolled": enrolled, "remaining": remaining, "low_stock": remaining <= 10,
@@ -153,6 +154,7 @@ class LessonIn(BaseModel):
 class GroupIn(BaseModel):
     title: str
     description: str = ""
+    long_description: str = ""
     image: str = ""
     promo_video: str = ""
     what_you_learn: list = []
@@ -234,6 +236,7 @@ async def admin_update(group_id: str, body: GroupIn, request: Request):
         raise HTTPException(status_code=404, detail="Bulunamadı")
     doc = body.model_dump()
     doc["lessons"] = _norm_lessons(doc.get("lessons", []))
+    doc["updated_at"] = now_utc().isoformat()
     await db.group_trainings.update_one({"group_id": group_id}, {"$set": doc})
     updated = await db.group_trainings.find_one({"group_id": group_id}, {"_id": 0})
     try:

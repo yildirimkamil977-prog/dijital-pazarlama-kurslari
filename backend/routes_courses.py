@@ -104,7 +104,7 @@ async def public_instructor(slug: str):
 
 
 @router.get("/uploads/{upload_id}")
-async def get_upload(upload_id: str, request: Request):
+async def get_upload(upload_id: str, request: Request, w: int = 0):
     import base64
     from fastapi.responses import Response
     doc = await db.uploads.find_one({"upload_id": upload_id})
@@ -129,6 +129,10 @@ async def get_upload(upload_id: str, request: Request):
         content = await stream.read()
     else:
         content = base64.b64decode(doc["data"])
+    if w and ctype.startswith("image/") and ctype not in ("image/svg+xml", "image/gif"):
+        from media import resized
+        content = await resized(upload_id, content, max(64, min(w, 1920)))
+        ctype = "image/webp"
     return Response(content=content,
                     media_type=ctype,
                     headers=cache)
@@ -151,16 +155,21 @@ async def list_courses(category: Optional[str] = None):
 
 @router.get("/courses/{slug}")
 async def get_course(slug: str, request: Request):
+    return await course_detail(slug, await get_optional_user(request))
+
+
+async def course_detail(slug: str, user):
     c = await db.courses.find_one({"slug": slug, "is_published": True}, {"_id": 0})
     if not c:
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
-    user = await get_optional_user(request)
     enrolled = False
     if user:
         enrolled = bool(await db.enrollments.find_one(
             {"user_id": user["user_id"], "course_id": c["course_id"]}))
     summary = course_summary(c)
     summary["requirements"] = c.get("requirements", [])
+    summary["long_description"] = c.get("long_description", "")
+    summary["updated_at"] = c.get("updated_at")
     # curriculum: hide video urls unless enrolled / preview
     modules = []
     for m in c.get("modules", []):
@@ -195,15 +204,6 @@ async def get_course(slug: str, request: Request):
     return summary
 
 
-@router.get("/seo/sitemap.xml")
-async def sitemap():
-    from fastapi.responses import Response
-    courses = await db.courses.find({"is_published": True}, {"_id": 0, "slug": 1}).to_list(500)
-    urls = ["", "kurslar", "hakkimda", "iletisim"]
-    items = "".join(f"<url><loc>{FRONTEND_URL}/{u}</loc><changefreq>weekly</changefreq></url>" for u in urls)
-    items += "".join(f"<url><loc>{FRONTEND_URL}/kurslar/{c['slug']}</loc><changefreq>weekly</changefreq></url>" for c in courses)
-    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
-    return Response(content=xml, media_type="application/xml")
 
 
 # ---------- Student: enrollments & player ----------

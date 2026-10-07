@@ -11,6 +11,23 @@ dijitalpazarlamakurslari.com {
 		reverse_proxy backend:8001
 	}
 
+	# SEO: sitemap ve robots backend'den
+	handle /sitemap.xml {
+		rewrite * /api/seo/sitemap.xml
+		reverse_proxy backend:8001
+	}
+	handle /robots.txt {
+		rewrite * /api/seo/robots.txt
+		reverse_proxy backend:8001
+	}
+
+	# SEO: ana sayfalar sunucuda hazır meta + şema ile gelir
+	@seo path / /kurslar /kurslar/* /canli-grup-egitimleri /canli-grup-egitimleri/* /egitmen/* /hakkimda /iletisim
+	handle @seo {
+		rewrite * /api/seo/html?path={path}
+		reverse_proxy backend:8001
+	}
+
 	# Diğer tüm istekler React frontend'e
 	handle {
 		reverse_proxy frontend:80

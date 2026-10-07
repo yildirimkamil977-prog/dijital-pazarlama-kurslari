@@ -28,13 +28,13 @@ function injectTracking(t) {
 }
 
 export function SiteProvider({ children }) {
-  const [settings, setSettings] = useState({ site_name: "Kamil Yıldırım Akademi" });
+  const [settings, setSettings] = useState(() => (typeof window !== "undefined" && window.__SETTINGS__) || { site_name: "Kamil Yıldırım Akademi" });
   const [loading, setLoading] = useState(true);
   const injected = useRef(false);
   useEffect(() => {
     api.get("/settings/public").then(({ data }) => {
       setSettings(data);
-      if (!injected.current) { injected.current = true; try { injectTracking(data.tracking); } catch {} }
+      if (!injected.current) { injected.current = true; let done = false; const run = () => { if (done) return; done = true; try { injectTracking(data.tracking); } catch {} }; ["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) => window.addEventListener(ev, run, { once: true, passive: true })); const later = () => setTimeout(run, 5000); document.readyState === "complete" ? later() : window.addEventListener("load", later, { once: true }); }
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
   return <SiteContext.Provider value={{ settings, loading }}>{children}</SiteContext.Provider>;

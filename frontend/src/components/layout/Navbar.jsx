@@ -56,7 +56,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link to="/sepet" className="relative p-2.5 rounded-lg hover:bg-secondary transition-colors duration-200" data-testid="navbar-cart">
+          <Link to="/sepet" aria-label="Sepet" className="relative p-2.5 rounded-lg hover:bg-secondary transition-colors duration-200" data-testid="navbar-cart">
             <ShoppingCart className="w-5 h-5 text-foreground" />
             {count > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 text-[11px] font-bold rounded-full bg-gold text-ink flex items-center justify-center">
@@ -97,7 +97,7 @@ export function Navbar() {
             </div>
           )}
 
-          <button className="md:hidden p-2" onClick={() => setOpen(!open)} data-testid="navbar-mobile-toggle">
+          <button className="md:hidden p-2" aria-label="Menüyü aç" aria-expanded={open} onClick={() => setOpen(!open)} data-testid="navbar-mobile-toggle">
             {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>

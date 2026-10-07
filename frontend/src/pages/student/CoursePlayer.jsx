@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Loader2, CheckCircle2, Circle, ChevronLeft, Download, FileText, Menu, X, Award, PlayCircle } from "lucide-react";
 import api, { apiError, formatDuration } from "@/lib/api";
 import { toEmbed } from "@/lib/video";

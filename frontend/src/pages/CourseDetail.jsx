@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { toEmbed } from "@/lib/video";
 import { ReviewMedia } from "@/components/ReviewMedia";
-import { motion } from "framer-motion";
+import { RichContent } from "@/components/RichContent";
+import { optImg, takeInitial, usePageSeo } from "@/lib/page";
+import { m as motion } from "framer-motion";
 import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap, GraduationCap } from "lucide-react";
 import api, { formatPrice, formatDuration, apiError } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
@@ -26,18 +28,19 @@ export default function CourseDetail() {
   const { add, has } = useCart();
   const { user } = useAuth();
   const { settings } = useSite();
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [course, setCourse] = useState(() => takeInitial(`course:${slug}`));
+  const [loading, setLoading] = useState(!course);
   const [preview, setPreview] = useState(null);
   const [enrolling, setEnrolling] = useState(false);
+  const seo = usePageSeo(`/kurslar/${slug}`);
 
   useEffect(() => {
-    setLoading(true);
-    api.get(`/courses/${slug}`).then(({ data }) => { setCourse(data); document.title = `${data.title} - Akademi`; })
+    setCourse((c) => { if (!c || c.slug !== slug) setLoading(true); return c; });
+    api.get(`/courses/${slug}`).then(({ data }) => setCourse(data))
       .catch(() => toast.error("Eğitim bulunamadı")).finally(() => setLoading(false));
   }, [slug]);
 
-  if (loading) return <div className="flex justify-center py-40"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-40 min-h-[80vh]"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   if (!course) return <div className="text-center py-40 text-muted-foreground">Eğitim bulunamadı.</div>;
 
   const upcoming = course.is_upcoming;
@@ -65,23 +68,17 @@ export default function CourseDetail() {
   return (
     <div className="relative pb-24 lg:pb-0">
       <Seo
-        title={`${course.seo?.meta_title || course.title} | ${settings.site_name || "Akademi"}`}
-        description={course.seo?.meta_description || course.subtitle || (course.description || "").slice(0, 155)}
-        keywords={course.seo?.meta_keywords}
-        image={course.thumbnail}
-        jsonLd={[
-          { "@context": "https://schema.org", "@type": "Course", "name": course.title, "description": course.seo?.meta_description || course.subtitle || course.description, "provider": { "@type": "Organization", "name": settings.site_name || "Akademi" } },
-          { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": window.location.origin },
-            { "@type": "ListItem", "position": 2, "name": "Eğitimler", "item": `${window.location.origin}/kurslar` },
-            { "@type": "ListItem", "position": 3, "name": course.title },
-          ] },
-        ]}
+        title={seo?.title || `${course.seo?.meta_title || course.title} | ${settings.site_name || "Akademi"}`}
+        description={seo?.description || course.seo?.meta_description || course.subtitle}
+        keywords={seo?.keywords || course.seo?.meta_keywords}
+        image={seo?.image}
+        url={seo?.canonical}
+        jsonLd={seo?.jsonld}
       />
       {/* Colorful gradient hero band */}
       <div className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
-          {course.thumbnail && <img src={course.thumbnail} alt="" className="w-full h-full object-cover opacity-15" />}
+          {course.thumbnail && <img src={optImg(course.thumbnail, 1200)} alt="" aria-hidden="true" className="w-full h-full object-cover opacity-15" />}
           <div className="absolute inset-0 bg-gradient-to-br from-ink via-ink/90 to-blue-950/40" />
           <div className="absolute top-0 right-0 w-[500px] h-[400px] bg-gold/15 rounded-full blur-[130px]" />
         </div>
@@ -117,7 +114,7 @@ export default function CourseDetail() {
 
           <div className="mt-10">
             <h2 className="font-heading font-bold text-xl tracking-tight mb-5">Müfredat</h2>
-            <Accordion type="multiple" defaultValue={course.modules?.map((m) => m.id)} className="space-y-3">
+            <Accordion type="multiple" defaultValue={course.modules?.slice(0, 1).map((m) => m.id)} className="space-y-3">
               {course.modules?.map((m, mi) => (
                 <AccordionItem key={m.id} value={m.id} className="bg-ink-surface border border-white/5 rounded-xl px-5 data-[state=open]:border-gold/20">
                   <AccordionTrigger className="hover:no-underline py-4" data-testid={`module-${mi}`}>
@@ -129,7 +126,7 @@ export default function CourseDetail() {
                         const canPlay = l.is_preview || course.enrolled;
                         return (
                           <li key={l.id} onClick={() => openPreview(l)} data-testid={`lesson-row-${l.id}`}
-                            className={`flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors duration-200 ${canPlay ? "hover:bg-gold/5 cursor-pointer" : "opacity-70"}`}>
+                            className={`flex items-center justify-between py-2.5 px-3 rounded-lg transition-colors duration-200 ${canPlay ? "hover:bg-gold/5 cursor-pointer" : ""}`}>
                             <span className="flex items-center gap-3 text-sm">
                               {canPlay ? <PlayCircle className="w-4 h-4 text-gold" /> : <Lock className="w-4 h-4 text-muted-foreground" />}
                               {l.title}
@@ -149,6 +146,13 @@ export default function CourseDetail() {
             </Accordion>
           </div>
 
+          {course.long_description && (
+            <section className="mt-10 bg-ink-surface border border-white/5 rounded-2xl p-7" data-testid="course-long-description-section">
+              <h2 className="font-heading font-bold text-xl tracking-tight mb-5">Eğitim Hakkında Detaylı Bilgi</h2>
+              <RichContent html={course.long_description} testId="course-long-description" />
+            </section>
+          )}
+
           {course.requirements?.length > 0 && (
             <div className="mt-10"><h2 className="font-heading font-bold text-xl tracking-tight mb-4">Gereksinimler</h2>
               <ul className="space-y-2">{course.requirements.map((r) => <li key={r} className="flex items-center gap-3 text-sm text-muted-foreground"><span className="w-1.5 h-1.5 rounded-full bg-gold" /> {r}</li>)}</ul></div>
@@ -166,7 +170,7 @@ export default function CourseDetail() {
                 <div className="flex items-start gap-5">
                   <Link to={`/egitmen/${course.instructor.slug}`} className="shrink-0 group">
                     {course.instructor.avatar ? (
-                      <img src={course.instructor.avatar} alt={course.instructor.name} className="w-20 h-20 rounded-2xl object-cover border border-white/10" />
+                      <img src={optImg(course.instructor.avatar, 160)} alt={course.instructor.name} loading="lazy" width="80" height="80" className="w-20 h-20 rounded-2xl object-cover border border-white/10" />
                     ) : (
                       <span className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center"><Users className="w-9 h-9 text-gold" /></span>
                     )}
@@ -206,9 +210,9 @@ export default function CourseDetail() {
 
         {/* Sticky card */}
         <div className="lg:col-span-5">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+          <motion.div className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
             <div className="relative aspect-video bg-ink-elevated cursor-pointer group" onClick={() => { const first = course.modules?.flatMap(m => m.lessons).find(l => l.is_preview || course.enrolled); if (first) openPreview(first); }}>
-              {course.thumbnail && <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />}
+              {course.thumbnail && <img src={optImg(course.thumbnail, 1200)} alt={course.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" />}
               <div className="absolute inset-0 bg-ink/40 flex items-center justify-center">
                 <span className="w-16 h-16 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-7 h-7 text-ink ml-1" fill="currentColor" /></span>
               </div>

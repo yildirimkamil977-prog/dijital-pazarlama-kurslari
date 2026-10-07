@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
@@ -28,7 +29,7 @@ export default function PublicLayout() {
         <Navbar />
       </div>
       <main className={`flex-1 ${promo ? "pt-[104px]" : "pt-[72px]"}`}>
-        <Outlet />
+        <Suspense fallback={<div className="min-h-[80vh]" />}><Outlet /></Suspense>
       </main>
       <Footer />
       <WhatsAppButton />

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { CheckCircle2, Award, Users, TrendingUp } from "lucide-react";
 import { useSite } from "@/context/SiteContext";
 import { Button } from "@/components/ui/button";

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { ArrowRight, Sparkles, Users, Radio, FileText, Award, MessageCircle, CheckCircle2, Play, Star, TrendingUp, Target, Zap, LayoutDashboard, Rocket, ShieldCheck, Flame, Trophy, Quote, Gift, Compass, GraduationCap, Send } from "lucide-react";
 import api from "@/lib/api";
 import { useSite } from "@/context/SiteContext";
@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
 import { toEmbed, isDirectVideo } from "@/lib/video";
+import { optImg } from "@/lib/page";
 
 const perks = [
   { icon: MessageCircle, title: "1 Saat Ücretsiz Danışmanlık", text: "Başlamadan önce hedeflerini netleştir, sana uygun eğitim yolunu birlikte planlayalım." },
@@ -89,7 +90,7 @@ export default function Home() {
       {/* HERO - video focused */}
       <section className="relative">
         <div className="absolute inset-0 -z-0">
-          {settings.hero_poster && <img src={settings.hero_poster} alt="" className="w-full h-full object-cover opacity-20" />}
+          {settings.hero_poster && <img src={optImg(settings.hero_poster, 1200)} alt="" aria-hidden="true" className="w-full h-full object-cover opacity-20" />}
           <div className="absolute inset-0 bg-gradient-to-b from-ink via-ink/85 to-ink" />
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gold/15 rounded-full blur-[150px]" />
           <div className="absolute bottom-0 -left-40 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[150px]" />
@@ -136,7 +137,7 @@ export default function Home() {
 
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, delay: 0.15 }} className="lg:col-span-6">
             <div className="relative rounded-3xl overflow-hidden border border-white/10 gold-glow group cursor-pointer" onClick={() => settings.hero_video_url && openVideo(settings.hero_video_url)} data-testid="hero-video-thumb">
-              <img src={settings.hero_poster || "https://images.pexels.com/photos/15555796/pexels-photo-15555796.jpeg"} alt="Eğitim" className="w-full h-[300px] sm:h-[420px] object-cover" />
+              <img src={optImg(settings.hero_poster || "https://images.pexels.com/photos/15555796/pexels-photo-15555796.jpeg", 1000)} alt="Eğitim" fetchpriority="high" width="1000" height="420" className="w-full h-[300px] sm:h-[420px] object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="w-20 h-20 rounded-full bg-gold/90 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform duration-300 gold-glow">
@@ -277,7 +278,7 @@ export default function Home() {
                 <motion.div key={`${tStart}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
                   className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden group">
                   <div className="relative aspect-[9/16] cursor-pointer overflow-hidden bg-ink" onClick={() => t.video_url && openVideo(t.video_url, true)} data-testid={`testimonial-video-${i}`}>
-                    {t.thumbnail && <img src={t.thumbnail} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
+                    {t.thumbnail && <img src={optImg(t.thumbnail, 500)} alt={t.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
                     {t.video_url && <div className="absolute inset-0 bg-ink/30 flex items-center justify-center">
                       <span className="w-12 h-12 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-5 h-5 text-ink ml-0.5" fill="currentColor" /></span>
                     </div>}

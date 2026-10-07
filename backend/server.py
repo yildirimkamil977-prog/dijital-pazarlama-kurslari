@@ -14,6 +14,8 @@ import routes_payments
 import routes_admin
 import routes_consulting
 import routes_group
+import routes_seo
+from media import migrate_images
 
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -34,6 +36,7 @@ api_router.include_router(routes_payments.router)
 api_router.include_router(routes_admin.router)
 api_router.include_router(routes_consulting.router)
 api_router.include_router(routes_group.router)
+api_router.include_router(routes_seo.router)
 app.include_router(api_router)
 
 app.add_middleware(
@@ -200,6 +203,8 @@ async def seed_courses():
 @app.on_event("startup")
 async def startup():
     await seed()
+    import asyncio
+    asyncio.create_task(migrate_images())
 
 
 @app.on_event("shutdown")

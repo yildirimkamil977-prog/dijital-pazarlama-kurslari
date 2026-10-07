@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Loader2, Layers, Clock, CheckCircle2, ArrowRight, Award, Infinity as InfinityIcon, User } from "lucide-react";
 import api, { formatPrice, formatDuration } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Countdown } from "@/components/Countdown";
+import { optImg } from "@/lib/page";
 
 const fmtDate = (s) => { try { return new Date(s).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" }); } catch { return s; } };
 
@@ -44,7 +45,7 @@ export default function Courses() {
                 data-testid={`course-card-${c.slug}`}
                 className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-ink-surface border border-white/5 rounded-3xl overflow-hidden p-4 lg:p-6 hover:border-gold/20 transition-colors duration-300 ${idx % 2 ? "lg:[&>*:first-child]:order-2" : ""}`}>
                 <Link to={`/kurslar/${c.slug}`} className="relative block rounded-2xl overflow-hidden group aspect-video">
-                  <img src={c.thumbnail} alt={c.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={optImg(c.thumbnail, 900)} alt={c.title} loading={i === 0 ? "eager" : "lazy"} width="900" height="506" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
                   {upcoming && <Badge className="absolute top-4 left-4 bg-blue-500 text-white font-bold border-0 shadow-lg" data-testid={`coming-soon-${c.slug}`}>Yakında Yayında</Badge>}
                   {isFree ? (
@@ -60,7 +61,7 @@ export default function Courses() {
 
                   {c.instructor && (
                     <Link to={`/egitmen/${c.instructor.slug}`} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2.5 mt-4 w-fit hover:opacity-80 transition-opacity duration-200" data-testid={`course-instructor-${c.slug}`}>
-                      {c.instructor.avatar ? <img src={c.instructor.avatar} alt={c.instructor.name} className="w-9 h-9 rounded-full object-cover border border-white/10" /> : <span className="w-9 h-9 rounded-full bg-gold/15 flex items-center justify-center"><User className="w-4 h-4 text-gold" /></span>}
+                      {c.instructor.avatar ? <img src={optImg(c.instructor.avatar, 96)} alt={c.instructor.name} loading="lazy" width="36" height="36" className="w-9 h-9 rounded-full object-cover border border-white/10" /> : <span className="w-9 h-9 rounded-full bg-gold/15 flex items-center justify-center"><User className="w-4 h-4 text-gold" /></span>}
                       <span className="leading-tight"><span className="block text-sm font-medium text-foreground">{c.instructor.name}</span>{c.instructor.title && <span className="block text-xs text-muted-foreground">{c.instructor.title}</span>}</span>
                     </Link>
                   )}

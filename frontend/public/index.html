@@ -5,8 +5,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#0e1116" />
         <meta name="description" content="Dijital Pazarlama Kursları — Google Ads, Meta reklamları, SEO ve daha fazlası. Uygulamalı video eğitimler, canlı grup eğitimleri ve birebir danışmanlık." />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/outfit-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preconnect" href="%REACT_APP_BACKEND_URL%" crossorigin />
+        <style>
+            @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 100 900; font-display: optional; src: url('/fonts/outfit-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+            @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 100 900; font-display: optional; src: url('/fonts/outfit-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+            @font-face { font-family: 'Satoshi'; font-weight: 300; font-display: swap; src: url('/fonts/satoshi-300.woff2') format('woff2'); }
+            @font-face { font-family: 'Satoshi'; font-weight: 400; font-display: swap; src: url('/fonts/satoshi-400.woff2') format('woff2'); }
+            @font-face { font-family: 'Satoshi'; font-weight: 500; font-display: swap; src: url('/fonts/satoshi-500.woff2') format('woff2'); }
+            @font-face { font-family: 'Satoshi'; font-weight: 600 700; font-display: swap; src: url('/fonts/satoshi-700.woff2') format('woff2'); }
+            @font-face { font-family: 'Satoshi'; font-weight: 800 900; font-display: swap; src: url('/fonts/satoshi-900.woff2') format('woff2'); }
+            html, body { background: #05070b; }
+        </style>
         <title>Dijital Pazarlama Kursları</title>
         <link rel="icon" type="image/png" href="%PUBLIC_URL%/favicon.png" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/favicon.png" />

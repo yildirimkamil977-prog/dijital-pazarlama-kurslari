@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Loader2, Plus, Trash2, ChevronLeft, ChevronDown, ChevronRight, Save, X, GripVertical, Copy } from "lucide-react";
 import api, { apiError, formatDuration } from "@/lib/api";
@@ -11,12 +11,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ImageUpload } from "@/components/ImageUpload";
+const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
   title: "", subtitle: "", description: "", category: "", level: "Tüm Seviyeler",
   price: 0, discount_price: null, publish_at: "", early_bird_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
-  is_published: false, what_you_learn: [], requirements: [], cross_sell_ids: [], modules: [],
+  is_published: false, what_you_learn: [], requirements: [], long_description: "", cross_sell_ids: [], modules: [],
 };
 
 export default function CourseEditor() {
@@ -159,6 +160,13 @@ export default function CourseEditor() {
         </section>
         <section className="bg-ink-surface border border-white/5 rounded-2xl p-6">
           <h2 className="font-heading font-semibold mb-4">Gereksinimler</h2>{listField("requirements", "Gereksinim...")}
+        </section>
+        <section className="bg-ink-surface border border-white/5 rounded-2xl p-6">
+          <h2 className="font-heading font-semibold mb-1">Uzun Açıklama</h2>
+          <p className="text-xs text-muted-foreground mb-4">Kurs sayfasında müfredatın hemen altında görünür.</p>
+          <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-gold" />}>
+            <RichTextEditor key={form.course_id || "new"} value={form.long_description || ""} onChange={(v) => set("long_description", v)} testId="course-long-description" />
+          </Suspense>
         </section>
 
         {/* CURRICULUM - collapsible for 100+ lessons */}

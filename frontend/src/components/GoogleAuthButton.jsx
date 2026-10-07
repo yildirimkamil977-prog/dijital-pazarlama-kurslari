@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { apiError } from "@/lib/api";
@@ -42,7 +42,9 @@ export function GoogleAuthButton({ text = "signin_with", testId = "google-login-
   return (
     <>
       <div className="flex justify-center" data-testid={testId}>
-        <GoogleLogin onSuccess={onSuccess} onError={() => toast.error("Google girişi başarısız")} theme="filled_black" size="large" width="320" text={text} locale="tr" />
+        <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+          <GoogleLogin onSuccess={onSuccess} onError={() => toast.error("Google girişi başarısız")} theme="filled_black" size="large" width="320" text={text} locale="tr" />
+        </GoogleOAuthProvider>
       </div>
       <Dialog open={!!pendingCred} onOpenChange={(o) => { if (!o) setPendingCred(null); }}>
         <DialogContent className="max-w-md bg-ink-surface border-white/10">

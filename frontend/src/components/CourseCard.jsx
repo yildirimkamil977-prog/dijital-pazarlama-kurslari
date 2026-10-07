@@ -19,7 +19,7 @@ export function CourseCard({ course, index = 0 }) {
     >
       <div className="relative aspect-video overflow-hidden bg-ink-elevated">
         {course.thumbnail ? (
-          <img src={course.thumbnail} alt={course.title} loading="lazy"
+          <img src={optImg(course.thumbnail, 800)} alt={course.title} loading="lazy" width="800" height="450"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />
         ) : (
           <div className="w-full h-full flex items-center justify-center"><PlayCircle className="w-10 h-10 text-muted-foreground" /></div>
@@ -47,7 +47,7 @@ export function CourseCard({ course, index = 0 }) {
 
         {course.instructor && (
           <div className="flex items-center gap-2 mt-3">
-            {course.instructor.avatar ? <img src={course.instructor.avatar} alt={course.instructor.name} className="w-6 h-6 rounded-full object-cover border border-white/10" /> : <span className="w-6 h-6 rounded-full bg-gold/15 flex items-center justify-center"><User className="w-3.5 h-3.5 text-gold" /></span>}
+            {course.instructor.avatar ? <img src={optImg(course.instructor.avatar, 96)} alt={course.instructor.name} loading="lazy" width="24" height="24" className="w-6 h-6 rounded-full object-cover border border-white/10" /> : <span className="w-6 h-6 rounded-full bg-gold/15 flex items-center justify-center"><User className="w-3.5 h-3.5 text-gold" /></span>}
             <span className="text-xs text-muted-foreground">{course.instructor.name}</span>
           </div>
         )}

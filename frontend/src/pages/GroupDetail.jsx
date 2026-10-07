@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Loader2, Video, Users, CalendarDays, Clock, AlertTriangle, User, PlayCircle, CheckCircle2, ListChecks, ShieldCheck, Award, Radio, Star, Sparkles } from "lucide-react";
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toEmbed } from "@/lib/video";
 import { ReviewMedia } from "@/components/ReviewMedia";
+import { RichContent } from "@/components/RichContent";
+import { optImg, takeInitial, usePageSeo } from "@/lib/page";
 import { useAuth } from "@/context/AuthContext";
 import { useSite } from "@/context/SiteContext";
 import { Seo } from "@/components/Seo";
@@ -21,11 +23,13 @@ export default function GroupDetail() {
   const { user } = useAuth();
   const { settings } = useSite();
   const navigate = useNavigate();
-  const [g, setG] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [g, setG] = useState(() => takeInitial(`group:${slug}`));
+  const [loading, setLoading] = useState(!g);
   const [busy, setBusy] = useState(false);
+  const [playPromo, setPlayPromo] = useState(false);
+  const seo = usePageSeo(`/canli-grup-egitimleri/${slug}`);
 
-  useEffect(() => { setLoading(true); api.get(`/group-trainings/${slug}`).then(({ data }) => setG(data)).catch(() => setG(null)).finally(() => setLoading(false)); }, [slug]);
+  useEffect(() => { api.get(`/group-trainings/${slug}`).then(({ data }) => setG(data)).catch(() => setG((cur) => cur)).finally(() => setLoading(false)); }, [slug]);
 
   const buy = async () => {
     if (!user) { navigate("/giris"); return; }
@@ -34,32 +38,22 @@ export default function GroupDetail() {
     catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
   };
 
-  if (loading) return <div className="flex justify-center py-40"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-40 min-h-[80vh]"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   if (!g) return <div className="text-center py-40 text-muted-foreground">Eğitim bulunamadı.</div>;
 
   const siteName = settings.site_name || "Akademi";
-  const jsonLd = {
-    "@context": "https://schema.org", "@type": "Course", name: g.title,
-    description: (g.description || "").slice(0, 300),
-    provider: { "@type": "Organization", name: siteName, sameAs: typeof window !== "undefined" ? window.location.origin : undefined },
-    hasCourseInstance: {
-      "@type": "CourseInstance", courseMode: "online",
-      courseWorkload: `${g.lessons.length} canlı ders`,
-      ...(g.start_date ? { startDate: g.start_date } : {}),
-      offers: { "@type": "Offer", price: g.price, priceCurrency: "TRY", availability: g.sold_out ? "https://schema.org/SoldOut" : "https://schema.org/InStock" },
-    },
-  };
 
-  const fade = (i = 0) => ({ initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-60px" }, transition: { duration: 0.5, delay: i * 0.08 } });
+  const fade = () => ({});
 
   return (
     <div className="relative pb-28 lg:pb-0">
       <Seo
-        title={`${g.title} | Canlı Grup Eğitimi | ${siteName}`}
-        description={(g.description || `${g.title} canlı online grup eğitimi. Google Meet üzerinden interaktif dersler.`).slice(0, 155)}
-        keywords={`${g.title}, canlı eğitim, online kurs, google meet, grup eğitimi`}
-        image={g.image || undefined}
-        jsonLd={jsonLd}
+        title={seo?.title || `${g.title} | Canlı Grup Eğitimi | ${siteName}`}
+        description={seo?.description || (g.description || "").slice(0, 155)}
+        keywords={seo?.keywords}
+        image={seo?.image}
+        url={seo?.canonical}
+        jsonLd={seo?.jsonld}
       />
 
       {/* HERO */}
@@ -98,10 +92,15 @@ export default function GroupDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* MAIN */}
           <div className="lg:col-span-2 space-y-10">
-            <motion.div {...fade(0)} className="relative aspect-video rounded-3xl overflow-hidden bg-ink border border-white/10 shadow-2xl">
-              {g.promo_video ? <iframe title="Tanıtım" src={toEmbed(g.promo_video)} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="group-promo" />
-                : g.image ? <img src={g.image} alt={g.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><PlayCircle className="w-14 h-14 text-muted-foreground" /></div>}
-            </motion.div>
+            <div className="relative aspect-video rounded-3xl overflow-hidden bg-ink border border-white/10 shadow-2xl">
+              {g.promo_video && playPromo ? <iframe title="Tanıtım" src={`${toEmbed(g.promo_video)}${toEmbed(g.promo_video).includes("?") ? "&" : "?"}autoplay=1`} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="group-promo" />
+                : (
+                  <button type="button" className="group w-full h-full relative" onClick={() => g.promo_video && setPlayPromo(true)} aria-label="Tanıtım videosunu oynat" data-testid="group-promo-poster" disabled={!g.promo_video}>
+                    {g.image ? <img src={optImg(g.image, 1200)} alt={g.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-gold/10 to-ink" />}
+                    {g.promo_video && <span className="absolute inset-0 flex items-center justify-center bg-ink/30"><span className="w-20 h-20 rounded-full bg-gold text-ink flex items-center justify-center shadow-2xl transition-transform duration-300 group-hover:scale-110"><PlayCircle className="w-10 h-10" /></span></span>}
+                  </button>
+                )}
+            </div>
 
             {/* Google Meet strip */}
             <motion.div {...fade(1)} className="flex items-center gap-4 bg-gradient-to-r from-blue-500/10 to-green-500/10 border border-white/10 rounded-2xl p-5">
@@ -158,7 +157,12 @@ export default function GroupDetail() {
               </div>
             </motion.div>
 
-            {/* Gereksinimler */}
+            {g.long_description && (
+              <section className="bg-ink-surface border border-white/5 rounded-2xl p-7" data-testid="group-long-description-section">
+                <h2 className="font-heading font-bold text-2xl tracking-tight mb-5">Eğitim Hakkında Detaylı Bilgi</h2>
+                <RichContent html={g.long_description} testId="group-long-description" />
+              </section>
+            )}
             {g.requirements?.length > 0 && (
               <motion.div {...fade(0)}>
                 <h2 className="font-heading font-bold text-2xl tracking-tight mb-4 flex items-center gap-2"><ListChecks className="w-5 h-5 text-gold" /> Gereksinimler</h2>
@@ -177,7 +181,7 @@ export default function GroupDetail() {
                 <div className="bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-3xl p-7">
                   <div className="flex items-start gap-5">
                     <Link to={`/egitmen/${g.instructor.slug}`} className="shrink-0">
-                      {g.instructor.avatar ? <img src={g.instructor.avatar} alt={g.instructor.name} className="w-20 h-20 rounded-2xl object-cover border border-white/10" /> : <span className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center"><User className="w-9 h-9 text-gold" /></span>}
+                      {g.instructor.avatar ? <img src={optImg(g.instructor.avatar, 160)} alt={g.instructor.name} loading="lazy" width="80" height="80" className="w-20 h-20 rounded-2xl object-cover border border-white/10" /> : <span className="w-20 h-20 rounded-2xl bg-gold/10 flex items-center justify-center"><User className="w-9 h-9 text-gold" /></span>}
                     </Link>
                     <div className="min-w-0">
                       <Link to={`/egitmen/${g.instructor.slug}`} className="font-heading font-semibold text-lg hover:text-gold transition-colors">{g.instructor.name}</Link>
@@ -215,7 +219,7 @@ export default function GroupDetail() {
 
           {/* SIDEBAR */}
           <div className="lg:col-span-1">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+            <motion.div className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
               <div className="bg-gradient-to-br from-gold/15 to-transparent px-6 pt-6 pb-5 border-b border-white/8">
                 <span className="overline text-gold text-[11px]">Canlı Grup Eğitimi</span>
                 <div className="mt-2 flex items-end gap-2">

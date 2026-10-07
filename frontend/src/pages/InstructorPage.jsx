@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Loader2, User, BookOpen, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
 import { CourseCard } from "@/components/CourseCard";

@@ -5,4 +5,4 @@ Disallow: /panel
 Disallow: /odeme
 Disallow: /sepet
 
-Sitemap: /api/seo/sitemap.xml
+Sitemap: https://dijitalpazarlamakurslari.com/sitemap.xml

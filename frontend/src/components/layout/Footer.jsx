@@ -41,7 +41,7 @@ export function Footer() {
         </div>
 
         <div className="md:col-span-3">
-          <h4 className="overline text-gold mb-4">Keşfet</h4>
+          <p className="overline text-gold mb-4">Keşfet</p>
           <ul className="space-y-3 text-sm">
             <li><Link to="/kurslar" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Tüm Kurslar</Link></li>
             <li><Link to="/hakkimda" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Hakkımda</Link></li>
@@ -50,7 +50,7 @@ export function Footer() {
         </div>
 
         <div className="md:col-span-4">
-          <h4 className="overline text-gold mb-4">Yasal</h4>
+          <p className="overline text-gold mb-4">Yasal</p>
           <ul className="space-y-3 text-sm">
             {legal.map((l) => (
               <li key={l.to}>
@@ -68,7 +68,7 @@ export function Footer() {
       </div>
       <div className="border-t border-white/10 bg-ink/40">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-4">
-          <p className="text-[10px] leading-relaxed text-muted-foreground/60" data-testid="footer-facebook-disclaimer">
+          <p className="text-xs leading-relaxed text-muted-foreground" data-testid="footer-facebook-disclaimer">
             NOT FACEBOOK: This site is not a part of the Facebook website or Facebook Inc. Additionally, This site is NOT endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK, Inc.
           </p>
         </div>
