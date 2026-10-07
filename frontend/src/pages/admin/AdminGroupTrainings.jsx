@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
+import { GroupCurriculumEditor } from "@/components/admin/GroupCurriculumEditor";
 const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 import { toast } from "sonner";
 
-const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, capacity: 20, instructor_id: "", lessons: [], is_published: false };
+const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, capacity: 20, instructor_id: "", lessons: [], curriculum: [], is_published: false };
 
 export default function AdminGroupTrainings() {
   const [items, setItems] = useState([]);
@@ -27,9 +28,9 @@ export default function AdminGroupTrainings() {
   useEffect(() => { document.title = "Yönetim - Grup Eğitimleri"; load(); }, []);
 
   const openNew = () => { setForm(empty); setEditing("new"); };
-  const openEdit = async (id) => { const { data } = await api.get(`/admin/group-trainings/${id}`); setForm({ ...empty, ...data, lessons: data.lessons || [] }); setEditing(id); };
+  const openEdit = async (id) => { const { data } = await api.get(`/admin/group-trainings/${id}`); setForm({ ...empty, ...data, lessons: data.lessons || [], curriculum: data.curriculum || [] }); setEditing(id); };
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-  const addLesson = () => set("lessons", [...form.lessons, { id: "", title: "", date: "", time: "20:00", meet_link: "", recording_url: "" }]);
+  const addLesson = () => set("lessons", [...form.lessons, { id: "", title: "", date: "", time: "10:00", end_time: "17:00", meet_link: "", recording_url: "" }]);
   const updLesson = (i, k, v) => set("lessons", form.lessons.map((l, idx) => idx === i ? { ...l, [k]: v } : l));
   const delLesson = (i) => set("lessons", form.lessons.filter((_, idx) => idx !== i));
 
@@ -76,17 +77,22 @@ export default function AdminGroupTrainings() {
         <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={form.image} onChange={(v) => set("image", v)} testId="group-image" /></div></div>
         <div className="flex items-center gap-3"><Switch checked={form.is_published} onCheckedChange={(v) => set("is_published", v)} data-testid="group-published" /><Label>Yayında</Label></div>
 
+        <GroupCurriculumEditor value={form.curriculum} onChange={(v) => set("curriculum", v)} />
+
         <div className="pt-2 border-t border-white/10">
-          <div className="flex items-center justify-between mb-3"><Label className="flex items-center gap-2"><Video className="w-4 h-4 text-gold" /> Ders Takvimi · Meet & Kayıt Linkleri</Label>
-            <Button size="sm" variant="ghost" className="text-gold" onClick={addLesson} data-testid="add-lesson"><Plus className="w-4 h-4 mr-1" /> Ders</Button></div>
+          <div className="flex items-center justify-between mb-3"><Label className="flex items-center gap-2"><Video className="w-4 h-4 text-gold" /> Eğitim Takvimi · Meet & Kayıt Linkleri</Label>
+            <Button size="sm" variant="ghost" className="text-gold" onClick={addLesson} data-testid="add-lesson"><Plus className="w-4 h-4 mr-1" /> Oturum</Button></div>
           <div className="space-y-2">
             {form.lessons.map((l, i) => (
               <div key={i} className="bg-ink border border-white/8 rounded-xl p-3 space-y-2" data-testid={`lesson-row-${i}`}>
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  <Input value={l.title} onChange={(e) => updLesson(i, "title", e.target.value)} placeholder="Ders adı" className="col-span-5 bg-ink-surface border-white/10 h-9 text-sm" />
-                  <Input type="date" value={l.date} onChange={(e) => updLesson(i, "date", e.target.value)} className="col-span-4 bg-ink-surface border-white/10 h-9 text-sm" />
-                  <Input type="time" value={l.time} onChange={(e) => updLesson(i, "time", e.target.value)} className="col-span-2 bg-ink-surface border-white/10 h-9 text-sm" />
+                  <Input value={l.title} onChange={(e) => updLesson(i, "title", e.target.value)} placeholder="Oturum başlığı (örn. 1. Gün: Temeller)" className="col-span-11 bg-ink-surface border-white/10 h-9 text-sm" data-testid={`lesson-title-${i}`} />
                   <Button size="sm" variant="ghost" className="col-span-1 text-destructive h-9 px-0" onClick={() => delLesson(i)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                </div>
+                <div className="grid grid-cols-12 gap-2 items-center">
+                  <Input type="date" value={l.date} onChange={(e) => updLesson(i, "date", e.target.value)} className="col-span-6 bg-ink-surface border-white/10 h-9 text-sm" data-testid={`lesson-date-${i}`} />
+                  <Input type="time" value={l.time} onChange={(e) => updLesson(i, "time", e.target.value)} title="Başlangıç" className="col-span-3 bg-ink-surface border-white/10 h-9 text-sm" data-testid={`lesson-start-${i}`} />
+                  <Input type="time" value={l.end_time || ""} onChange={(e) => updLesson(i, "end_time", e.target.value)} title="Bitiş" className="col-span-3 bg-ink-surface border-white/10 h-9 text-sm" data-testid={`lesson-end-${i}`} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative"><Video className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" /><Input value={l.meet_link} onChange={(e) => updLesson(i, "meet_link", e.target.value)} placeholder="Google Meet linki" className="bg-ink-surface border-white/10 h-9 text-sm pl-7" data-testid={`lesson-meet-${i}`} /></div>
@@ -111,7 +117,7 @@ export default function AdminGroupTrainings() {
           {items.map((g) => (
             <div key={g.group_id} data-testid={`admin-group-${g.group_id}`} className="bg-ink-surface border border-white/5 rounded-2xl p-4 flex items-center justify-between gap-4 flex-wrap">
               <div><p className="font-medium">{g.title} {!g.is_published && <span className="text-xs text-muted-foreground">(Taslak)</span>}</p>
-                <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-3"><span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {g.enrolled}/{g.capacity} kayıt</span><span>{formatPrice(g.price)} ₺</span><span>{g.lessons.length} ders</span></p></div>
+                <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-3"><span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {g.enrolled}/{g.capacity} kayıt</span><span>{formatPrice(g.price)} ₺</span><span>{g.lessons.length} oturum</span></p></div>
               <div className="flex gap-2"><Button size="sm" variant="outline" className="border-white/15" onClick={() => openEdit(g.group_id)} data-testid={`edit-group-${g.group_id}`}>Düzenle</Button>
                 <Button size="sm" variant="ghost" className="text-destructive" onClick={() => remove(g.group_id)}><Trash2 className="w-3.5 h-3.5" /></Button></div>
             </div>

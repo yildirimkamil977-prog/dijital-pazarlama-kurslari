@@ -36,7 +36,7 @@ export default function GroupPanel() {
                   <div key={l.id || i} className={`flex items-center justify-between gap-3 rounded-xl px-4 py-3 border ${past ? "border-white/5 opacity-60" : "border-white/10 bg-ink"}`}>
                     <div className="min-w-0">
                       <p className="text-sm font-medium">{l.title}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 capitalize"><Clock className="w-3 h-3" /> {trDate(l.date)} · {l.time}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 capitalize"><Clock className="w-3 h-3" /> {trDate(l.date)} · {l.time}{l.end_time ? ` – ${l.end_time}` : ""}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {l.recording_url && (

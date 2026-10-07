@@ -50,7 +50,7 @@ async def _public(doc, imap, with_links=False):
     cap = doc.get("capacity", 0)
     remaining = max(0, cap - enrolled)
     lessons = sorted(doc.get("lessons", []), key=lambda l: (l.get("date", ""), l.get("time", "")))
-    pub_lessons = [{"id": l.get("id"), "title": l.get("title"), "date": l.get("date"), "time": l.get("time"),
+    pub_lessons = [{"id": l.get("id"), "title": l.get("title"), "date": l.get("date"), "time": l.get("time"), "end_time": l.get("end_time", ""),
                     **({"meet_link": l.get("meet_link", ""), "recording_url": l.get("recording_url", "")} if with_links else {})} for l in lessons]
     return {"group_id": doc["group_id"], "title": doc["title"], "slug": doc["slug"],
             "description": doc.get("description", ""), "long_description": doc.get("long_description", ""),
@@ -58,7 +58,7 @@ async def _public(doc, imap, with_links=False):
             "what_you_learn": doc.get("what_you_learn", []), "requirements": doc.get("requirements", []),
             "promo_video": doc.get("promo_video", ""), "price": doc.get("price", 0),
             "capacity": cap, "enrolled": enrolled, "remaining": remaining, "low_stock": remaining <= 10,
-            "sold_out": remaining <= 0, "lessons": pub_lessons,
+            "sold_out": remaining <= 0, "lessons": pub_lessons, "curriculum": doc.get("curriculum", []),
             "start_date": lessons[0].get("date") if lessons else None,
             "instructor": imap.get(doc.get("instructor_id")), "is_published": doc.get("is_published", False)}
 
@@ -152,6 +152,7 @@ class LessonIn(BaseModel):
     title: str = ""
     date: str = ""
     time: str = ""
+    end_time: str = ""
     meet_link: str = ""
     recording_url: str = ""
 
@@ -168,6 +169,7 @@ class GroupIn(BaseModel):
     capacity: int = 0
     instructor_id: str = ""
     lessons: list = []
+    curriculum: list = []
     is_published: bool = False
 
 
@@ -175,7 +177,17 @@ def _norm_lessons(lessons):
     out = []
     for l in lessons:
         out.append({"id": l.get("id") or new_id("gl"), "title": l.get("title", ""), "date": l.get("date", ""),
-                    "time": l.get("time", ""), "meet_link": l.get("meet_link", ""), "recording_url": l.get("recording_url", "")})
+                    "time": l.get("time", ""), "end_time": l.get("end_time", ""), "meet_link": l.get("meet_link", ""), "recording_url": l.get("recording_url", "")})
+    return out
+
+
+def _norm_curriculum(mods):
+    out = []
+    for m in mods or []:
+        title = (m.get("title") or "").strip()
+        topics = [t.strip() for t in (m.get("topics") or []) if t and t.strip()]
+        if title or topics:
+            out.append({"id": m.get("id") or new_id("gm"), "title": title, "topics": topics})
     return out
 
 
@@ -205,6 +217,7 @@ async def admin_create(body: GroupIn, request: Request):
         slug = f"{slug}-{new_id('')[1:5]}"
     doc = body.model_dump()
     doc["lessons"] = _norm_lessons(doc.get("lessons", []))
+    doc["curriculum"] = _norm_curriculum(doc.get("curriculum", []))
     doc.update({"group_id": new_id("grp"), "slug": slug, "created_at": now_utc().isoformat()})
     await db.group_trainings.insert_one({**doc})
     doc.pop("_id", None)
@@ -241,6 +254,7 @@ async def admin_update(group_id: str, body: GroupIn, request: Request):
         raise HTTPException(status_code=404, detail="Bulunamadı")
     doc = body.model_dump()
     doc["lessons"] = _norm_lessons(doc.get("lessons", []))
+    doc["curriculum"] = _norm_curriculum(doc.get("curriculum", []))
     doc["updated_at"] = now_utc().isoformat()
     await db.group_trainings.update_one({"group_id": group_id}, {"$set": doc})
     updated = await db.group_trainings.find_one({"group_id": group_id}, {"_id": 0})

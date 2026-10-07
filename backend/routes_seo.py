@@ -108,7 +108,7 @@ def _group_hero(g: dict) -> str:
     meta = []
     if g.get("start_date"):
         meta.append(f"Başlangıç: {g['start_date']}")
-    meta += [f"{len(g.get('lessons', []))} canlı ders", f"{g.get('capacity', 0)} kişilik kontenjan"]
+    meta += [f"{len(g.get('lessons', []))} canlı oturum", f"{g.get('capacity', 0)} kişilik kontenjan"]
     spans = "".join(f'<span class="flex items-center gap-2">{ICON} {t}</span>' for t in meta)
     return ('<div class="relative pb-28 lg:pb-0"><div class="relative overflow-hidden border-b border-white/5">'
             '<div class="relative max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-10">'
@@ -169,25 +169,27 @@ async def _group_seo(slug: str, s: dict, site: str) -> dict:
              "availability": "https://schema.org/SoldOut" if g.get("sold_out") else "https://schema.org/InStock"}
     image = [img(g["image"], 1200)] if g.get("image") else None
 
-    def at(l):
-        return f"{l['date']}T{(l.get('time') or '20:00')[:5]}:00+03:00" if l.get("date") else None
+    def at(l, end=False):
+        t = (l.get("end_time") if end else None) or l.get("time") or "20:00"
+        return f"{l['date']}T{t[:5]}:00+03:00" if l.get("date") else None
 
     lessons = [l for l in g.get("lessons", []) if l.get("date")]
     course = {"@context": "https://schema.org", "@type": "Course", "@id": f"{url}#course", "name": g["title"], "description": desc,
               "url": url, "inLanguage": "tr-TR", "provider": org(s), "teaches": g.get("what_you_learn") or None,
+              "syllabusSections": [{"@type": "Syllabus", "name": m["title"], "description": ", ".join(m.get("topics", []))[:300]} for m in g.get("curriculum", [])] or None,
               "coursePrerequisites": g.get("requirements") or None, "offers": {**offer, "category": "Paid"},
               "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "Online", "location": {"@type": "VirtualLocation", "url": url},
-                                    "courseWorkload": f"{len(g.get('lessons', []))} canlı ders",
-                                    **({"startDate": at(lessons[0]), "endDate": at(lessons[-1])} if lessons else {}),
+                                    "courseWorkload": f"{len(g.get('lessons', []))} canlı oturum",
+                                    **({"startDate": at(lessons[0]), "endDate": at(lessons[-1], True)} if lessons else {}),
                                     **({"instructor": inst} if inst else {})}}
     out = [course]
     if lessons:
         ev = {"@context": "https://schema.org", "@type": "EducationEvent", "name": g["title"], "description": desc, "url": url,
-              "startDate": at(lessons[0]), "endDate": at(lessons[-1]), "eventStatus": "https://schema.org/EventScheduled",
+              "startDate": at(lessons[0]), "endDate": at(lessons[-1], True), "eventStatus": "https://schema.org/EventScheduled",
               "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode", "inLanguage": "tr-TR",
               "location": {"@type": "VirtualLocation", "url": url}, "organizer": org(s), "offers": {**offer, "validFrom": g.get("updated_at")},
               "maximumAttendeeCapacity": g.get("capacity") or None, "remainingAttendeeCapacity": g.get("remaining"),
-              "subEvent": [{"@type": "EducationEvent", "name": l["title"], "startDate": at(l), "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+              "subEvent": [{"@type": "EducationEvent", "name": l["title"] or g["title"], "startDate": at(l), "endDate": at(l, True), "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
                             "location": {"@type": "VirtualLocation", "url": url}} for l in lessons]}
         if inst:
             ev["performer"] = inst

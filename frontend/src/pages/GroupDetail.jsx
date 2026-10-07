@@ -5,6 +5,7 @@ import { Loader2, Video, Users, CalendarDays, Clock, AlertTriangle, User, PlayCi
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { toEmbed } from "@/lib/video";
 import { ReviewMedia } from "@/components/ReviewMedia";
 import { RichContent } from "@/components/RichContent";
@@ -80,7 +81,7 @@ export default function GroupDetail() {
               <h1 className="mt-5 font-heading font-black text-3xl sm:text-4xl lg:text-5xl tracking-tighter leading-[1.05]">{g.title}</h1>
               <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
                 {g.start_date && <span className="flex items-center gap-2"><CalendarDays className="w-4 h-4 text-gold" /> Başlangıç: {trDate(g.start_date)}</span>}
-                <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> {g.lessons.length} canlı ders</span>
+                <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> {g.lessons.length} canlı oturum</span>
                 <span className="flex items-center gap-2"><Users className="w-4 h-4 text-gold" /> {g.capacity} kişilik kontenjan</span>
               </div>
             </div>
@@ -135,9 +136,30 @@ export default function GroupDetail() {
               </motion.div>
             )}
 
-            {/* Ders Programı / Takvim */}
+            {/* Müfredat */}
+            {g.curriculum?.length > 0 && (
+              <div data-testid="group-curriculum">
+                <h2 className="font-heading font-bold text-2xl tracking-tight mb-4 flex items-center gap-2"><ListChecks className="w-5 h-5 text-gold" /> Müfredat</h2>
+                <Accordion type="multiple" defaultValue={g.curriculum.slice(0, 1).map((m) => m.id)} className="space-y-3">
+                  {g.curriculum.map((m, i) => (
+                    <AccordionItem key={m.id} value={m.id} className="bg-ink-surface border border-white/8 rounded-2xl px-5" data-testid={`group-curriculum-module-${i}`}>
+                      <AccordionTrigger className="hover:no-underline py-4 text-left">
+                        <span className="flex items-center gap-4"><span className="w-9 h-9 rounded-xl bg-gold/10 text-gold text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span><span className="font-semibold text-sm sm:text-base">{m.title}</span></span>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <ul className="space-y-2 pb-2 pl-1">
+                          {m.topics.map((t, j) => <li key={j} className="flex items-start gap-2.5 text-sm text-muted-foreground"><CheckCircle2 className="w-4 h-4 text-gold mt-0.5 shrink-0" /> {t}</li>)}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            )}
+
+            {/* Eğitim Takvimi */}
             <motion.div {...fade(1)}>
-              <h2 className="font-heading font-bold text-2xl tracking-tight mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-gold" /> Canlı Ders Programı</h2>
+              <h2 className="font-heading font-bold text-2xl tracking-tight mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-gold" /> Eğitim Takvimi</h2>
               <div className="space-y-3" data-testid="group-schedule">
                 {g.lessons.length === 0 ? <p className="text-sm text-muted-foreground bg-ink-surface border border-white/5 rounded-2xl p-6">Program yakında açıklanacak.</p>
                   : g.lessons.map((l, i) => (
@@ -146,7 +168,7 @@ export default function GroupDetail() {
                         <span className="w-10 h-10 rounded-xl bg-gold/10 text-gold text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
                         <div className="min-w-0">
                           <p className="text-sm font-semibold truncate">{l.title}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 capitalize"><Clock className="w-3.5 h-3.5" /> {trDate(l.date)} · {l.time}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 capitalize"><Clock className="w-3.5 h-3.5" /> {trDate(l.date)} · {l.time}{l.end_time ? ` – ${l.end_time}` : ""}</p>
                         </div>
                       </div>
                       <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 shrink-0">
