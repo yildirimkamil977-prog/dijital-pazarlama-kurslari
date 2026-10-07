@@ -1,8 +1,11 @@
 import re
 import os
+import io
+import csv
 import base64
 import secrets
 from fastapi import APIRouter, Request, HTTPException, UploadFile, File
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
@@ -182,21 +185,86 @@ async def delete_instructor(instructor_id: str, request: Request):
 
 
 # ---------------- Students ----------------
-@router.get("/students")
-async def list_students(request: Request, search: str = "", page: int = 1, limit: int = 10):
-    await require_admin(request)
-    q = {"role": "student"}
+def _ids(csv_str: str) -> List[str]:
+    return [x for x in (csv_str or "").split(",") if x]
+
+
+async def _student_query(search: str, start_date: str, end_date: str, course_ids: List[str], group_ids: List[str]) -> dict:
+    q: dict = {"role": "student"}
     if search:
         rx = {"$regex": re.escape(search), "$options": "i"}
         q["$or"] = [{"name": rx}, {"email": rx}, {"phone": rx}]
+    if start_date or end_date:
+        rng: dict = {}
+        if start_date:
+            rng["$gte"] = start_date
+        if end_date:
+            rng["$lte"] = end_date + "T23:59:59.999999+00:00" if len(end_date) == 10 else end_date
+        q["created_at"] = rng
+    if course_ids or group_ids:
+        uids = set()
+        if course_ids:
+            uids |= set(await db.enrollments.distinct("user_id", {"course_id": {"$in": course_ids}}))
+        if group_ids:
+            uids |= set(await db.group_enrollments.distinct("user_id", {"group_id": {"$in": group_ids}}))
+        q["user_id"] = {"$in": list(uids)}
+    return q
+
+
+async def _enrich_students(users: List[dict], course_ids: List[str], group_ids: List[str]) -> None:
+    ctitles = {c["course_id"]: c["title"] for c in await db.courses.find({}, {"_id": 0, "course_id": 1, "title": 1}).to_list(1000)}
+    gtitles = {g["group_id"]: g["title"] for g in await db.group_trainings.find({}, {"_id": 0, "group_id": 1, "title": 1}).to_list(1000)}
+    for u in users:
+        enr = await db.enrollments.find({"user_id": u["user_id"]}, {"_id": 0, "course_id": 1}).to_list(500)
+        genr = await db.group_enrollments.find({"user_id": u["user_id"]}, {"_id": 0, "group_id": 1}).to_list(500)
+        cids = [e["course_id"] for e in enr]
+        gids = list(dict.fromkeys(g["group_id"] for g in genr))
+        u["enrollment_count"] = len(cids)
+        u["courses"] = [ctitles.get(c, c) for c in cids]
+        u["groups"] = [gtitles.get(g, g) for g in gids]
+        u["matched"] = [ctitles.get(c, c) for c in cids if c in course_ids] + [gtitles.get(g, g) for g in gids if g in group_ids]
+        paid = await db.orders.find({"user_id": u["user_id"], "status": "paid"}, {"_id": 0, "total": 1}).to_list(1000)
+        u["order_count"] = len(paid)
+        u["total_spent"] = round(sum(o.get("total", 0) for o in paid), 2)
+
+
+@router.get("/students")
+async def list_students(request: Request, search: str = "", page: int = 1, limit: int = 10,
+                        start_date: str = "", end_date: str = "", course_ids: str = "", group_ids: str = ""):
+    await require_admin(request)
+    cids, gids = _ids(course_ids), _ids(group_ids)
+    q = await _student_query(search, start_date, end_date, cids, gids)
     total = await db.users.count_documents(q)
     skip = max(0, (page - 1) * limit)
     users = await db.users.find(q, {"_id": 0, "password_hash": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
-    for u in users:
-        u["enrollment_count"] = await db.enrollments.count_documents({"user_id": u["user_id"]})
-        paid = await db.orders.find({"user_id": u["user_id"], "status": "paid"}, {"_id": 0, "invoice.data": 0}).to_list(500)
-        u["total_spent"] = round(sum(o.get("total", 0) for o in paid), 2)
+    await _enrich_students(users, cids, gids)
     return {"items": users, "total": total, "page": page, "pages": max(1, (total + limit - 1) // limit)}
+
+
+@router.get("/students/export")
+async def export_students(request: Request, search: str = "", start_date: str = "", end_date: str = "",
+                          course_ids: str = "", group_ids: str = ""):
+    await require_admin(request)
+    cids, gids = _ids(course_ids), _ids(group_ids)
+    q = await _student_query(search, start_date, end_date, cids, gids)
+    users = await db.users.find(q, {"_id": 0, "password_hash": 0}).sort("created_at", -1).to_list(20000)
+    await _enrich_students(users, cids, gids)
+    buf = io.StringIO()
+    w = csv.writer(buf, delimiter=";")
+    head = ["Ad Soyad", "E-posta", "Telefon", "Kayıt Tarihi", "Kayıtlı Kurslar", "Kayıtlı Grup Eğitimleri", "Sipariş Sayısı", "Toplam Harcama (TL)"]
+    if cids or gids:
+        head.insert(4, "Filtreye Uyan Eğitimler")
+    w.writerow(head)
+    for u in users:
+        row = [u.get("name", ""), u.get("email", ""), u.get("phone", ""), (u.get("created_at") or "")[:16].replace("T", " "),
+               " | ".join(u["courses"]), " | ".join(u["groups"]), u["order_count"], f"{u['total_spent']:.2f}".replace(".", ",")]
+        if cids or gids:
+            row.insert(4, " | ".join(u["matched"]))
+        w.writerow(row)
+    data = ("\ufeff" + buf.getvalue()).encode("utf-8")
+    fname = f"ogrenciler-{now_utc().strftime('%Y-%m-%d')}.csv"
+    return StreamingResponse(io.BytesIO(data), media_type="text/csv; charset=utf-8",
+                             headers={"Content-Disposition": f'attachment; filename="{fname}"'})
 
 
 @router.get("/students/{user_id}")
