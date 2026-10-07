@@ -312,6 +312,14 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Ön yüz: GroupDetail'de "Müfredat" akordeonu → "Eğitim Takvimi" (HH:MM – HH:MM) → uzun açıklama. GroupPanel saat aralığı. "canlı ders" → "canlı oturum".
 - Test: iteration_21 backend 4/4, frontend %100; mobil ekran görüntüsü ile müfredat doğrulandı. Test verisi geri alındı.
 
+## Iteration 50 (2026-10-07) — Grup indirimli fiyat + sepette grup + grup indirim kodları + satışa kapalı kurs
+- Grup: discount_price (boş=yok), effective_price (routes_payments.group_price). Detay/kart/mobil çubukta üstü çizili fiyat + %indirim. "Eğitime Kaydol" artık sepete ekleyip /odeme'ye gider; "Sepete Ekle" butonu. Eğitim Takvimi Google Meet şeridinin hemen altında.
+- Sepet: CartContext.addGroup (item: course_id=group_id, group_id, kind="group"). Checkout items [{course_id|group_id}]; backend checkout grup doğrular (yayında, kayıtlı değil, kontenjan) ve effective fiyat. Teslim: enroll_group_item (ücretsiz, PayTR callback, admin mark-paid).
+- İndirim kodu: DiscountIn.group_ids; _apply_discount course_ids/group_ids kapsamı. Admin dialogda grup listesi.
+- Kurs sale_closed: kartlarda/listede/detayda "Yakında satışta", CourseNotifyForm → POST /api/courses/{id}/notify (course_waitlist, upsert). Admin CourseEditor'da CourseWaitlist + CSV. Checkout sale_closed kursu 400 ile reddeder; SEO availability OutOfStock.
+- Test: iteration_22 backend 8/8, frontend %100.
+
+
 
 
 ## Test Credentials
