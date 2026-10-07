@@ -301,6 +301,11 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Doğrulandı: mobil 390px ekran görüntüsü; tıklayınca iframe açılıyor; taşma yok.
 
 
+## Iteration 48 (2026-10-07) — Canlı 502 hatası düzeltmesi
+- Kök neden: media.py Pillow (PIL) kullanıyordu ama backend/requirements.txt'de yoktu → Docker'da backend açılışta ModuleNotFoundError ile çöküyor, Caddy 502 veriyordu. pip freeze ile pillow==12.3.0 eklendi. @tiptap/pm package.json'a açıkça eklendi.
+- DERS: Yeni Python paketi kullanınca MUTLAKA `pip freeze > requirements.txt` (önizlemede yüklü olması canlıda olduğu anlamına gelmez).
+
+
 
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
