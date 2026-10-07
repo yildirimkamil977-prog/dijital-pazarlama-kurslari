@@ -74,10 +74,12 @@ export default function AdminStudents() {
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Kayıt tarihi:</span>
-          <Input type="date" value={startDate} onChange={(e) => setFilter(setStartDate)(e.target.value)} className="bg-ink border-white/10 w-[150px] h-10" data-testid="student-start-date" />
-          <span className="text-muted-foreground">–</span>
-          <Input type="date" value={endDate} onChange={(e) => setFilter(setEndDate)(e.target.value)} className="bg-ink border-white/10 w-[150px] h-10" data-testid="student-end-date" />
+          <div className="flex items-center gap-2 w-full sm:w-auto min-w-0">
+            <span className="text-xs text-muted-foreground shrink-0">Kayıt:</span>
+            <Input type="date" value={startDate} onChange={(e) => setFilter(setStartDate)(e.target.value)} className="bg-ink border-white/10 flex-1 min-w-0 sm:w-[150px] sm:flex-none h-10" data-testid="student-start-date" />
+            <span className="text-muted-foreground">–</span>
+            <Input type="date" value={endDate} onChange={(e) => setFilter(setEndDate)(e.target.value)} className="bg-ink border-white/10 flex-1 min-w-0 sm:w-[150px] sm:flex-none h-10" data-testid="student-end-date" />
+          </div>
           <MultiSelectFilter label="Kurslar" testId="filter-courses" value={courseIds} onChange={setFilter(setCourseIds)} options={courses.map((c) => ({ id: c.course_id, label: c.title }))} />
           <MultiSelectFilter label="Grup Eğitimleri" testId="filter-groups" value={groupIds} onChange={setFilter(setGroupIds)} options={groups.map((g) => ({ id: g.group_id, label: g.title }))} />
           {hasFilters ? <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground h-10" data-testid="reset-student-filters"><RotateCcw className="w-3.5 h-3.5 mr-1.5" /> Sıfırla</Button> : null}
@@ -88,7 +90,7 @@ export default function AdminStudents() {
         <>
           <div className="bg-ink-surface border border-white/5 rounded-2xl overflow-hidden divide-y divide-white/5">
             {data.items.length === 0 ? <p className="text-muted-foreground text-center py-16">Öğrenci bulunamadı.</p> : data.items.map((sdt) => (
-              <div key={sdt.user_id} data-testid={`student-${sdt.user_id}`} className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors duration-200">
+              <div key={sdt.user_id} data-testid={`student-${sdt.user_id}`} className="flex flex-wrap items-center justify-between gap-3 p-4 hover:bg-secondary/30 transition-colors duration-200">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-10 h-10 rounded-full bg-gold text-ink flex items-center justify-center font-bold shrink-0">{(sdt.name || "?").charAt(0).toUpperCase()}</span>
                   <div className="min-w-0"><p className="text-sm font-medium truncate">{sdt.name}</p><p className="text-xs text-muted-foreground truncate">{sdt.email}{sdt.phone ? ` · ${sdt.phone}` : ""}</p>
@@ -96,7 +98,7 @@ export default function AdminStudents() {
                     {sdt.matched?.length > 0 && <div className="flex flex-wrap gap-1 mt-1">{sdt.matched.map((m) => <Badge key={m} className="bg-gold/10 text-gold border-gold/20 text-[10px] font-normal">{m}</Badge>)}</div>}
                   </div>
                 </div>
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-4 shrink-0 ml-auto">
                   <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5" title="Kurs"><BookOpen className="w-3.5 h-3.5" /> {sdt.enrollment_count}</span>
                   <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5" title="Grup eğitimi"><Users className="w-3.5 h-3.5" /> {sdt.groups?.length || 0}</span>
                   <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5" title="Sipariş" data-testid={`student-orders-${sdt.user_id}`}><ShoppingBag className="w-3.5 h-3.5" /> {sdt.order_count}</span>

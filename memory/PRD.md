@@ -261,6 +261,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - Grup eğitmeni: group_trainings.instructor_id boştu ('') → inst_105af6c86623'e bağlandı (DB). GroupDetail eğitmen kartı artık görünüyor. Seed 18K yeniden üretildi.
 - Doğrulama: frontend derlendi (200), /api/group-trainings/{slug} instructor=Kamil Yıldırım. Kod: CartContext.jsx, Checkout.jsx. Veri: group instructor_id (seed).
 
+## Iteration 42 (2026-10-07) — Öğrenciler: filtreler + CSV dışa aktarma
+- GET /api/admin/students: search, start_date, end_date (dahil), course_ids, group_ids (virgüllü, OR mantığı) parametreleri; satırlarda courses, groups, matched, order_count, total_spent.
+- GET /api/admin/students/export: aynı filtrelerle UTF-8 BOM, ';' ayraçlı (Excel TR uyumlu) CSV. Kurs/grup filtresi seçiliyse "Filtreye Uyan Eğitimler" sütunu da ekleniyor.
+- UI: AdminStudents.jsx filtre çubuğu (tarih aralığı, çoklu seçim Kurslar/Grup Eğitimleri — components/admin/MultiSelectFilter.jsx, sıfırla, CSV butonu). AdminPanel main'e min-w-0 eklendi (mobil taşma düzeltmesi, tüm admin sayfalarını etkiler).
+- Test: iteration_18 backend 10/10, frontend akışlar geçti; mobil taşma düzeltildi ve doğrulandı.
+
+
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 

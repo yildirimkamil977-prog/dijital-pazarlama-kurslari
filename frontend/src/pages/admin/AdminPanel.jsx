@@ -77,7 +77,7 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <main className="flex-1 md:ml-64 pt-16 md:pt-0">
+      <main className="flex-1 min-w-0 md:ml-64 pt-16 md:pt-0">
         <div className="p-5 sm:p-8 max-w-6xl mx-auto">
           <Routes>
             <Route index element={<AdminDashboard />} />
