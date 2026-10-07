@@ -1,0 +1,25 @@
+{
+  "summary": "Iteration 21 — Group training curriculum (modules + topics, no dates) and schedule (sessions with title/date/start/end). Backend: 4/4 pytest in /app/backend/tests/test_iteration21.py — PUT /api/admin/group-trainings/<id> correctly normalizes curriculum (empty modules/topics trimmed, ids auto-generated) and persists lesson end_time; GET /api/group-trainings/<slug> returns curriculum & lessons[].end_time; GET /api/seo/meta JSON-LD contains Course.syllabusSections from curriculum and EducationEvent.endDate uses the latest end_time (and subEvent entries carry endDate). Original group doc restored at end of suite (curriculum=[], lessons end_time=''). Frontend: admin /yonetim/grup-egitimleri edit dialog shows GroupCurriculumEditor (data-testid group-curriculum-editor + add-curriculum-module + curriculum-title-0/topics-0/delete-0) and a schedule section titled 'Eğitim Takvimi' with add-lesson and per-row lesson-title/date/start/end/meet/recording testids — all present. Mobile 390px admin dialog has no horizontal overflow. Public /canli-grup-egitimleri/google-ads-canli-grup-egitimi has single H1, H2s only below, hero shows '2 canlı oturum', [data-testid=group-schedule] renders both sessions with date · time (and would show 'HH:MM – HH:MM' when end_time present; verified via JSON-LD endDate=22:30). After restore, no [data-testid=group-curriculum] (expected since curriculum empty). Mobile 390px public page has no horizontal overflow. No console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iteration21.py", "/app/test_reports/pytest/iteration21.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_group._norm_curriculum trims empty topics and drops modules with no title and no topics — matches spec. Good.",
+    "routes_seo._group_seo subEvent list builds endDate from end_time via helper at(l, True); gracefully falls back to time when end_time missing — correct behavior but means endDate==startDate when admin forgets to fill end_time. Consider adding +1h fallback or logging a warning.",
+    "GroupDetail.jsx renders schedule with `${l.time}${l.end_time ? ' – '+l.end_time : ''}` — matches spec; consistent with GroupPanel.jsx.",
+    "Admin dialog AdminGroupTrainings.jsx defaults new sessions to start 10:00 / end 17:00 — sensible defaults."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration21.py",
+    "/app/test_reports/iteration_21.json",
+    "/app/test_reports/pytest/iteration21.xml"
+  ],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "100% (admin editor + schedule section + public rendering + mobile overflow all pass)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "Group grp_741a4764d948 was mutated during pytest (curriculum added + end_time set) and FULLY restored in test_zz_restore_group — verified via GET: curriculum=[], lesson end_times=['',''], 2 lessons. No TEST_ users created (not needed — endpoint behavior fully covered by admin API round-trip tests).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend tests use /tmp/gid and /tmp/orig_group.json for id/original doc; the restore test (test_zz_*) must run last. Public /canli-grup-egitimleri/google-ads-canli-grup-egitimi currently has curriculum=[] and lessons without end_time (original state), so group-curriculum section will NOT render and schedule shows date · time only (no 'HH:MM – HH:MM' range). Admin UI editor uses data-testid group-curriculum-editor and lesson-{start,end}-<i>.",
+  "rca of the issue": "N/A — all specified functionality works as designed."
+}

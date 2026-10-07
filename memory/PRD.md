@@ -306,6 +306,13 @@ Dijital pazarlama eğitmeni için video eğitim satış platformu. Ön yüz sayf
 - DERS: Yeni Python paketi kullanınca MUTLAKA `pip freeze > requirements.txt` (önizlemede yüklü olması canlıda olduğu anlamına gelmez).
 
 
+## Iteration 49 (2026-10-07) — Grup eğitimi: Müfredat ve Eğitim Takvimi ayrıldı
+- Backend: lessons[] artık "Eğitim Takvimi" oturumları (title, date, time=başlangıç, end_time=bitiş, meet_link, recording_url). Yeni `curriculum` [{id,title,topics[]}] (tarihsiz; _norm_curriculum boşları temizler). SEO: EducationEvent/subEvent endDate end_time'dan; Course.syllabusSections curriculum'dan.
+- Admin: components/admin/GroupCurriculumEditor.jsx (modül + her satıra konu), takvim satırı: başlık / tarih / başlangıç / bitiş + Meet & kayıt linkleri.
+- Ön yüz: GroupDetail'de "Müfredat" akordeonu → "Eğitim Takvimi" (HH:MM – HH:MM) → uzun açıklama. GroupPanel saat aralığı. "canlı ders" → "canlı oturum".
+- Test: iteration_21 backend 4/4, frontend %100; mobil ekran görüntüsü ile müfredat doğrulandı. Test verisi geri alındı.
+
+
 
 ## Test Credentials
 Admin: yildirimkamil977@gmail.com / Admin!2026Panel
