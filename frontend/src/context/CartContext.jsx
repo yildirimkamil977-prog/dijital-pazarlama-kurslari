@@ -26,12 +26,20 @@ export function CartProvider({ children }) {
   };
 
   const remove = (course_id) => setItems((prev) => prev.filter((i) => i.course_id !== course_id));
+  const addGroup = (g) => {
+    const price = g.effective_price != null ? g.effective_price : g.price;
+    setItems((prev) => (prev.find((i) => i.course_id === g.group_id) ? prev : [...prev, {
+      course_id: g.group_id, group_id: g.group_id, kind: "group", title: g.title, slug: g.slug,
+      thumbnail: g.image, price, original_price: g.price,
+    }]));
+    trackAddToCart({ id: g.group_id, title: g.title, price });
+  };
   const clear = () => setItems([]);
   const has = (course_id) => items.some((i) => i.course_id === course_id);
   const subtotal = items.reduce((s, i) => s + (i.price || 0), 0);
 
   return (
-    <CartContext.Provider value={{ items, add, remove, clear, has, subtotal, count: items.length }}>
+    <CartContext.Provider value={{ items, add, addGroup, remove, clear, has, subtotal, count: items.length }}>
       {children}
     </CartContext.Provider>
   );

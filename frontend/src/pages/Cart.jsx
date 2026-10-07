@@ -17,7 +17,7 @@ export default function Cart() {
   useEffect(() => {
     document.title = "Sepetim - Akademi";
     if (items.length) {
-      const ids = items.map((i) => i.course_id).join(",");
+      const ids = items.filter((i) => i.kind !== "group").map((i) => i.course_id).join(",");
       api.get(`/recommendations?ids=${ids}`).then(({ data }) => setRecs(data)).catch(() => {});
     } else setRecs([]);
     // eslint-disable-next-line
@@ -45,7 +45,7 @@ export default function Cart() {
               <div key={i.course_id} data-testid={`cart-item-${i.course_id}`} className="flex gap-4 bg-ink-surface border border-white/5 rounded-2xl p-4">
                 <img src={i.thumbnail} alt={i.title} className="w-32 h-20 object-cover rounded-lg shrink-0" />
                 <div className="flex-1 flex flex-col justify-between">
-                  <Link to={`/kurslar/${i.slug}`} className="font-medium hover:text-gold transition-colors duration-200">{i.title}</Link>
+                  <Link to={i.kind === "group" ? `/canli-grup-egitimleri/${i.slug}` : `/kurslar/${i.slug}`} className="font-medium hover:text-gold transition-colors duration-200">{i.title}</Link>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {i.original_price > i.price && <span className="text-xs text-muted-foreground line-through">{formatPrice(i.original_price)} ₺</span>}

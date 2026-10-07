@@ -36,7 +36,11 @@ export function GroupCard({ g, index = 0, headingAs: H = "h3" }) {
           </div>
           <div className="mt-3 h-1.5 rounded-full bg-white/8 overflow-hidden"><div className={`h-full rounded-full ${g.low_stock ? "bg-red-500" : "bg-gold"}`} style={{ width: `${pct}%` }} /></div>
           <div className="flex items-center justify-between mt-auto pt-4 mt-4 border-t border-white/5">
-            <span className="font-heading font-black text-xl text-gold">{formatPrice(g.price)} ₺</span>
+            <span className="flex items-baseline gap-2 flex-wrap">
+              {g.effective_price < g.price && <span className="text-xs text-muted-foreground line-through">{formatPrice(g.price)} ₺</span>}
+              <span className="font-heading font-black text-xl text-gold">{formatPrice(g.effective_price ?? g.price)} ₺</span>
+              {g.effective_price < g.price && <span className="bg-gold text-ink rounded-md px-1.5 py-0.5 text-[10px] font-black" data-testid={`group-card-discount-${g.group_id}`}>%{Math.round((1 - g.effective_price / g.price) * 100)}</span>}
+            </span>
             <span className="text-sm text-gold flex items-center gap-1 group-hover:gap-2 transition-all duration-200">İncele <ArrowRight className="w-4 h-4" /></span>
           </div>
         </div>

@@ -49,7 +49,7 @@ export default function Checkout() {
   const applyDiscount = async () => {
     if (!code.trim()) return;
     setApplying(true);
-    try { const { data } = await api.post("/payments/validate-discount", { code, subtotal, items: items.map((i) => ({ course_id: i.course_id, price: i.price })) }); setDiscount(data); toast.success("İndirim kodu uygulandı"); }
+    try { const { data } = await api.post("/payments/validate-discount", { code, subtotal, items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "", price: i.price })) }); setDiscount(data); toast.success("İndirim kodu uygulandı"); }
     catch (e) { toast.error(apiError(e)); setDiscount(null); } finally { setApplying(false); }
   };
 
@@ -60,7 +60,7 @@ export default function Checkout() {
     trackInitiateCheckout({ value: total, numItems: items.length });
     try {
       const { data } = await api.post("/payments/checkout", {
-        items: items.map((i) => ({ course_id: i.course_id })),
+        items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "" })),
         discount_code: discount?.code || null,
         payment_method: method,
         customer: user ? null : customer,

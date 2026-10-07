@@ -55,10 +55,12 @@ export function CourseCard({ course, index = 0 }) {
 
         <div className="flex items-end justify-between mt-4 pt-4 border-t border-white/5">
           <div>
+            {course.sale_closed ? <span className="font-heading font-bold text-base text-gold" data-testid={`course-card-sale-closed-${course.course_id}`}>Yakında satışta</span> : <>
             {hasDiscount && <span className="text-xs text-muted-foreground line-through mr-2">{formatPrice(base)} ₺</span>}
             <span className="font-heading font-bold text-lg text-gold">
               {price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}
             </span>
+            </>}
           </div>
           <span className="text-xs font-medium text-foreground/70 group-hover:text-gold transition-colors duration-200">{upcoming ? "Ön Kayıt →" : "İncele →"}</span>
         </div>

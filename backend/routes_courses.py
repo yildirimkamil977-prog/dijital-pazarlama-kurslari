@@ -1,6 +1,7 @@
 import os
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+import re
 from typing import Optional
 
 from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, get_settings_doc, schedule_email, push_notification
@@ -43,7 +44,7 @@ def course_summary(c: dict) -> dict:
         "price": c.get("price", 0), "discount_price": c.get("discount_price"),
         "thumbnail": c.get("thumbnail", ""), "instructor_name": c.get("instructor_name", ""),
         "instructor_id": c.get("instructor_id", ""),
-        "is_published": c.get("is_published", False),
+        "is_published": c.get("is_published", False), "sale_closed": c.get("sale_closed", False),
         "lesson_count": len(lessons), "total_seconds": total_seconds,
         "what_you_learn": c.get("what_you_learn", []),
         **_course_pricing(c),
@@ -153,6 +154,20 @@ async def list_courses(category: Optional[str] = None):
     return result
 
 
+@router.post("/courses/{course_id}/notify")
+async def course_notify(course_id: str, body: dict, request: Request):
+    email = (body.get("email") or "").strip().lower()
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        raise HTTPException(status_code=400, detail="Geçerli bir e-posta adresi girin")
+    c = await db.courses.find_one({"course_id": course_id, "is_published": True}, {"_id": 0, "title": 1})
+    if not c:
+        raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
+    await db.course_waitlist.update_one({"course_id": course_id, "email": email},
+                                        {"$setOnInsert": {"course_id": course_id, "email": email, "name": (body.get("name") or "").strip()[:100],
+                                                          "created_at": now_utc().isoformat()}}, upsert=True)
+    return {"ok": True}
+
+
 @router.get("/courses/{slug}")
 async def get_course(slug: str, request: Request):
     return await course_detail(slug, await get_optional_user(request))
@@ -169,6 +184,7 @@ async def course_detail(slug: str, user):
     summary = course_summary(c)
     summary["requirements"] = c.get("requirements", [])
     summary["long_description"] = c.get("long_description", "")
+    summary["waitlist_joined"] = False
     summary["updated_at"] = c.get("updated_at")
     # curriculum: hide video urls unless enrolled / preview
     modules = []

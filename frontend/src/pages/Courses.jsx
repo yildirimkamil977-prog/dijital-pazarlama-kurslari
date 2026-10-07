@@ -95,9 +95,11 @@ export default function Courses() {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 pt-6 border-t border-white/5">
                     <div className="flex flex-col">
                       <div className="flex items-end gap-2 flex-wrap">
+                        {c.sale_closed ? <span className="font-heading font-black text-2xl text-gold whitespace-nowrap" data-testid={`course-sale-closed-${c.course_id}`}>Yakında satışta</span> : <>
                         {hasDiscount && <span className="text-sm text-muted-foreground line-through whitespace-nowrap">{formatPrice(base)} ₺</span>}
                         <span className="font-heading font-black text-3xl text-gold whitespace-nowrap">{price === 0 ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
                         {savePct > 0 && <span className="mb-1 bg-gold/15 text-gold border border-gold/25 rounded-md px-2 py-0.5 text-xs font-bold whitespace-nowrap">%{savePct}</span>}
+                        </>}
                       </div>
                       {upcoming && <span className="text-[11px] text-gold mt-1">Erken kayıt fiyatı</span>}
                     </div>

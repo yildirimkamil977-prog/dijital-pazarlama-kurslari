@@ -139,7 +139,7 @@ async def _course_seo(slug: str, s: dict, site: str) -> dict:
         "teaches": c.get("what_you_learn") or None, "coursePrerequisites": c.get("requirements") or None,
         "timeRequired": iso_dur(c.get("total_seconds")),
         "offers": {"@type": "Offer", "category": "Free" if price == 0 else "Paid", "price": price, "priceCurrency": "TRY",
-                   "availability": "https://schema.org/PreOrder" if c.get("is_upcoming") else "https://schema.org/InStock", "url": url},
+                   "availability": "https://schema.org/OutOfStock" if c.get("sale_closed") else "https://schema.org/PreOrder" if c.get("is_upcoming") else "https://schema.org/InStock", "url": url},
         "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "Online", "courseWorkload": iso_dur(c.get("total_seconds")),
                               **({"instructor": inst} if inst else {})},
         "syllabusSections": [{"@type": "Syllabus", "name": m["title"], "description": ", ".join(l["title"] for l in m["lessons"])[:300],
@@ -165,7 +165,7 @@ async def _group_seo(slug: str, s: dict, site: str) -> dict:
     url = f"{SITE}/canli-grup-egitimleri/{slug}"
     desc = plain(g.get("description") or g.get("long_description")) or f"{g['title']} canlı online grup eğitimi. Google Meet üzerinden interaktif dersler."
     inst = person(g.get("instructor"))
-    offer = {"@type": "Offer", "price": g.get("price", 0), "priceCurrency": "TRY", "url": url,
+    offer = {"@type": "Offer", "price": g.get("effective_price", g.get("price", 0)), "priceCurrency": "TRY", "url": url,
              "availability": "https://schema.org/SoldOut" if g.get("sold_out") else "https://schema.org/InStock"}
     image = [img(g["image"], 1200)] if g.get("image") else None
 

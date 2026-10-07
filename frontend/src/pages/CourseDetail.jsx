@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { toEmbed } from "@/lib/video";
 import { ReviewMedia } from "@/components/ReviewMedia";
 import { RichContent } from "@/components/RichContent";
+import { CourseNotifyForm } from "@/components/CourseNotifyForm";
 import { optImg, takeInitial, usePageSeo } from "@/lib/page";
 import { m as motion } from "framer-motion";
 import { Loader2, PlayCircle, Clock, Layers, CheckCircle2, Lock, ShoppingCart, Check, Award, Infinity as InfinityIcon, FileText, Play, Star, ShieldCheck, Gift, Rocket, Users, MessageCircle, Zap, GraduationCap } from "lucide-react";
@@ -224,6 +225,8 @@ export default function CourseDetail() {
                   <Badge className="bg-green-500/15 text-green-400 border-green-500/20 mb-4">Bu eğitime kayıtlısın</Badge>
                   <Button onClick={() => navigate(`/panel/izle/${course.course_id}`)} data-testid="go-to-player" className="w-full bg-gold hover:bg-gold-hover text-ink font-bold h-12">Eğitime Devam Et</Button>
                 </>
+              ) : course.sale_closed ? (
+                <CourseNotifyForm courseId={course.course_id} />
               ) : (
                 <>
                   {upcoming && (
@@ -331,14 +334,20 @@ export default function CourseDetail() {
           <div className="px-4 py-3 flex items-center gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
+                {course.sale_closed ? <span className="font-heading font-black text-lg text-gold whitespace-nowrap" data-testid="mobile-price">Yakında satışta</span> : <>
                 {hasDiscount && <span className="text-xs text-muted-foreground line-through whitespace-nowrap">{formatPrice(base)} ₺</span>}
                 <span className="font-heading font-black text-xl text-gold whitespace-nowrap" data-testid="mobile-price">{isFree ? "Ücretsiz" : `${formatPrice(price)} ₺`}</span>
                 {savePct > 0 && <Badge className={`text-[10px] ${upcoming ? "bg-gold text-ink border-gold" : "bg-destructive/15 text-red-400 border-destructive/20"}`} data-testid="mobile-discount-badge">%{savePct} {upcoming ? "Erken Kayıt" : "indirim"}</Badge>}
+                </>}
               </div>
             </div>
+            {course.sale_closed ? (
+              <Button onClick={() => document.getElementById("course-notify")?.scrollIntoView({ behavior: "smooth", block: "center" })} data-testid="mobile-notify-btn" className="bg-gold hover:bg-gold-hover text-ink font-bold h-11 px-6 shrink-0">Haber Ver</Button>
+            ) : (
             <Button onClick={isFree ? handleFreeEnroll : handleBuy} disabled={enrolling} data-testid="mobile-enroll-btn" className="bg-gold hover:bg-gold-hover text-ink font-bold h-11 px-6 shrink-0">
               {enrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : isFree ? "Ücretsiz Kayıt Ol" : upcoming ? "Ön Kayıt Ol" : "Kayıt Ol"}
             </Button>
+            )}
           </div>
         </div>
       )}

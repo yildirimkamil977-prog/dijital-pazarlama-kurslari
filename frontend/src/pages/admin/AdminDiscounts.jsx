@@ -10,17 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
-const empty = { code: "", type: "percent", value: 10, active: true, usage_limit: "", min_amount: "", course_ids: [] };
+const empty = { code: "", type: "percent", value: 10, active: true, usage_limit: "", min_amount: "", course_ids: [], group_ids: [] };
 
 export default function AdminDiscounts() {
   const [codes, setCodes] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
 
   const load = () => api.get("/admin/discounts").then(({ data }) => setCodes(data)).finally(() => setLoading(false));
-  useEffect(() => { document.title = "Yönetim - İndirim Kodları"; load(); api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {}); }, []);
+  useEffect(() => { document.title = "Yönetim - İndirim Kodları"; load(); api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {}); api.get("/group-trainings").then(({ data }) => setGroups(data)).catch(() => {}); }, []);
 
   const create = async () => {
     if (!form.code.trim()) { toast.error("Kod zorunlu"); return; }
@@ -29,7 +30,7 @@ export default function AdminDiscounts() {
         code: form.code, type: form.type, value: Number(form.value), active: form.active,
         usage_limit: form.usage_limit === "" ? null : Number(form.usage_limit),
         min_amount: form.min_amount === "" ? null : Number(form.min_amount),
-        course_ids: form.course_ids || [],
+        course_ids: form.course_ids || [], group_ids: form.group_ids || [],
       });
       toast.success("İndirim kodu oluşturuldu"); setOpen(false); setForm(empty); load();
     } catch (e) { toast.error(apiError(e)); }
@@ -77,6 +78,16 @@ export default function AdminDiscounts() {
                     );
                   })}
                   {courses.length === 0 && <p className="text-xs text-muted-foreground">Eğitim yok.</p>}
+                  {groups.length > 0 && <p className="text-[11px] uppercase tracking-wide text-gold/80 pt-2 px-1">Canlı Grup Eğitimleri</p>}
+                  {groups.map((g) => {
+                    const on = (form.group_ids || []).includes(g.group_id);
+                    return (
+                      <button type="button" key={g.group_id} onClick={() => setForm({ ...form, group_ids: on ? form.group_ids.filter((x) => x !== g.group_id) : [...(form.group_ids || []), g.group_id] })}
+                        className={`w-full text-left text-sm rounded-md px-2.5 py-1.5 transition-colors ${on ? "bg-gold/15 text-gold" : "hover:bg-white/5 text-muted-foreground"}`} data-testid={`discount-group-${g.group_id}`}>
+                        {on ? "✓ " : ""}{g.title}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -104,7 +115,7 @@ export default function AdminDiscounts() {
             <div className="flex gap-3 mt-4 text-xs text-muted-foreground">
               <Badge className="bg-secondary">{c.used_count || 0}{c.usage_limit ? `/${c.usage_limit}` : ""} kullanım</Badge>
               {c.min_amount ? <Badge className="bg-secondary">Min {formatPrice(c.min_amount)} ₺</Badge> : null}
-              {c.course_ids?.length ? <Badge className="bg-gold/15 text-gold border-gold/20">{c.course_ids.length} eğitime özel</Badge> : null}
+              {(c.course_ids?.length || c.group_ids?.length) ? <Badge className="bg-gold/15 text-gold border-gold/20">{(c.course_ids?.length || 0) + (c.group_ids?.length || 0)} eğitime özel</Badge> : null}
               {!c.active && <Badge className="bg-destructive/15 text-red-400 border-destructive/20">Pasif</Badge>}
             </div>
           </div>

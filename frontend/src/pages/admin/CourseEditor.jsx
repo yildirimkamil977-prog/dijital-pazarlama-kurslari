@@ -11,13 +11,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ImageUpload } from "@/components/ImageUpload";
+import { CourseWaitlist } from "@/components/admin/CourseWaitlist";
 const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
   title: "", subtitle: "", description: "", category: "", level: "Tüm Seviyeler",
   price: 0, discount_price: null, publish_at: "", early_bird_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
-  is_published: false, what_you_learn: [], requirements: [], long_description: "", cross_sell_ids: [], modules: [],
+  is_published: false, sale_closed: false, what_you_learn: [], requirements: [], long_description: "", cross_sell_ids: [], modules: [],
 };
 
 export default function CourseEditor() {
@@ -152,6 +153,13 @@ export default function CourseEditor() {
           <div className="flex items-center justify-between pt-2">
             <div><Label>Yayında</Label><p className="text-xs text-muted-foreground">Açık olduğunda öğrenciler görebilir</p></div>
             <Switch checked={form.is_published} onCheckedChange={(v) => set("is_published", v)} data-testid="course-published" />
+          </div>
+          <div className="pt-2">
+            <div className="flex items-center justify-between">
+              <div><Label>Satışa Kapalı (Yakında Satışta)</Label><p className="text-xs text-muted-foreground">Kurs sitede görünür; fiyat yerine "Yakında satışta" yazar, satın alma kapanır, ziyaretçiler "Açılınca haber ver" ile e-posta bırakabilir.</p></div>
+              <Switch checked={!!form.sale_closed} onCheckedChange={(v) => set("sale_closed", v)} data-testid="course-sale-closed" />
+            </div>
+            {form.course_id && <CourseWaitlist courseId={form.course_id} />}
           </div>
         </section>
 

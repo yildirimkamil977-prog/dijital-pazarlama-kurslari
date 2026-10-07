@@ -11,7 +11,7 @@ import { GroupCurriculumEditor } from "@/components/admin/GroupCurriculumEditor"
 const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 import { toast } from "sonner";
 
-const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, capacity: 20, instructor_id: "", lessons: [], curriculum: [], is_published: false };
+const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, discount_price: "", capacity: 20, instructor_id: "", lessons: [], curriculum: [], is_published: false };
 
 export default function AdminGroupTrainings() {
   const [items, setItems] = useState([]);
@@ -38,7 +38,7 @@ export default function AdminGroupTrainings() {
     if (!form.title.trim()) { toast.error("Başlık zorunlu"); return; }
     setSaving(true);
     const clean = (arr) => (arr || []).map((x) => x.trim()).filter(Boolean);
-    const body = { ...form, price: Number(form.price) || 0, capacity: Number(form.capacity) || 0, what_you_learn: clean(form.what_you_learn), requirements: clean(form.requirements) };
+    const body = { ...form, price: Number(form.price) || 0, discount_price: form.discount_price === "" || form.discount_price == null ? null : Number(form.discount_price), capacity: Number(form.capacity) || 0, what_you_learn: clean(form.what_you_learn), requirements: clean(form.requirements) };
     try {
       if (editing === "new") await api.post("/admin/group-trainings", body);
       else await api.put(`/admin/group-trainings/${editing}`, body);
@@ -66,7 +66,8 @@ export default function AdminGroupTrainings() {
         <div><Label>Uzun Açıklama <span className="text-xs text-muted-foreground font-normal">(sayfada ders programının hemen altında görünür)</span></Label>
           <div className="mt-1.5"><Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-gold" />}><RichTextEditor key={editing} value={form.long_description || ""} onChange={(v) => set("long_description", v)} testId="group-long-description" /></Suspense></div></div>
         <div className="grid grid-cols-2 gap-4">
-          <div><Label>Fiyat (₺)</Label><Input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-price" /></div>
+          <div><Label>Normal Fiyat (₺)</Label><Input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-price" /></div>
+          <div><Label>İndirimli Fiyat (₺) <span className="text-xs text-muted-foreground font-normal">(boş = indirim yok)</span></Label><Input type="number" value={form.discount_price ?? ""} onChange={(e) => set("discount_price", e.target.value)} className="bg-ink border-white/10 mt-1.5" placeholder="Örn. 3999" data-testid="group-discount-price" /></div>
           <div><Label>Kontenjan</Label><Input type="number" value={form.capacity} onChange={(e) => set("capacity", e.target.value)} className="bg-ink border-white/10 mt-1.5" data-testid="group-capacity" /></div>
         </div>
         <div><Label>Tanıtım Videosu (Vimeo/YouTube linki)</Label><Input value={form.promo_video} onChange={(e) => set("promo_video", e.target.value)} className="bg-ink border-white/10 mt-1.5" placeholder="https://vimeo.com/..." /></div>

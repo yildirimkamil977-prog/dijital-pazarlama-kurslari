@@ -10,7 +10,9 @@ from datetime import datetime, timezone, timedelta
 import httpx
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+from typing import Optional
 
+from routes_payments import group_price
 from deps import (db, now_utc, new_id, get_current_user, require_admin,
                   get_settings_doc, schedule_email, push_notification, get_paytr_credentials)
 
@@ -57,6 +59,7 @@ async def _public(doc, imap, with_links=False):
             "image": doc.get("image", ""), "updated_at": doc.get("updated_at") or doc.get("created_at"),
             "what_you_learn": doc.get("what_you_learn", []), "requirements": doc.get("requirements", []),
             "promo_video": doc.get("promo_video", ""), "price": doc.get("price", 0),
+            "discount_price": doc.get("discount_price"), "effective_price": group_price(doc),
             "capacity": cap, "enrolled": enrolled, "remaining": remaining, "low_stock": remaining <= 10,
             "sold_out": remaining <= 0, "lessons": pub_lessons, "curriculum": doc.get("curriculum", []),
             "start_date": lessons[0].get("date") if lessons else None,
@@ -112,7 +115,7 @@ async def purchase_group(group_id: str, request: Request):
     enrolled = await db.group_enrollments.count_documents({"group_id": group_id})
     if enrolled >= d.get("capacity", 0):
         raise HTTPException(status_code=400, detail="Bu eğitim için kontenjan doldu")
-    total = float(d.get("price", 0))
+    total = group_price(d)
     creds = await get_paytr_credentials()
     if not creds:
         raise HTTPException(status_code=503, detail="Kart ile ödeme henüz yapılandırılmadı. Lütfen daha sonra tekrar deneyin.")
@@ -166,6 +169,7 @@ class GroupIn(BaseModel):
     what_you_learn: list = []
     requirements: list = []
     price: float = 0
+    discount_price: Optional[float] = None
     capacity: int = 0
     instructor_id: str = ""
     lessons: list = []

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { m as motion } from "framer-motion";
-import { Loader2, Video, Users, CalendarDays, Clock, AlertTriangle, User, PlayCircle, CheckCircle2, ListChecks, ShieldCheck, Award, Radio, Star, Sparkles } from "lucide-react";
-import api, { formatPrice, apiError } from "@/lib/api";
+import { Loader2, Video, Users, CalendarDays, Clock, AlertTriangle, User, PlayCircle, CheckCircle2, ListChecks, ShieldCheck, Award, Radio, Star, Sparkles, Check, ShoppingCart } from "lucide-react";
+import api, { formatPrice } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
@@ -11,6 +11,7 @@ import { ReviewMedia } from "@/components/ReviewMedia";
 import { RichContent } from "@/components/RichContent";
 import { optImg, takeInitial, usePageSeo } from "@/lib/page";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { useSite } from "@/context/SiteContext";
 import { Seo } from "@/components/Seo";
 import { SocialLinks } from "@/components/SocialLinks";
@@ -22,27 +23,27 @@ const trDate = (d) => { try { return new Date(d + "T00:00:00").toLocaleDateStrin
 export default function GroupDetail() {
   const { slug } = useParams();
   const { user } = useAuth();
+  const { addGroup, has } = useCart();
   const { settings } = useSite();
   const navigate = useNavigate();
   const [g, setG] = useState(() => takeInitial(`group:${slug}`));
   const [loading, setLoading] = useState(!g);
-  const [busy, setBusy] = useState(false);
   const [playPromo, setPlayPromo] = useState(false);
   const seo = usePageSeo(`/canli-grup-egitimleri/${slug}`);
 
   useEffect(() => { api.get(`/group-trainings/${slug}`).then(({ data }) => setG(data)).catch(() => setG((cur) => cur)).finally(() => setLoading(false)); }, [slug]);
 
-  const buy = async () => {
-    if (!user) { navigate("/giris"); return; }
-    setBusy(true);
-    try { const { data } = await api.post(`/group-trainings/${g.group_id}/purchase`); if (data.iframe_url) window.location.href = data.iframe_url; }
-    catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
-  };
+  const inCart = g ? has(g.group_id) : false;
+  const buy = () => { if (!inCart) addGroup(g); navigate(user ? "/odeme" : "/giris"); };
+  const addToCart = () => { addGroup(g); toast.success("Sepete eklendi"); };
 
   if (loading) return <div className="flex justify-center py-40 min-h-[80vh]"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   if (!g) return <div className="text-center py-40 text-muted-foreground">Eğitim bulunamadı.</div>;
 
   const siteName = settings.site_name || "Akademi";
+  const price = g.effective_price ?? g.price;
+  const hasDiscount = price < g.price;
+  const savePct = hasDiscount && g.price > 0 ? Math.round((1 - price / g.price) * 100) : 0;
 
   const fade = () => ({});
 
@@ -112,6 +113,28 @@ export default function GroupDetail() {
               </div>
             </motion.div>
 
+            {/* Eğitim Takvimi */}
+            <div>
+              <h2 className="font-heading font-bold text-2xl tracking-tight mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-gold" /> Eğitim Takvimi</h2>
+              <div className="space-y-3" data-testid="group-schedule">
+                {g.lessons.length === 0 ? <p className="text-sm text-muted-foreground bg-ink-surface border border-white/5 rounded-2xl p-6">Program yakında açıklanacak.</p>
+                  : g.lessons.map((l, i) => (
+                    <div key={l.id || i} className="group flex items-center justify-between gap-4 bg-ink-surface border border-white/8 rounded-2xl px-5 py-4 hover:border-gold/30 transition-colors">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <span className="w-10 h-10 rounded-xl bg-gold/10 text-gold text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{l.title}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 capitalize"><Clock className="w-3.5 h-3.5" /> {trDate(l.date)} · {l.time}{l.end_time ? ` – ${l.end_time}` : ""}</p>
+                        </div>
+                      </div>
+                      <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 shrink-0">
+                        <img src={MEET_LOGO} alt="" className="w-3.5 h-3.5" /> Canlı
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
             {g.description && (
               <motion.div {...fade(2)}>
                 <h2 className="font-heading font-bold text-2xl tracking-tight mb-4">Eğitim Hakkında</h2>
@@ -156,28 +179,6 @@ export default function GroupDetail() {
                 </Accordion>
               </div>
             )}
-
-            {/* Eğitim Takvimi */}
-            <motion.div {...fade(1)}>
-              <h2 className="font-heading font-bold text-2xl tracking-tight mb-4 flex items-center gap-2"><CalendarDays className="w-5 h-5 text-gold" /> Eğitim Takvimi</h2>
-              <div className="space-y-3" data-testid="group-schedule">
-                {g.lessons.length === 0 ? <p className="text-sm text-muted-foreground bg-ink-surface border border-white/5 rounded-2xl p-6">Program yakında açıklanacak.</p>
-                  : g.lessons.map((l, i) => (
-                    <div key={l.id || i} className="group flex items-center justify-between gap-4 bg-ink-surface border border-white/8 rounded-2xl px-5 py-4 hover:border-gold/30 transition-colors">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <span className="w-10 h-10 rounded-xl bg-gold/10 text-gold text-sm font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{l.title}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5 capitalize"><Clock className="w-3.5 h-3.5" /> {trDate(l.date)} · {l.time}{l.end_time ? ` – ${l.end_time}` : ""}</p>
-                        </div>
-                      </div>
-                      <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 shrink-0">
-                        <img src={MEET_LOGO} alt="" className="w-3.5 h-3.5" /> Canlı
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </motion.div>
 
             {g.long_description && (
               <section className="bg-ink-surface border border-white/5 rounded-2xl p-7" data-testid="group-long-description-section">
@@ -244,8 +245,10 @@ export default function GroupDetail() {
             <motion.div className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
               <div className="bg-gradient-to-br from-gold/15 to-transparent px-6 pt-6 pb-5 border-b border-white/8">
                 <span className="overline text-gold text-[11px]">Canlı Grup Eğitimi</span>
-                <div className="mt-2 flex items-end gap-2">
-                  <span className="font-heading font-black text-4xl text-gold">{formatPrice(g.price)} ₺</span>
+                <div className="mt-2 flex items-end gap-3 flex-wrap">
+                  {hasDiscount && <span className="text-muted-foreground line-through text-lg whitespace-nowrap" data-testid="group-original-price">{formatPrice(g.price)} ₺</span>}
+                  <span className="font-heading font-black text-4xl text-gold whitespace-nowrap" data-testid="group-price-display">{formatPrice(price)} ₺</span>
+                  {savePct > 0 && <span className="mb-1.5 bg-gold text-ink rounded-md px-2 py-0.5 text-xs font-black whitespace-nowrap" data-testid="group-discount-badge">%{savePct} indirim</span>}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Tek seferlik ödeme · Ömür boyu topluluk</p>
               </div>
@@ -276,9 +279,12 @@ export default function GroupDetail() {
                 {g.sold_out ? (
                   <Button disabled className="w-full mt-5 h-13 py-3.5" data-testid="group-soldout">Kontenjan Doldu</Button>
                 ) : (
-                  <Button onClick={buy} disabled={busy} data-testid="group-buy" className="w-full mt-5 h-13 py-3.5 bg-gold hover:bg-gold-hover text-ink font-bold text-base">
-                    {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Eğitime Kaydol"}
-                  </Button>
+                  <div className="mt-5 space-y-3">
+                    <Button onClick={buy} data-testid="group-buy" className="w-full h-13 py-3.5 bg-gold hover:bg-gold-hover text-ink font-bold text-base">Eğitime Kaydol</Button>
+                    <Button onClick={addToCart} disabled={inCart} variant="outline" data-testid="group-add-to-cart" className="w-full h-12 border-white/15">
+                      {inCart ? <><Check className="w-4 h-4 mr-2" /> Sepette</> : <><ShoppingCart className="w-4 h-4 mr-2" /> Sepete Ekle</>}
+                    </Button>
+                  </div>
                 )}
 
                 <div className="mt-5 space-y-2.5 text-xs text-muted-foreground">
@@ -295,16 +301,18 @@ export default function GroupDetail() {
 
       {/* MOBILE STICKY BAR */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-4" data-testid="group-mobile-bar">
-        <div>
-          <span className="font-heading font-black text-xl text-gold">{formatPrice(g.price)} ₺</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {hasDiscount && <span className="text-xs text-muted-foreground line-through whitespace-nowrap">{formatPrice(g.price)} ₺</span>}
+            <span className="font-heading font-black text-xl text-gold whitespace-nowrap" data-testid="group-mobile-price">{formatPrice(price)} ₺</span>
+            {savePct > 0 && <Badge className="text-[10px] bg-destructive/15 text-red-400 border-destructive/20" data-testid="group-mobile-discount-badge">%{savePct} indirim</Badge>}
+          </div>
           <p className={`text-[11px] ${g.low_stock ? "text-red-400" : "text-muted-foreground"}`}>{g.remaining} kontenjan kaldı</p>
         </div>
         {g.sold_out ? (
           <Button disabled className="flex-1 h-12" data-testid="group-mobile-soldout">Kontenjan Doldu</Button>
         ) : (
-          <Button onClick={buy} disabled={busy} data-testid="group-mobile-buy" className="flex-1 h-12 bg-gold hover:bg-gold-hover text-ink font-bold">
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : "Eğitime Kaydol"}
-          </Button>
+          <Button onClick={buy} data-testid="group-mobile-buy" className="flex-1 h-12 bg-gold hover:bg-gold-hover text-ink font-bold">Eğitime Kaydol</Button>
         )}
       </div>
     </div>

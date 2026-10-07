@@ -65,6 +65,7 @@ class CourseIn(BaseModel):
     what_you_learn: List[str] = []
     requirements: List[str] = []
     long_description: str = ""
+    sale_closed: bool = False
     meta_title: str = ""
     meta_description: str = ""
     meta_keywords: str = ""
@@ -98,6 +99,11 @@ async def admin_get_course(course_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
     return c
 
+
+@router.get("/courses/{course_id}/waitlist")
+async def admin_course_waitlist(course_id: str, request: Request):
+    await require_admin(request)
+    return await db.course_waitlist.find({"course_id": course_id}, {"_id": 0}).sort("created_at", -1).to_list(5000)
 
 @router.post("/courses")
 async def create_course(body: CourseIn, request: Request):
@@ -504,7 +510,11 @@ async def mark_paid(order_id: str, request: Request):
             "name": order.get("user_name", ""),
             "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
     else:
+        from routes_payments import enroll_group_item
         for it in order["items"]:
+            if it.get("group_id"):
+                await enroll_group_item(order, it["group_id"])
+                continue
             if not it.get("course_id"):
                 continue
             if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
@@ -527,6 +537,7 @@ class DiscountIn(BaseModel):
     usage_limit: Optional[int] = None
     min_amount: Optional[float] = None
     course_ids: List[str] = []
+    group_ids: List[str] = []
 
 
 @router.get("/discounts")

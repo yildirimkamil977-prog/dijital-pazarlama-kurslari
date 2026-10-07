@@ -22,7 +22,8 @@ FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 
 
 class CheckoutItem(BaseModel):
-    course_id: str
+    course_id: str = ""
+    group_id: str = ""
 
 
 class Customer(BaseModel):
@@ -82,8 +83,10 @@ async def _apply_discount(code: Optional[str], subtotal: float, items=None):
     if doc.get("min_amount") and subtotal < doc["min_amount"]:
         raise HTTPException(status_code=400, detail=f"Bu kod min. {doc['min_amount']} TL için geçerli")
     course_ids = doc.get("course_ids") or []
-    if course_ids:
-        base = sum(float(i.get("price", 0)) for i in (items or []) if i.get("course_id") in course_ids)
+    group_ids = doc.get("group_ids") or []
+    if course_ids or group_ids:
+        base = sum(float(i.get("price", 0)) for i in (items or [])
+                   if (i.get("course_id") and i.get("course_id") in course_ids) or (i.get("group_id") and i.get("group_id") in group_ids))
         if base <= 0:
             raise HTTPException(status_code=400, detail="Bu kod sepetteki eğitimler için geçerli değil")
     else:
@@ -102,7 +105,7 @@ async def validate_discount(body: dict, request: Request):
     subtotal = float(body.get("subtotal", 0))
     items = body.get("items") or []
     disc, doc = await _apply_discount(code, subtotal, items)
-    scope = " (seçili eğitimlerde)" if (doc and doc.get("course_ids")) else ""
+    scope = " (seçili eğitimlerde)" if (doc and (doc.get("course_ids") or doc.get("group_ids"))) else ""
     label = (f"%{int(doc['value'])} indirim{scope}" if doc and doc["type"] == "percent" else f"{int(doc['value'])} ₺ indirim{scope}" if doc else "")
     return {
         "discount": round(disc, 2), "code": doc["code"] if doc else None,
@@ -111,8 +114,29 @@ async def validate_discount(body: dict, request: Request):
     }
 
 
+def group_price(g: dict) -> float:
+    dp = g.get("discount_price")
+    price = float(g.get("price", 0))
+    return float(dp) if dp is not None and 0 <= dp < price else price
+
+
+async def enroll_group_item(order: dict, group_id: str):
+    if not await db.group_enrollments.find_one({"group_id": group_id, "user_id": order["user_id"]}):
+        await db.group_enrollments.insert_one({
+            "enr_id": new_id("genr"), "group_id": group_id, "user_id": order["user_id"],
+            "user_name": order.get("user_name", ""), "user_email": order["user_email"],
+            "order_id": order.get("order_id"), "enrolled_at": now_utc().isoformat()})
+    g = await db.group_trainings.find_one({"group_id": group_id})
+    schedule_email("group_purchase", order["user_email"], {
+        "name": order.get("user_name", ""), "training": g["title"] if g else "",
+        "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
+
+
 async def _enroll_free(user, order):
     for it in order["items"]:
+        if it.get("group_id"):
+            await enroll_group_item(order, it["group_id"])
+            continue
         exists = await db.enrollments.find_one({"user_id": user["user_id"], "course_id": it["course_id"]})
         if not exists:
             await db.enrollments.insert_one({
@@ -172,9 +196,23 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
     items = []
     subtotal = 0.0
     for it in body.items:
+        if it.group_id:
+            g = await db.group_trainings.find_one({"group_id": it.group_id, "is_published": True}, {"_id": 0})
+            if not g:
+                raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
+            if await db.group_enrollments.find_one({"group_id": g["group_id"], "user_id": user["user_id"]}):
+                raise HTTPException(status_code=400, detail=f"'{g['title']}' eğitimine zaten kayıtlısınız")
+            if await db.group_enrollments.count_documents({"group_id": g["group_id"]}) >= g.get("capacity", 0):
+                raise HTTPException(status_code=400, detail=f"'{g['title']}' için kontenjan doldu")
+            price = group_price(g)
+            subtotal += price
+            items.append({"course_id": "", "group_id": g["group_id"], "title": g["title"], "price": price})
+            continue
         c = await db.courses.find_one({"course_id": it.course_id, "is_published": True}, {"_id": 0})
         if not c:
             raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
+        if c.get("sale_closed"):
+            raise HTTPException(status_code=400, detail=f"'{c['title']}' henüz satışa açılmadı")
         if await db.enrollments.find_one({"user_id": user["user_id"], "course_id": c["course_id"]}):
             raise HTTPException(status_code=400, detail=f"'{c['title']}' eğitimine zaten kayıtlısınız")
         price = await _price_of(c)
@@ -309,6 +347,9 @@ async def paytr_callback(request: Request):
                 "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
         if not is_consulting and kind != "group":
             for it in order["items"]:
+                if it.get("group_id"):
+                    await enroll_group_item(order, it["group_id"])
+                    continue
                 if not await db.enrollments.find_one({"user_id": order["user_id"], "course_id": it["course_id"]}):
                     await db.enrollments.insert_one({
                         "enrollment_id": new_id("enr"), "user_id": order["user_id"],
