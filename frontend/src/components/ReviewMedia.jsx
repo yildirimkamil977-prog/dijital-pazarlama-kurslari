@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { Play } from "lucide-react";
-import { toEmbed } from "@/lib/video";
+import { toEmbed, isDirectVideo } from "@/lib/video";
 
 export const ReviewMedia = ({ review, testId }) => {
   const [playing, setPlaying] = useState(false);
   const [imgOk, setImgOk] = useState(true);
   if (!review.video_url && !review.thumbnail) return null;
   if (playing) {
+    if (isDirectVideo(review.video_url)) {
+      return (
+        <div className="relative aspect-[9/16] bg-black">
+          <video src={review.video_url} poster={review.thumbnail || undefined} autoPlay controls playsInline className="w-full h-full object-cover" data-testid={`${testId}-video`} />
+        </div>
+      );
+    }
     const src = toEmbed(review.video_url);
     return (
       <div className="relative aspect-[9/16] bg-black">

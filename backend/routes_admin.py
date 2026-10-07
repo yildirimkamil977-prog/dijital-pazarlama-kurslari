@@ -451,6 +451,23 @@ async def upload_image(request: Request, file: UploadFile = File(...)):
     return {"url": f"/api/uploads/{uid}"}
 
 
+@router.post("/upload-video")
+async def upload_video(request: Request, file: UploadFile = File(...)):
+    await require_admin(request)
+    ct = file.content_type or "video/mp4"
+    if not ct.startswith("video/"):
+        raise HTTPException(status_code=400, detail="Lütfen bir video dosyası yükleyin")
+    uid = new_id("vid")
+    grid_in = AsyncIOMotorGridFSBucket(db).open_upload_stream(uid, metadata={"content_type": ct})
+    while chunk := await file.read(1024 * 1024):
+        await grid_in.write(chunk)
+    await grid_in.close()
+    await db.uploads.insert_one({
+        "upload_id": uid, "content_type": ct, "gridfs_id": grid_in._id, "created_at": now_utc().isoformat(),
+    })
+    return {"url": f"/api/uploads/{uid}"}
+
+
 @router.delete("/payments/{order_id}/invoice")
 async def delete_invoice(order_id: str, request: Request):
     await require_admin(request)

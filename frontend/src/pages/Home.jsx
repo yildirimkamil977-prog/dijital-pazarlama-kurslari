@@ -11,6 +11,7 @@ import { GroupCard } from "@/components/GroupCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
+import { toEmbed, isDirectVideo } from "@/lib/video";
 
 const perks = [
   { icon: MessageCircle, title: "1 Saat Ücretsiz Danışmanlık", text: "Başlamadan önce hedeflerini netleştir, sana uygun eğitim yolunu birlikte planlayalım." },
@@ -76,22 +77,6 @@ export default function Home() {
     document.title = `${settings.site_name || "Akademi"} - Dijital Pazarlama Eğitimleri`;
   }, [settings.site_name]);
 
-  const toEmbed = (url) => {
-    if (!url) return "";
-    try {
-      const u = new URL(url);
-      if (u.hostname.includes("youtu.be")) return `https://www.youtube.com/embed/${u.pathname.slice(1)}`;
-      if (u.hostname.includes("youtube.com")) {
-        const id = u.searchParams.get("v");
-        if (id) return `https://www.youtube.com/embed/${id}`;
-      }
-      if (u.hostname.includes("vimeo.com") && !u.hostname.includes("player")) {
-        const id = u.pathname.split("/").filter(Boolean).pop();
-        return `https://player.vimeo.com/video/${id}`;
-      }
-    } catch { /* ignore */ }
-    return url;
-  };
   const openVideo = (url, vertical = false) => { setActiveVideo(toEmbed(url)); setVideoVertical(vertical); setVideoOpen(true); };
   const testimonials = settings.testimonials || [];
   const shuffledT = useMemo(() => [...testimonials].sort(() => Math.random() - 0.5), [testimonials.length]);
@@ -375,7 +360,7 @@ export default function Home() {
       <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
         <DialogContent className={`${videoVertical ? "max-w-[420px]" : "max-w-3xl"} p-0 gap-0 bg-black border-white/10 overflow-hidden`}>
           <DialogTitle className="sr-only">Tanıtım Videosu</DialogTitle>
-          <div className={videoVertical ? "aspect-[9/16]" : "aspect-video"}>{activeVideo && <iframe title="Video" src={activeVideo + (activeVideo.includes("?") ? "&" : "?") + "autoplay=1"} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />}</div>
+          <div className={videoVertical ? "aspect-[9/16]" : "aspect-video"}>{activeVideo && (isDirectVideo(activeVideo) ? <video src={activeVideo} autoPlay controls playsInline className="w-full h-full" data-testid="home-video-player" /> : <iframe title="Video" src={activeVideo + (activeVideo.includes("?") ? "&" : "?") + "autoplay=1"} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />)}</div>
         </DialogContent>
       </Dialog>
     </div>

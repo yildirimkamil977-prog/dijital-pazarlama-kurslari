@@ -104,21 +104,34 @@ async def public_instructor(slug: str):
 
 
 @router.get("/uploads/{upload_id}")
-async def get_upload(upload_id: str):
+async def get_upload(upload_id: str, request: Request):
     import base64
     from fastapi.responses import Response
     doc = await db.uploads.find_one({"upload_id": upload_id})
     if not doc:
         raise HTTPException(status_code=404, detail="Görsel bulunamadı")
+    ctype = doc.get("content_type", "image/png")
+    cache = {"Cache-Control": "public, max-age=31536000", "Accept-Ranges": "bytes"}
     if doc.get("gridfs_id"):
         from motor.motor_asyncio import AsyncIOMotorGridFSBucket
         stream = await AsyncIOMotorGridFSBucket(db).open_download_stream(doc["gridfs_id"])
+        size = stream.length
+        rng = request.headers.get("range", "")
+        if rng.startswith("bytes="):
+            s, _, e = rng[6:].split(",")[0].partition("-")
+            start = int(s) if s else max(0, size - int(e))
+            end = min(int(e), size - 1) if (s and e) else size - 1
+            end = min(end, start + 4 * 1024 * 1024 - 1)
+            stream.seek(start)
+            content = await stream.read(end - start + 1)
+            return Response(content=content, status_code=206, media_type=ctype,
+                            headers={**cache, "Content-Range": f"bytes {start}-{end}/{size}"})
         content = await stream.read()
     else:
         content = base64.b64decode(doc["data"])
     return Response(content=content,
-                    media_type=doc.get("content_type", "image/png"),
-                    headers={"Cache-Control": "public, max-age=31536000"})
+                    media_type=ctype,
+                    headers=cache)
 
 
 @router.get("/courses")
