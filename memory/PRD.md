@@ -418,5 +418,5 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Ödeme sayfası: giriş yapılıysa "Bu sipariş X hesabına eklenecek · Çıkış yap" uyarısı
 - Havale onayı: toast'ta onay e-postasının alıcısı gösteriliyor; Resend başarı/hata loglanıyor
 - Kök neden tahmini: sipariş, tarayıcıda açık olan başka "Kamil Yıldırım" hesabına bağlanmıştı
-- Öğrenci sayısı ifadeleri kaldırıldı (anasayfa güven kartı, hero "5.000'den fazla öğrenci" kutusu, kurs detay alt şeridi)
+- Sadece "{students_count} öğrenci" yazıları kaldırıldı (anasayfa güven kartı, kurs detay alt şeridi); bölümler ve hero "5.000'den fazla öğrenci" kutusu yerinde
 

@@ -30,6 +30,12 @@ const tools = [
   { name: "Tag Manager", slug: "googletagmanager" },
   { name: "Merchant Center", slug: null },
 ];
+const HERO_AVATARS = [
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=faces&fit=crop&w=96&h=96&q=80",
+  "https://images.unsplash.com/photo-1604904612715-47bf9d9bc670?crop=faces&fit=crop&w=96&h=96&q=80",
+  "https://images.pexels.com/photos/37148308/pexels-photo-37148308.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=96&h=96",
+  "https://images.unsplash.com/photo-1758600587730-a11917c13b85?crop=faces&fit=crop&w=96&h=96&q=80",
+];
 const outcomes = [
   { icon: GraduationCap, title: "Uzman ve deneyimli eğitmenler" },
   { icon: Send, title: "Telegram üzerinden sorularını sorma imkanı" },
@@ -137,6 +143,12 @@ export default function Home() {
                 <span className="w-20 h-20 rounded-full bg-gold/90 backdrop-blur flex items-center justify-center group-hover:scale-110 transition-transform duration-300 gold-glow">
                   <Play className="w-8 h-8 text-ink ml-1" fill="currentColor" />
                 </span>
+              </div>
+              <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 glass rounded-xl p-3">
+                <div className="flex -space-x-2">
+                  {HERO_AVATARS.map((src, i) => <img key={i} src={src} alt="öğrenci" className="w-7 h-7 rounded-full object-cover border-2 border-ink" />)}
+                </div>
+                <span className="text-xs text-foreground/90">5.000'den fazla öğrenci şimdiden izliyor</span>
               </div>
             </div>
           </motion.div>
