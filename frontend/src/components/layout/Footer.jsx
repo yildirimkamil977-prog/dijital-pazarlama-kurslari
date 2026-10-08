@@ -48,7 +48,7 @@ export function Footer() {
           <p className="overline text-gold mb-4">Keşfet</p>
           <ul className="space-y-3 text-sm">
             <li><Link to="/kurslar" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Tüm Kurslar</Link></li>
-            <li><Link to="/hakkimda" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Hakkımda</Link></li>
+            <li><Link to="/hakkimizda" className="text-muted-foreground hover:text-foreground transition-colors duration-200" data-testid="footer-about-link">Hakkımızda</Link></li>
             <li><Link to="/giris" className="text-muted-foreground hover:text-foreground transition-colors duration-200">Öğrenci Girişi</Link></li>
           </ul>
         </div>

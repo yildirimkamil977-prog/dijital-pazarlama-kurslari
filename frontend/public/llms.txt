@@ -4,7 +4,7 @@
 
 ## Önemli Sayfalar
 - Eğitimler: /kurslar
-- Hakkımda: /hakkimda
+- Hakkımızda: /hakkimizda
 - İletişim: /iletisim
 
 ## Notlar

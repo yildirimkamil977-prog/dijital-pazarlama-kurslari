@@ -13,8 +13,6 @@ const navLinks = [
   { to: "/", label: "Anasayfa" },
   { to: "/kurslar", label: "Kurslar" },
   { to: "/canli-grup-egitimleri", label: "Canlı Grup Eğitimleri" },
-  { to: "/hakkimda", label: "Hakkımda" },
-  { to: "/iletisim", label: "İletişim" },
 ];
 
 export function Navbar() {

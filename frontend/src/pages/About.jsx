@@ -20,7 +20,7 @@ const values = [
 
 export default function About() {
   const { settings } = useSite();
-  useEffect(() => { document.title = `Hakkımda - ${settings.site_name || "Akademi"}`; }, [settings.site_name]);
+  useEffect(() => { document.title = `Hakkımızda - ${settings.site_name || "Akademi"}`; }, [settings.site_name]);
 
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-20">
@@ -41,7 +41,7 @@ export default function About() {
 
         <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7 }} className="lg:col-span-6">
           <div className="relative rounded-3xl overflow-hidden border border-white/10 gold-glow">
-            <img src="https://images.pexels.com/photos/4260481/pexels-photo-4260481.jpeg" alt="Kamil Yıldırım" className="w-full h-[480px] object-cover" />
+            <img src="/img/hakkimizda.webp" alt="Kamil Yıldırım" width="1000" height="1000" className="w-full h-[480px] object-cover object-[center_25%]" data-testid="about-image" />
             <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent" />
           </div>
         </motion.div>

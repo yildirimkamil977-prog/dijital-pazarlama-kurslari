@@ -249,8 +249,8 @@ async def build_seo(path: str) -> dict:
         base.update(title=f"{i['name']} | Eğitmen | {site}", description=plain(i.get("bio")) or f"{i['name']} eğitmen profili.",
                     image=img(i.get("avatar"), 800), og_type="profile",
                     jsonld=[{"@context": "https://schema.org", "@type": "ProfilePage", "mainEntity": p}])
-    elif parts == ["hakkimda"]:
-        base.update(title=f"Hakkımda | {site}")
+    elif parts in (["hakkimizda"], ["hakkimda"]):
+        base.update(title=f"Hakkımızda | {site}")
     elif parts == ["iletisim"]:
         base.update(title=f"İletişim | {site}")
     return base
@@ -329,7 +329,7 @@ async def sitemap():
     def u(loc, lastmod=None, pr="0.7"):
         lm = f"<lastmod>{lastmod[:10]}</lastmod>" if lastmod else ""
         return f"<url><loc>{SITE}{loc}</loc>{lm}<changefreq>weekly</changefreq><priority>{pr}</priority></url>"
-    items = [u("/", None, "1.0"), u("/kurslar", None, "0.9"), u("/canli-grup-egitimleri", None, "0.9"), u("/hakkimda", None, "0.5"), u("/iletisim", None, "0.5")]
+    items = [u("/", None, "1.0"), u("/kurslar", None, "0.9"), u("/canli-grup-egitimleri", None, "0.9"), u("/hakkimizda", None, "0.5"), u("/iletisim", None, "0.5")]
     async for c in db.courses.find({"is_published": True}, {"_id": 0, "slug": 1, "updated_at": 1}):
         items.append(u(f"/kurslar/{c['slug']}", c.get("updated_at"), "0.9"))
     async for g in db.group_trainings.find({"is_published": True}, {"_id": 0, "slug": 1, "updated_at": 1, "created_at": 1}):

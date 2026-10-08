@@ -22,7 +22,7 @@ dijitalpazarlamakurslari.com {
 	}
 
 	# SEO: ana sayfalar sunucuda hazır meta + şema ile gelir
-	@seo path / /kurslar /kurslar/* /canli-grup-egitimleri /canli-grup-egitimleri/* /egitmen/* /hakkimda /iletisim
+	@seo path / /kurslar /kurslar/* /canli-grup-egitimleri /canli-grup-egitimleri/* /egitmen/* /hakkimizda /hakkimda /iletisim
 	handle @seo {
 		rewrite * /api/seo/html?path={path}
 		reverse_proxy backend:8001

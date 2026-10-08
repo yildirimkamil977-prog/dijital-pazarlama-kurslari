@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
@@ -45,7 +45,8 @@ function AppRouter() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/hakkimda" element={<About />} />
+          <Route path="/hakkimizda" element={<About />} />
+          <Route path="/hakkimda" element={<Navigate to="/hakkimizda" replace />} />
           <Route path="/kurslar" element={<Courses />} />
           <Route path="/kurslar/:slug" element={<CourseDetail />} />
           <Route path="/egitmen/:slug" element={<InstructorPage />} />
