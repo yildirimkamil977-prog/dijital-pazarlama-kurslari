@@ -1,0 +1,23 @@
+{
+  "summary": "Iteration 26: Verified CleanPlayer / VideoDialog / ReviewMedia and instructor groups section. Backend GET /api/instructors/kamil-yildirim returns groups[] with 1 group (google-ads-canli-grup-egitimi) — instructor_id was already pre-set to inst_105af6c86623 in Mongo. Frontend: on /kurslar/google-ads-ile-sifirdan-uzmanliga clicking the first review-media opens the vertical (aspect-9/16) VideoDialog containing a single CleanPlayer with iframe pointer-events-none and Vimeo src params 'controls=0&keyboard=0&autoplay=1' etc. The scoped overlay toggle data-testid ends with -toggle; initial aria-label='Durdur' and after click it flips to 'Oynat' (play/pause toggle works). On /egitmen/kamil-yildirim the instructor-groups-section is rendered with heading 'Canlı Grup Eğitimleri' and 1 GroupCard linking to /canli-grup-egitimleri/google-ads-canli-grup-egitimi. YouTube params (controls=0&rel=0&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1) verified via code (CleanPlayer.jsx L6) — no live YouTube URL available in current data to test at runtime (settings.hero_video_url=null, testimonials=[], group.promo_video=''). Group detail page renders group-promo-poster but it is disabled because promo_video is empty, which matches the component contract. No admin data modifications were performed (and therefore none needed to be reverted). Vimeo 'Player error' observed in headless chromium is expected per agent-to-agent note and is not an app bug.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CleanPlayer.jsx builds YT src with controls=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&showinfo=0&cc_load_policy=0&enablejsapi=1 — all tokens required by spec are present.",
+    "Vimeo params include controls=0&keyboard=0; iframe has class 'pointer-events-none' and the full-screen overlay button handles play/pause via postMessage — verified live, aria-label flips Durdur<->Oynat.",
+    "VideoDialog with vertical=true applies width based on 88vh*9/16 and aspect-[9/16] wrapper — review popup is correctly tall/vertical.",
+    "InstructorPage.jsx renders instructor-groups-section only when data.groups.length > 0; eğitim count = courses + groups is correct.",
+    "routes_courses.public_instructor imports _public and _instructors from routes_group — works but creates a circular import risk if routes_group were to import from routes_courses later. Low priority.",
+    "ReviewMedia uses testId prop; data-testid for media and dialog share testId prefix (course-review-N-media / -dialog in CourseDetail). Consistent with other callers."
+  ],
+  "updated_files": ["/app/test_reports/iteration_26.json"],
+  "success_rate": {"backend": "100%", "frontend": "100% (all available flows verified; YT runtime path not exercised due to missing data)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "None. No admin modifications were performed; instructor_id on google-ads group was already set to inst_105af6c86623 from a prior iteration — endpoint still works correctly.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "If a future iteration needs to exercise the YouTube runtime path, set settings.hero_video_url to a YouTube URL via admin (/yonetim) and visit Home → click hero-video-thumb → verify home-video-player-iframe src contains controls=0&rel=0&iv_load_policy=3&disablekb=1&fs=0&enablejsapi=1. Same approach for group.promo_video on the Google Ads group. The group.instructor_id is currently set to inst_105af6c86623 (not '') — if business logic requires empty, revert via admin.",
+  "rca of the issue": "N/A"
+}

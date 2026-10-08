@@ -421,5 +421,7 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Öğrenci profili: Kayıtlı Grup Eğitimleri bölümü (elle ekle/kaldır), kurs/grup satırları bağlı siparişin tutarını+durumunu gösterir; profil ödemeleri = Ödemeler sayfasıyla aynı küme (paid/awaiting_transfer)
 - Öğrenci silme (DELETE /api/admin/students/{id}): hesap, erişimler, ilerleme silinir; siparişler/faturalar saklanır
 - Ödemeler: Kredi Kartı / Havale-EFT filtreleri, Kart Geliri / Havale Geliri kartları, satırda yöntem etiketi (iteration_25 geçti)
-- Sadece "{students_count} öğrenci" yazıları kaldırıldı (anasayfa güven kartı, kurs detay alt şeridi); bölümler ve hero "5.000'den fazla öğrenci" kutusu yerinde
+- Sadece "{students_count} öğrenci" yazıları kaldırıldı
+- CleanPlayer/VideoDialog (components/CleanPlayer.jsx): YouTube/Vimeo kontrolleri gizli, sadece ortada oynat/durdur; tanıtım videoları (anasayfa, kurs önizleme, grup tanıtım) ve yorum videoları büyük pop-up'ta (iteration_26 geçti)
+- Eğitmen sayfası: "Canlı Grup Eğitimleri" bölümü (grup eğitiminde eğitmen seçili olmalı) (anasayfa güven kartı, kurs detay alt şeridi); bölümler ve hero "5.000'den fazla öğrenci" kutusu yerinde
 
