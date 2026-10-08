@@ -667,6 +667,7 @@ async def admin_get_settings(request: Request):
         "bundle_discount_pct": doc.get("bundle_discount_pct", 0),
         "promo_enabled": doc.get("promo_enabled", False), "promo_text": doc.get("promo_text", ""),
         "testimonials": doc.get("testimonials", []),
+        "reviews_enabled": doc.get("reviews_enabled", True),
         "legal_documents": doc.get("legal_documents", []),
         "address": doc.get("address", ""),
         "transfer_discount_pct": doc.get("transfer_discount_pct", 0),
@@ -782,7 +783,17 @@ class Testimonial(BaseModel):
 @router.put("/settings/testimonials")
 async def update_testimonials(body: List[Testimonial], request: Request):
     await require_admin(request)
-    await db.settings.update_one({"_id": "site"}, {"$set": {"testimonials": [t.model_dump() for t in body]}})
+    return {"ok": True}
+
+
+class ReviewsVisibilityIn(BaseModel):
+    enabled: bool
+
+
+@router.put("/settings/reviews-visibility")
+async def update_reviews_visibility(body: ReviewsVisibilityIn, request: Request):
+    await require_admin(request)
+    await db.settings.update_one({"_id": "site"}, {"$set": {"reviews_enabled": body.enabled}})
     return {"ok": True}
 
 

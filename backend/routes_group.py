@@ -85,7 +85,8 @@ async def get_group(slug):
         d["promo_thumb"] = await video_thumb(d["promo_video"])
         await db.group_trainings.update_one({"group_id": d["group_id"]}, {"$set": {"promo_thumb": d["promo_thumb"], "promo_thumb_src": d["promo_video"]}})
     res["promo_thumb"] = d.get("promo_thumb", "") if d.get("promo_video") else ""
-    allt = (await get_settings_doc()).get("testimonials", [])
+    sdoc = await get_settings_doc()
+    allt = sdoc.get("testimonials", []) if sdoc.get("reviews_enabled", True) else []
     res["reviews"] = [t for t in allt if not t.get("course_id")]
     return res
 

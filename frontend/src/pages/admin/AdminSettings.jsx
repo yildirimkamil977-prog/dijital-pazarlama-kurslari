@@ -58,7 +58,7 @@ export default function AdminSettings() {
 
   const saveTracking = async () => { setBusy("t"); try { await api.put("/admin/settings/tracking", tracking); toast.success("Takip kodları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveSeo = async () => { setBusy("seo"); try { await api.put("/admin/settings/seo", seo); toast.success("SEO ayarları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
-  const saveTestimonials = async () => { setBusy("tt"); try { await api.put("/admin/settings/testimonials", testimonials); toast.success("Yorumlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
+  const saveTestimonials = async () => { setBusy("tt"); try { await api.put("/admin/settings/testimonials", testimonials); await api.put("/admin/settings/reviews-visibility", { enabled: s.reviews_enabled !== false }); toast.success("Yorumlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveLegal = async () => { setBusy("lg"); try { await api.put("/admin/settings/legal", legal); toast.success("Sözleşmeler kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveTemplate = async (tpl) => { try { await api.put(`/admin/email-templates/${tpl.key}`, { subject: tpl.subject, html: tpl.html, enabled: tpl.enabled }); toast.success("Şablon kaydedildi"); } catch (e) { toast.error(apiError(e)); } };
 
@@ -197,6 +197,13 @@ export default function AdminSettings() {
 
         {/* TESTIMONIALS */}
         <TabsContent value="testimonials" className="mt-6 space-y-4">
+          <div className="bg-ink-surface border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4" data-testid="reviews-visibility-box">
+            <div>
+              <p className="font-heading font-semibold text-sm">Yorumları Sitede Göster</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{s.reviews_enabled !== false ? "Yorumlar anasayfa, kurs ve canlı grup eğitimi sayfalarında görünüyor." : "Yorumlar sitenin hiçbir yerinde görünmüyor."} Değişiklik için Kaydet'e basın.</p>
+            </div>
+            <Switch checked={s.reviews_enabled !== false} onCheckedChange={(v) => setS({ ...s, reviews_enabled: v })} data-testid="reviews-visibility-switch" />
+          </div>
           {testimonials.map((t, i) => (
             <section key={i} className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-3">
               <div className="flex items-center justify-between"><h3 className="font-heading font-semibold text-sm">Yorum #{i + 1}</h3>

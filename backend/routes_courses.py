@@ -222,7 +222,8 @@ async def course_detail(slug: str, user):
         "meta_description": c.get("meta_description", ""),
         "meta_keywords": c.get("meta_keywords", ""),
     }
-    allt = (await get_settings_doc()).get("testimonials", [])
+    sdoc = await get_settings_doc()
+    allt = sdoc.get("testimonials", []) if sdoc.get("reviews_enabled", True) else []
     specific = [t for t in allt if t.get("course_id") == c["course_id"]]
     summary["reviews"] = specific if specific else [t for t in allt if not t.get("course_id")]
     return summary
