@@ -301,8 +301,9 @@ async def student_detail(user_id: str, request: Request):
                     {"user_id": user_id, "status": "paid", "items.course_id": e["course_id"]},
                     {"_id": 0, "invoice.data": 0}, sort=[("created_at", -1)])
             if order and order.get("total", 0):
-                item = next((it for it in order.get("items", []) if it["course_id"] == e["course_id"]), None)
-                paid = item.get("price", 0) if item else order.get("total", 0)
+                item = next((it for it in order.get("items", []) if it.get("course_id") == e["course_id"]), None)
+                items_sum = sum(float(it.get("price", 0)) for it in order.get("items", []))
+                paid = (float(item.get("price", 0)) * order["total"] / items_sum) if item and items_sum else order.get("total", 0)
         courses.append({"course_id": e["course_id"], "title": c["title"], "source": e.get("source"),
                         "paid_amount": round(paid, 2),
                         "enrolled_at": e.get("enrolled_at"), "lesson_count": total,
@@ -526,7 +527,7 @@ async def mark_paid(order_id: str, request: Request):
             schedule_email("purchase", order["user_email"], {"name": order.get("user_name"),
                            "course_title": it["title"], "amount": f"{order.get('total', 0):.2f}"})
     await push_notification("payment", "Yeni ödeme alındı", f"{order.get('user_name','')} · {order.get('total',0):.0f} ₺ · {order_id}", {"order_id": order_id})
-    return {"ok": True}
+    return {"ok": True, "email_to": order["user_email"]}
 
 
 # ---------------- Discount codes ----------------

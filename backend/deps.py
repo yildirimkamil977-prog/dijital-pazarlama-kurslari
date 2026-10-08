@@ -356,8 +356,9 @@ async def send_email(to_email: str, subject: str, html: str, reply_to: Optional[
                 r = await c.post("https://api.resend.com/emails",
                                  headers={"Authorization": f"Bearer {RESEND_API_KEY}"}, json=payload)
             r.raise_for_status()
+            logger.info(f"E-posta gönderildi (Resend, {to_email}): {subject}")
         except Exception as e:
-            logger.error(f"E-posta gönderilemedi (Resend, {to_email}): {e}")
+            logger.error(f"E-posta gönderilemedi (Resend, {to_email}): {e} {getattr(getattr(e, 'response', None), 'text', '')}")
         return
     if not EMAIL_KEY:
         logger.warning("EMERGENT_EMAIL_KEY yok, e-posta atlanıyor")

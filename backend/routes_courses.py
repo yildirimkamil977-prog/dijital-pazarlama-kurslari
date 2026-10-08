@@ -393,9 +393,12 @@ async def download_invoice(order_id: str, request: Request):
     if not order or not order.get("invoice"):
         raise HTTPException(status_code=404, detail="Fatura bulunamadı")
     inv = order["invoice"]
+    from urllib.parse import quote
     data = base64.b64decode(inv["data"])
+    fname = inv.get("filename") or "fatura.pdf"
+    ascii_name = fname.encode("ascii", "ignore").decode().replace('"', "") or "fatura.pdf"
     return Response(content=data, media_type="application/pdf",
-                    headers={"Content-Disposition": f'attachment; filename="{inv.get("filename", "fatura.pdf")}"'})
+                    headers={"Content-Disposition": f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(fname)}"})
 
 
 @router.get("/recommendations")

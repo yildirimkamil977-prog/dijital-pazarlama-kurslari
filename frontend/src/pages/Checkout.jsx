@@ -19,7 +19,7 @@ import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
 export default function Checkout() {
   const { items, subtotal, remove, clear } = useCart();
-  const { user, refresh } = useAuth();
+  const { user, refresh, logout } = useAuth();
   const { settings } = useSite();
   const navigate = useNavigate();
   const wa = (settings.whatsapp_number || settings.support_phone || "").replace(/\D/g, "");
@@ -144,6 +144,12 @@ export default function Checkout() {
       <h1 className="font-heading font-black text-3xl sm:text-4xl tracking-tighter mb-10">Ödeme</h1>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-6">
+          {user && (
+            <section className="bg-ink-surface border border-white/5 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-sm" data-testid="checkout-account-notice">
+              <p className="text-muted-foreground">Bu sipariş <strong className="text-foreground">{user.name}</strong> (<span className="text-foreground" data-testid="checkout-account-email">{user.email}</span>) hesabına eklenecek.</p>
+              <button type="button" onClick={logout} className="text-gold text-xs font-semibold hover:underline" data-testid="checkout-logout-btn">Sen değil misin? Çıkış yap</button>
+            </section>
+          )}
           {/* Guest info */}
           {!user && (
             <section className="bg-ink-surface border border-white/5 rounded-2xl p-6">

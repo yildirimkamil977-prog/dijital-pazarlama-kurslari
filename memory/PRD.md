@@ -410,3 +410,12 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - P1: Gerçek PayTR anahtarları ile canlı ödeme testi (mağaza aktif olunca)
 - P2: Video Dialog'lara DialogDescription (Radix a11y uyarısı), Meta Pixel null guard, /api/auth/me 401 gürültüsü (opsiyonel)
 
+
+## 2026-10-08 — Havale/Fatura/Öğrenci profili düzeltmeleri
+- Fatura indirme 500 hatası düzeltildi (Türkçe karakterli dosya adı → RFC5987 filename*)
+- Öğrenci profili: kurs satırında gerçek ödenen tutar (indirim kodu + havale indirimi oransal düşülmüş)
+- Ödemeler listesi: isim yanında e-posta; "pending" siparişler "Tamamlanmadı"
+- Ödeme sayfası: giriş yapılıysa "Bu sipariş X hesabına eklenecek · Çıkış yap" uyarısı
+- Havale onayı: toast'ta onay e-postasının alıcısı gösteriliyor; Resend başarı/hata loglanıyor
+- Kök neden tahmini: sipariş, tarayıcıda açık olan başka "Kamil Yıldırım" hesabına bağlanmıştı
+

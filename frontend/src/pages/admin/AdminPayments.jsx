@@ -10,7 +10,7 @@ import { toast } from "sonner";
 const statusMap = {
   paid: ["Ödendi", "bg-green-500/15 text-green-400 border-green-500/20"],
   awaiting_transfer: ["Havale Bekleniyor", "bg-blue-500/15 text-blue-300 border-blue-500/20"],
-  pending: ["Bekliyor", "bg-gold/15 text-gold border-gold/20"],
+  pending: ["Tamamlanmadı", "bg-secondary text-muted-foreground border-white/10"],
   failed: ["Başarısız", "bg-destructive/15 text-red-400 border-destructive/20"],
   token_failed: ["Token Hatası", "bg-destructive/15 text-red-400 border-destructive/20"],
 };
@@ -101,7 +101,7 @@ export default function AdminPayments() {
 
   const approve = async (orderId) => {
     if (!window.confirm("Havale ödemesi onaylanacak ve öğrencinin eğitim erişimi açılacak. Onaylıyor musunuz?")) return;
-    try { await api.post(`/admin/payments/${orderId}/mark-paid`); toast.success("Ödeme onaylandı, öğrenci kaydedildi"); load(); }
+    try { const { data } = await api.post(`/admin/payments/${orderId}/mark-paid`); toast.success(`Ödeme onaylandı, öğrenci kaydedildi${data.email_to ? ` · Onay e-postası: ${data.email_to}` : ""}`); load(); }
     catch (e) { toast.error(apiError(e)); }
   };
 
@@ -192,7 +192,7 @@ export default function AdminPayments() {
                 return (
                   <div key={o.order_id} className="flex items-center justify-between p-4 gap-4 flex-wrap">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{o.user_name || o.user_email}</p>
+                      <p className="text-sm font-medium truncate">{o.user_name || o.user_email}{o.user_name && o.user_email && <span className="text-xs text-muted-foreground font-normal" data-testid={`payment-email-${o.order_id}`}> · {o.user_email}</span>}</p>
                       <p className="text-xs text-muted-foreground truncate">{o.items?.map((i) => i.title).join(", ")}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">#{o.order_id} · {formatDate(o.created_at)}{o.discount_code ? ` · Kod: ${o.discount_code}` : ""}{o.payment_method === "transfer" ? " · Havale/EFT" : ""}</p>
                       {o.status === "awaiting_transfer" && o.transfer_notified && (

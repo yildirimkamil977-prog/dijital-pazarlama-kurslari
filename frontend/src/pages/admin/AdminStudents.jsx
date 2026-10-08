@@ -5,7 +5,7 @@ import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
 
 const SRC_LABEL = { purchase: "Satın Alma", free: "Ücretsiz", transfer: "Havale/EFT", manual: "Manuel Kayıt", gift: "Hediye" };
 const srcLabel = (s) => SRC_LABEL[s] || "Manuel Kayıt";
-const STATUS_LABEL = { paid: "Ödendi", pending: "Bekliyor", awaiting_transfer: "Havale Bekleniyor", failed: "Başarısız", token_failed: "Başarısız" };
+const STATUS_LABEL = { paid: "Ödendi", pending: "Tamamlanmadı", awaiting_transfer: "Havale Bekleniyor", failed: "Başarısız", token_failed: "Başarısız" };
 const statusLabel = (s) => STATUS_LABEL[s] || s;
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
