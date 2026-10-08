@@ -301,7 +301,6 @@ export default function CourseDetail() {
             ))}
           </div>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2"><Users className="w-4 h-4 text-gold" /> {settings.students_count || "10.000+"} öğrenci</span>
             <span className="flex items-center gap-2"><Award className="w-4 h-4 text-gold" /> Katılım belgesi</span>
             <span className="flex items-center gap-2"><Zap className="w-4 h-4 text-gold" /> Anında erişim</span>
           </div>
