@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 25: Full backend + frontend verification of (a) student profile with order linkage (paid_amount, order_id, order_status, payment_method), (b) student delete that KEEPS orders/invoices but removes enrollments/group_enrollments/progress/sessions/certificates/consulting_bookings, (c) manual group enrollment endpoints, (d) Payments page kart/havale separation (filter buttons + revenue cards + badges). Backend: 6/6 pytest passed in test_iteration25.py. Frontend: Playwright flow executed end-to-end against public URL — admin logged in, /yonetim/odemeler stat-card-revenue + stat-transfer-revenue visible (card: 0 orders / 0₺, transfer: 7 orders / 19.004₺ – PayTR is mocked, so 0 card orders is expected). payment-method-all/card/transfer filter buttons all present; selecting 'transfer' shows 8 rows all with badge 'Havale/EFT', selecting 'card' shows 0 rows (consistent with no card orders in db), 'all' shows 9 rows. approve-transfer-* button visible for pending transfers. /yonetim/ogrenciler row delete-student-* button visible; opening profile via manage-student-* renders student-groups-section + enroll-group-select + manual-group-enroll + delete-student-btn; dropdown exposed 1 group option, manual enrollment succeeded (toast 'Grup eğitimine eklendi', Ücretsiz + Manuel Kayıt badges rendered); remove-group-* removed it; delete-student-btn closed modal and student disappeared from list.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration25.py",
+    "/app/test_reports/pytest/iteration25.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "delete_student in routes_admin.py correctly keeps db.orders and db.notifications; also removes password_resets and consulting_bookings. Verified via test (order remains in /admin/payments after student delete).",
+    "student_detail returns paid_amount==0 and order_id==None for manual group enrollments (ge.order_id is None path), which the UI renders as 'Ücretsiz' + 'Manuel Kayıt' — correct.",
+    "In student_detail, groups fallback query (line 325) uses {user_id, group_id, status: paid|awaiting_transfer}; items[].group_id lookup via _linked_order already covers purchase orders. Fallback matches orders with top-level group_id field (legacy orders) — kept for compat.",
+    "mark_paid branches: kind=='group' creates group_enrollments; else path iterates order['items'] and handles both course_id and group_id (via enroll_group_item). Cart checkout for groups uses this else branch and works correctly (verified).",
+    "AdminPayments.jsx methodOf(o) classifies 'paytr' as card, 'transfer' as transfer, else 'free'. Correct for current payment methods.",
+    "AdminStudents.jsx delete flow uses window.confirm — Playwright page.on('dialog') accepts it as expected per the agent-to-agent note.",
+    "No regression: group checkout via cart items[{group_id}] correctly enrolls after mark-paid and profile reflects paid_amount matching order total."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration25.py",
+    "/app/test_reports/iteration_25.json",
+    "/app/test_reports/pytest/iteration25.xml"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (all flows verified)"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "During tests: 2 guest-checkout users (test_iter25_c_*, test_iter25_g_*) with transfer orders for course_8b53eae5576a and grp_741a4764d948, 1 manual-enroll user (test_iter25_m_*), 1 UI test user (test_iter25_ui_*) + 1 UI order (test_iter25_ord_*). All TEST_ users deleted. Per requirements, 5 TEST_-era orders remain in db.orders for accounting (expected behavior).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PayTR card payments remain MOCKED/unavailable (503). Kart Geliri card shows 0₺/0 orders which is correct given no real card orders exist. If future iteration adds mock card orders, re-verify card filter shows them with 'Kredi Kartı' badge. The 5 orphan TEST_ orders left in db.orders are intentional (keep-for-accounting requirement) and may be purged manually from Mongo if desired; they still render on /yonetim/odemeler Payments list.",
+  "rca of the issue": "N/A — no bugs found in this iteration."
+}

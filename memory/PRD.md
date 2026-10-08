@@ -418,5 +418,8 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Ödeme sayfası: giriş yapılıysa "Bu sipariş X hesabına eklenecek · Çıkış yap" uyarısı
 - Havale onayı: toast'ta onay e-postasının alıcısı gösteriliyor; Resend başarı/hata loglanıyor
 - Kök neden tahmini: sipariş, tarayıcıda açık olan başka "Kamil Yıldırım" hesabına bağlanmıştı
+- Öğrenci profili: Kayıtlı Grup Eğitimleri bölümü (elle ekle/kaldır), kurs/grup satırları bağlı siparişin tutarını+durumunu gösterir; profil ödemeleri = Ödemeler sayfasıyla aynı küme (paid/awaiting_transfer)
+- Öğrenci silme (DELETE /api/admin/students/{id}): hesap, erişimler, ilerleme silinir; siparişler/faturalar saklanır
+- Ödemeler: Kredi Kartı / Havale-EFT filtreleri, Kart Geliri / Havale Geliri kartları, satırda yöntem etiketi (iteration_25 geçti)
 - Sadece "{students_count} öğrenci" yazıları kaldırıldı (anasayfa güven kartı, kurs detay alt şeridi); bölümler ve hero "5.000'den fazla öğrenci" kutusu yerinde
 
