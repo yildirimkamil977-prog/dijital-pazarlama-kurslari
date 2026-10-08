@@ -190,6 +190,7 @@ async def course_detail(slug: str, user):
     summary = course_summary(c)
     summary["requirements"] = c.get("requirements", [])
     summary["long_description"] = c.get("long_description", "")
+    summary["promo_video"] = c.get("promo_video", "")
     summary["waitlist_joined"] = False
     summary["updated_at"] = c.get("updated_at")
     # curriculum: hide video urls unless enrolled / preview

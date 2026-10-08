@@ -60,6 +60,7 @@ class CourseIn(BaseModel):
     publish_at: str = ""
     early_bird_price: Optional[float] = None
     thumbnail: str = ""
+    promo_video: str = ""
     instructor_name: str = ""
     instructor_id: str = ""
     is_published: bool = False

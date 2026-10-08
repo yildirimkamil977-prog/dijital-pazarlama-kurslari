@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { CleanPlayer } from "@/components/CleanPlayer";
+import { CleanPlayer, VideoDialog } from "@/components/CleanPlayer";
 import { ReviewMedia } from "@/components/ReviewMedia";
 import { RichContent } from "@/components/RichContent";
 import { CourseNotifyForm } from "@/components/CourseNotifyForm";
@@ -36,6 +36,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState(() => takeInitial(`course:${slug}`));
   const [loading, setLoading] = useState(!course);
   const [preview, setPreview] = useState(null);
+  const [promoOpen, setPromoOpen] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const seo = usePageSeo(`/kurslar/${slug}`);
 
@@ -216,12 +217,16 @@ export default function CourseDetail() {
         {/* Sticky card */}
         <div className="lg:col-span-5 order-first lg:order-none">
           <motion.div className="lg:sticky lg:top-28 bg-ink-surface border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-            <div className="relative aspect-video bg-ink-elevated cursor-pointer group" onClick={() => { const first = course.modules?.flatMap(m => m.lessons).find(l => l.is_preview || course.enrolled); if (first) openPreview(first); }}>
+            <div className={`relative aspect-video bg-ink-elevated ${course.promo_video ? "cursor-pointer group" : ""}`} onClick={() => course.promo_video && setPromoOpen(true)} data-testid="course-cover">
               {course.thumbnail && <img src={optImg(course.thumbnail, 1200)} alt={course.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" />}
-              <div className="absolute inset-0 bg-ink/40 flex items-center justify-center">
-                <span className="w-16 h-16 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-7 h-7 text-ink ml-1" fill="currentColor" /></span>
-              </div>
-              <Badge className="absolute top-3 left-3 bg-ink/80 text-foreground border-white/10">Önizlemeyi izle</Badge>
+              {course.promo_video && (
+                <>
+                  <div className="absolute inset-0 bg-ink/40 flex items-center justify-center">
+                    <span className="w-16 h-16 rounded-full bg-gold/90 flex items-center justify-center group-hover:scale-110 transition-transform duration-300" data-testid="course-promo-play"><Play className="w-7 h-7 text-ink ml-1" fill="currentColor" /></span>
+                  </div>
+                  <Badge className="absolute top-3 left-3 bg-ink/80 text-foreground border-white/10">Tanıtım videosunu izle</Badge>
+                </>
+              )}
             </div>
             <div className="p-7">
               {course.enrolled ? (
@@ -325,6 +330,7 @@ export default function CourseDetail() {
           <div className="p-4 bg-ink-surface"><p className="font-heading font-semibold text-sm">{preview?.title}</p></div>
         </DialogContent>
       </Dialog>
+      <VideoDialog url={course.promo_video} open={promoOpen} onOpenChange={setPromoOpen} title={`${course.title} tanıtım videosu`} testId="course-promo" />
 
       {/* MOBILE STICKY BUY BAR */}
       {!course.enrolled && (

@@ -18,7 +18,7 @@ const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const empty = {
   title: "", subtitle: "", description: "", category: "", level: "Tüm Seviyeler",
-  price: 0, discount_price: null, publish_at: "", early_bird_price: null, thumbnail: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
+  price: 0, discount_price: null, publish_at: "", early_bird_price: null, thumbnail: "", promo_video: "", instructor_name: "Kamil Yıldırım", instructor_id: "",
   is_published: false, sale_closed: false, launch_discount_code: "", what_you_learn: [], requirements: [], long_description: "", cross_sell_ids: [], modules: [],
 };
 
@@ -145,6 +145,7 @@ export default function CourseEditor() {
           <div><Label>Kısa Açıklama</Label><Input value={form.subtitle} onChange={(e) => set("subtitle", e.target.value)} className={inputCls} /></div>
           <div><Label>Detaylı Açıklama</Label><Textarea value={form.description} onChange={(e) => set("description", e.target.value)} className={inputCls} rows={4} /></div>
           <div><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={form.thumbnail} onChange={(v) => set("thumbnail", v)} testId="course-thumb-upload" /></div></div>
+          <div><Label>Tanıtım Videosu (YouTube / Vimeo linki)</Label><Input value={form.promo_video || ""} onChange={(e) => set("promo_video", e.target.value)} className="bg-ink border-white/10 mt-1.5" placeholder="https://vimeo.com/... veya https://youtu.be/..." data-testid="course-promo-video" /><p className="text-xs text-muted-foreground mt-1">Boş bırakılırsa kurs sayfasında sadece kapak görseli görünür.</p></div>
           <div>
             <Label>Eğitmen</Label>
             <select value={form.instructor_id || ""} onChange={(e) => set("instructor_id", e.target.value)} className="w-full bg-ink border border-white/10 rounded-md h-10 px-3 mt-1.5 text-sm" data-testid="course-instructor">
