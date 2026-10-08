@@ -277,6 +277,26 @@ async def export_students(request: Request, search: str = "", start_date: str = 
                              headers={"Content-Disposition": f'attachment; filename="{fname}"'})
 
 
+PAYMENT_STATUSES = ["paid", "awaiting_transfer"]
+
+
+async def _linked_order(user_id: str, enr: dict, field: str, value: str):
+    proj = {"_id": 0, "invoice.data": 0}
+    if enr.get("order_id"):
+        o = await db.orders.find_one({"order_id": enr["order_id"]}, proj)
+        if o:
+            return o
+    return await db.orders.find_one({"user_id": user_id, "status": {"$in": PAYMENT_STATUSES}, field: value},
+                                    proj, sort=[("created_at", -1)])
+
+
+def _order_info(order) -> dict:
+    if not order:
+        return {"paid_amount": 0, "order_id": None, "order_status": None, "payment_method": None}
+    return {"paid_amount": round(order.get("total", 0), 2), "order_id": order["order_id"],
+            "order_status": order.get("status"), "payment_method": order.get("payment_method")}
+
+
 @router.get("/students/{user_id}")
 async def student_detail(user_id: str, request: Request):
     await require_admin(request)
@@ -291,30 +311,44 @@ async def student_detail(user_id: str, request: Request):
             continue
         total = sum(len(m.get("lessons", [])) for m in c.get("modules", []))
         done = await db.progress.count_documents({"user_id": user_id, "course_id": e["course_id"], "completed": True})
-        paid = 0.0
-        if e.get("source") != "free":
-            order = None
-            if e.get("order_id"):
-                order = await db.orders.find_one({"order_id": e["order_id"]}, {"_id": 0, "invoice.data": 0})
-            if not order:
-                order = await db.orders.find_one(
-                    {"user_id": user_id, "status": "paid", "items.course_id": e["course_id"]},
-                    {"_id": 0, "invoice.data": 0}, sort=[("created_at", -1)])
-            if order and order.get("total", 0):
-                item = next((it for it in order.get("items", []) if it.get("course_id") == e["course_id"]), None)
-                items_sum = sum(float(it.get("price", 0)) for it in order.get("items", []))
-                paid = (float(item.get("price", 0)) * order["total"] / items_sum) if item and items_sum else order.get("total", 0)
+        order = await _linked_order(user_id, e, "items.course_id", e["course_id"])
         courses.append({"course_id": e["course_id"], "title": c["title"], "source": e.get("source"),
-                        "paid_amount": round(paid, 2),
-                        "enrolled_at": e.get("enrolled_at"), "lesson_count": total,
+                        **_order_info(order), "enrolled_at": e.get("enrolled_at"), "lesson_count": total,
                         "completed_lessons": done, "progress_pct": round(100 * done / total) if total else 0})
-    payments = await db.orders.find({"user_id": user_id}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
+    groups = []
+    for ge in await db.group_enrollments.find({"user_id": user_id}, {"_id": 0}).to_list(200):
+        g = await db.group_trainings.find_one({"group_id": ge["group_id"]}, {"_id": 0})
+        if not g:
+            continue
+        order = await _linked_order(user_id, ge, "items.group_id", ge["group_id"])
+        if not order:
+            order = await db.orders.find_one({"user_id": user_id, "group_id": ge["group_id"], "status": {"$in": PAYMENT_STATUSES}},
+                                             {"_id": 0, "invoice.data": 0}, sort=[("created_at", -1)])
+        dates = sorted(l.get("date", "") for l in g.get("lessons", []) if l.get("date"))
+        groups.append({"group_id": ge["group_id"], "title": g["title"], "start_date": dates[0] if dates else None,
+                       "session_count": len(g.get("lessons", [])), "enrolled_at": ge.get("enrolled_at"),
+                       "source": "purchase" if ge.get("order_id") else "manual", **_order_info(order)})
+    payments = await db.orders.find({"user_id": user_id, "status": {"$in": PAYMENT_STATUSES}}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
     for p in payments:
         p["has_invoice"] = bool(p.get("invoice")); p.pop("invoice", None)
     certs = await db.certificates.find({"user_id": user_id}, {"_id": 0, "file.data": 0}).to_list(100)
     for c in certs:
         c["has_file"] = bool(c.get("file")); c.pop("file", None)
-    return {"user": u, "courses": courses, "payments": payments, "certificates": certs}
+    return {"user": u, "courses": courses, "groups": groups, "payments": payments, "certificates": certs}
+
+
+@router.delete("/students/{user_id}")
+async def delete_student(user_id: str, request: Request):
+    await require_admin(request)
+    u = await db.users.find_one({"user_id": user_id})
+    if not u:
+        raise HTTPException(status_code=404, detail="Öğrenci bulunamadı")
+    if u.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Yönetici hesabı silinemez")
+    for col in ["user_sessions", "enrollments", "group_enrollments", "progress", "certificates", "password_resets", "consulting_bookings"]:
+        await db[col].delete_many({"user_id": user_id})
+    await db.users.delete_one({"user_id": user_id})
+    return {"ok": True}
 
 
 @router.post("/students/{user_id}/reset-password")
@@ -386,6 +420,33 @@ async def manual_enroll(body: ManualEnrollIn, request: Request):
 async def remove_enroll(body: ManualEnrollIn, request: Request):
     await require_admin(request)
     await db.enrollments.delete_one({"user_id": body.user_id, "course_id": body.course_id})
+    return {"ok": True}
+
+
+class GroupEnrollIn(BaseModel):
+    user_id: str
+    group_id: str
+
+
+@router.post("/group-enrollments")
+async def manual_group_enroll(body: GroupEnrollIn, request: Request):
+    await require_admin(request)
+    u = await db.users.find_one({"user_id": body.user_id})
+    if not u or not await db.group_trainings.find_one({"group_id": body.group_id}):
+        raise HTTPException(status_code=404, detail="Öğrenci veya eğitim bulunamadı")
+    if await db.group_enrollments.find_one({"user_id": body.user_id, "group_id": body.group_id}):
+        raise HTTPException(status_code=400, detail="Zaten kayıtlı")
+    await db.group_enrollments.insert_one({
+        "enr_id": new_id("genr"), "group_id": body.group_id, "user_id": body.user_id,
+        "user_name": u.get("name", ""), "user_email": u["email"], "order_id": None,
+        "enrolled_at": now_utc().isoformat()})
+    return {"ok": True}
+
+
+@router.delete("/group-enrollments")
+async def remove_group_enroll(body: GroupEnrollIn, request: Request):
+    await require_admin(request)
+    await db.group_enrollments.delete_one({"user_id": body.user_id, "group_id": body.group_id})
     return {"ok": True}
 
 

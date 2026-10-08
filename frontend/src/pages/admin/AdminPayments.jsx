@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { Loader2, Upload, Trash2, Download, CheckCircle2, Search, TrendingUp, ShoppingBag, Wallet, Clock, X } from "lucide-react";
+import { Loader2, Upload, Trash2, Download, CheckCircle2, Search, TrendingUp, ShoppingBag, Wallet, Clock, X, CreditCard, Landmark } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,9 @@ const statusMap = {
   token_failed: ["Token Hatası", "bg-destructive/15 text-red-400 border-destructive/20"],
 };
 
+export const methodOf = (o) => (!o.total ? "free" : o.payment_method === "transfer" ? "transfer" : "card");
+const METHOD_LABEL = { card: "Kredi Kartı", transfer: "Havale/EFT", free: "Ücretsiz" };
+
 const toISODate = (d) => d.toISOString().slice(0, 10);
 const presets = [
   ["all", "Tümü"],
@@ -27,6 +30,7 @@ export default function AdminPayments() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [methodFilter, setMethodFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -62,13 +66,16 @@ export default function AdminPayments() {
     setStartDate(toISODate(start)); setEndDate(toISODate(now));
   };
 
-  const clearFilters = () => { setSearch(""); setStartDate(""); setEndDate(""); setPreset("all"); setStatusFilter("all"); };
+  const clearFilters = () => { setSearch(""); setStartDate(""); setEndDate(""); setPreset("all"); setStatusFilter("all"); setMethodFilter("all"); };
 
-  const filtered = statusFilter === "all" ? orders : orders.filter((o) => o.status === statusFilter);
+  const filtered = orders.filter((o) => (statusFilter === "all" || o.status === statusFilter) && (methodFilter === "all" || methodOf(o) === methodFilter));
 
   const analytics = useMemo(() => {
     const paid = orders.filter((o) => o.status === "paid");
     const revenue = paid.reduce((s, o) => s + (o.total || 0), 0);
+    const cardPaid = paid.filter((o) => methodOf(o) === "card");
+    const transferPaid = paid.filter((o) => methodOf(o) === "transfer");
+    const sum = (arr) => arr.reduce((s, o) => s + (o.total || 0), 0);
     const awaiting = orders.filter((o) => o.status === "awaiting_transfer");
     const awaitingTotal = awaiting.reduce((s, o) => s + (o.total || 0), 0);
     const byDay = {};
@@ -83,6 +90,8 @@ export default function AdminPayments() {
     }));
     return {
       revenue, orderCount: paid.length,
+      cardRevenue: sum(cardPaid), cardCount: cardPaid.length,
+      transferRevenue: sum(transferPaid), transferCount: transferPaid.length,
       avg: paid.length ? revenue / paid.length : 0,
       awaitingCount: awaiting.length, awaitingTotal, timeseries,
     };
@@ -107,12 +116,14 @@ export default function AdminPayments() {
 
   const stats = [
     { icon: Wallet, label: "Toplam Gelir", value: `${formatPrice(analytics.revenue)} ₺`, tone: "text-gold", testid: "stat-revenue" },
+    { icon: CreditCard, label: `Kart Geliri (${analytics.cardCount})`, value: `${formatPrice(analytics.cardRevenue)} ₺`, tone: "text-gold", testid: "stat-card-revenue" },
+    { icon: Landmark, label: `Havale Geliri (${analytics.transferCount})`, value: `${formatPrice(analytics.transferRevenue)} ₺`, tone: "text-gold", testid: "stat-transfer-revenue" },
     { icon: ShoppingBag, label: "Ödenen Sipariş", value: analytics.orderCount, tone: "text-green-400", testid: "stat-orders" },
     { icon: TrendingUp, label: "Ortalama Sepet", value: `${formatPrice(analytics.avg)} ₺`, tone: "text-white", testid: "stat-avg" },
     { icon: Clock, label: "Havale Bekleyen", value: `${analytics.awaitingCount} · ${formatPrice(analytics.awaitingTotal)} ₺`, tone: "text-blue-300", testid: "stat-awaiting" },
   ];
 
-  const hasFilters = search || startDate || endDate || statusFilter !== "all";
+  const hasFilters = search || startDate || endDate || statusFilter !== "all" || methodFilter !== "all";
 
   return (
     <div>
@@ -121,7 +132,7 @@ export default function AdminPayments() {
       </div>
 
       {/* Analytics cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
         {stats.map((s) => (
           <div key={s.testid} data-testid={s.testid} className="bg-ink-surface border border-white/5 rounded-2xl p-4">
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2"><s.icon className="w-4 h-4" /> {s.label}</div>
@@ -178,6 +189,10 @@ export default function AdminPayments() {
           {[["all", "Tüm Durumlar"], ["awaiting_transfer", "Havale Bekleyen"], ["paid", "Ödendi"]].map(([k, l]) => (
             <button key={k} onClick={() => setStatusFilter(k)} data-testid={`payment-filter-${k}`} className={`px-3 py-1.5 rounded-full text-xs ${statusFilter === k ? "bg-white text-ink" : "bg-ink border border-white/10 text-muted-foreground"}`}>{l}</button>
           ))}
+          <div className="w-px bg-white/10 mx-1" />
+          {[["all", "Tüm Yöntemler"], ["card", "Kredi Kartı"], ["transfer", "Havale/EFT"]].map(([k, l]) => (
+            <button key={k} onClick={() => setMethodFilter(k)} data-testid={`payment-method-${k}`} className={`px-3 py-1.5 rounded-full text-xs ${methodFilter === k ? "bg-blue-400 text-ink" : "bg-ink border border-white/10 text-muted-foreground"}`}>{l}</button>
+          ))}
         </div>
       </div>
 
@@ -194,7 +209,8 @@ export default function AdminPayments() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{o.user_name || o.user_email}{o.user_name && o.user_email && <span className="text-xs text-muted-foreground font-normal" data-testid={`payment-email-${o.order_id}`}> · {o.user_email}</span>}</p>
                       <p className="text-xs text-muted-foreground truncate">{o.items?.map((i) => i.title).join(", ")}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">#{o.order_id} · {formatDate(o.created_at)}{o.discount_code ? ` · Kod: ${o.discount_code}` : ""}{o.payment_method === "transfer" ? " · Havale/EFT" : ""}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">#{o.order_id} · {formatDate(o.created_at)}{o.discount_code ? ` · Kod: ${o.discount_code}` : ""}</p>
+                      <Badge className="mt-1.5 text-[10px] bg-secondary border-white/10" data-testid={`payment-method-badge-${o.order_id}`}>{METHOD_LABEL[methodOf(o)]}</Badge>
                       {o.status === "awaiting_transfer" && o.transfer_notified && (
                         <div className="mt-2 text-[11px] bg-blue-500/10 border border-blue-500/20 rounded-lg px-2.5 py-1.5 text-blue-300" data-testid={`transfer-notification-${o.order_id}`}>
                           <span className="font-semibold">Havale bildirimi alındı</span>

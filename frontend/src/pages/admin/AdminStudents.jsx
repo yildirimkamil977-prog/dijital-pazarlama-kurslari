@@ -7,6 +7,13 @@ const SRC_LABEL = { purchase: "Satın Alma", free: "Ücretsiz", transfer: "Haval
 const srcLabel = (s) => SRC_LABEL[s] || "Manuel Kayıt";
 const STATUS_LABEL = { paid: "Ödendi", pending: "Tamamlanmadı", awaiting_transfer: "Havale Bekleniyor", failed: "Başarısız", token_failed: "Başarısız" };
 const statusLabel = (s) => STATUS_LABEL[s] || s;
+const methodLabel = (o) => (!o.total ? "Ücretsiz" : o.payment_method === "transfer" ? "Havale/EFT" : "Kredi Kartı");
+const OrderBadges = ({ item, testId }) => (
+  <>
+    <Badge className={`text-[10px] ${!item.paid_amount ? "bg-green-500/15 text-green-400 border-green-500/20" : "bg-gold/15 text-gold border-gold/20"}`} data-testid={testId}>{!item.paid_amount ? "Ücretsiz" : `${formatPrice(item.paid_amount)} ₺`}</Badge>
+    {item.order_status && <Badge className={`text-[10px] ${item.order_status === "paid" ? "bg-green-500/15 text-green-400 border-green-500/20" : "bg-blue-500/15 text-blue-300 border-blue-500/20"}`}>{statusLabel(item.order_status)}</Badge>}
+  </>
+);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +36,7 @@ export default function AdminStudents() {
   const [exporting, setExporting] = useState(false);
   const [detail, setDetail] = useState(null);
   const [courseToAdd, setCourseToAdd] = useState("");
+  const [groupToAdd, setGroupToAdd] = useState("");
   const [certCourse, setCertCourse] = useState("");
   const invRefs = useRef({});
   const certRef = useRef(null);
@@ -56,6 +64,12 @@ export default function AdminStudents() {
 
   const enroll = async () => { if (!courseToAdd) return; try { await api.post("/admin/enrollments", { user_id: detail.user.user_id, course_id: courseToAdd }); toast.success("Kursa eklendi"); setCourseToAdd(""); refreshDetail(); load(); } catch (e) { toast.error(apiError(e)); } };
   const unenroll = async (cid) => { await api.delete("/admin/enrollments", { data: { user_id: detail.user.user_id, course_id: cid } }); toast.success("Kayıt kaldırıldı"); refreshDetail(); load(); };
+  const enrollGroup = async () => { if (!groupToAdd) return; try { await api.post("/admin/group-enrollments", { user_id: detail.user.user_id, group_id: groupToAdd }); toast.success("Grup eğitimine eklendi"); setGroupToAdd(""); refreshDetail(); load(); } catch (e) { toast.error(apiError(e)); } };
+  const unenrollGroup = async (gid) => { if (!window.confirm("Grup eğitimi kaydı kaldırılsın mı?")) return; await api.delete("/admin/group-enrollments", { data: { user_id: detail.user.user_id, group_id: gid } }); toast.success("Kayıt kaldırıldı"); refreshDetail(); load(); };
+  const deleteStudent = async (u) => {
+    if (!window.confirm(`${u.name || u.email} silinecek. Hesabı, kurs erişimleri ve ilerlemesi kalıcı olarak silinir; sipariş ve faturalar muhasebe için saklanır. Onaylıyor musunuz?`)) return;
+    try { await api.delete(`/admin/students/${u.user_id}`); toast.success("Öğrenci silindi"); setDetail(null); load(); } catch (e) { toast.error(apiError(e)); }
+  };
   const resetPw = async () => { try { const { data } = await api.post(`/admin/students/${detail.user.user_id}/reset-password`); toast.success("Yeni şifre e-posta ile gönderildi"); } catch (e) { toast.error(apiError(e)); } };
   const uploadInvoice = async (oid, file) => { if (!file) return; const fd = new FormData(); fd.append("file", file); try { await api.post(`/admin/payments/${oid}/invoice`, fd, { headers: { "Content-Type": "multipart/form-data" } }); toast.success("Fatura yüklendi"); refreshDetail(); } catch (e) { toast.error(apiError(e)); } };
   const uploadCert = async (file) => { if (!file || !certCourse) { toast.error("Önce kurs seç"); return; } const fd = new FormData(); fd.append("file", file); try { await api.post(`/admin/students/${detail.user.user_id}/certificate?course_id=${certCourse}`, fd, { headers: { "Content-Type": "multipart/form-data" } }); toast.success("Sertifika yüklendi"); setCertCourse(""); refreshDetail(); } catch (e) { toast.error(apiError(e)); } };
@@ -104,6 +118,7 @@ export default function AdminStudents() {
                   <span className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5" title="Sipariş" data-testid={`student-orders-${sdt.user_id}`}><ShoppingBag className="w-3.5 h-3.5" /> {sdt.order_count}</span>
                   <span className="text-sm font-heading font-bold text-gold">{formatPrice(sdt.total_spent)} ₺</span>
                   <Button variant="outline" size="sm" className="border-white/15" onClick={() => openDetail(sdt.user_id)} data-testid={`manage-student-${sdt.user_id}`}>Profili Aç</Button>
+                  {sdt.role !== "admin" && <Button variant="ghost" size="sm" className="text-destructive h-8 px-2" onClick={() => deleteStudent(sdt)} data-testid={`delete-student-${sdt.user_id}`}><Trash2 className="w-4 h-4" /></Button>}
                 </div>
               </div>
             ))}
@@ -127,6 +142,7 @@ export default function AdminStudents() {
                 {detail.user.phone && <Badge className="bg-secondary">{detail.user.phone}</Badge>}
                 <Badge className="bg-secondary">{detail.user.auth_provider === "google" ? "Google" : "E-posta"}</Badge>
                 <Button variant="outline" size="sm" className="border-white/15 h-7 ml-auto" onClick={resetPw} data-testid="reset-password-btn"><KeyRound className="w-3.5 h-3.5 mr-1.5" /> Şifre Sıfırla & Gönder</Button>
+                {detail.user.role !== "admin" && <Button variant="outline" size="sm" className="border-destructive/40 text-red-400 h-7" onClick={() => deleteStudent(detail.user)} data-testid="delete-student-btn"><Trash2 className="w-3.5 h-3.5 mr-1.5" /> Öğrenciyi Sil</Button>}
               </div>
 
               {/* Courses & progress */}
@@ -137,7 +153,7 @@ export default function AdminStudents() {
                     <div key={c.course_id} className="bg-ink rounded-lg p-3">
                       <div className="flex items-center justify-between"><p className="text-sm font-medium">{c.title}</p>
                         <div className="flex items-center gap-2">
-                          <Badge className={`text-[10px] ${c.paid_amount === 0 ? "bg-green-500/15 text-green-400 border-green-500/20" : "bg-gold/15 text-gold border-gold/20"}`} data-testid={`admin-paid-${c.course_id}`}>{c.paid_amount === 0 ? "Ücretsiz" : `${formatPrice(c.paid_amount)} ₺`}</Badge>
+                          <OrderBadges item={c} testId={`admin-paid-${c.course_id}`} />
                           <Badge className="bg-secondary text-[10px]">{srcLabel(c.source)}</Badge>
                           <Button variant="ghost" size="sm" className="text-destructive h-7" onClick={() => unenroll(c.course_id)}><Trash2 className="w-3.5 h-3.5" /></Button></div></div>
                       <div className="flex items-center gap-2 mt-2"><Progress value={c.progress_pct} className="h-1.5 flex-1" /><span className="text-xs text-muted-foreground">%{c.progress_pct} ({c.completed_lessons}/{c.lesson_count})</span></div>
@@ -151,13 +167,34 @@ export default function AdminStudents() {
                 </div>
               </div>
 
+              <div className="mt-4" data-testid="student-groups-section">
+                <h3 className="font-heading font-semibold text-sm mb-2">Kayıtlı Grup Eğitimleri</h3>
+                <div className="space-y-2">
+                  {detail.groups.length === 0 ? <p className="text-sm text-muted-foreground">Kayıtlı grup eğitimi yok.</p> : detail.groups.map((g) => (
+                    <div key={g.group_id} className="bg-ink rounded-lg p-3 flex flex-wrap items-center justify-between gap-2" data-testid={`student-group-${g.group_id}`}>
+                      <div><p className="text-sm font-medium">{g.title}</p><p className="text-xs text-muted-foreground">{g.start_date ? `Başlangıç: ${formatDate(g.start_date)} · ` : ""}{g.session_count} oturum</p></div>
+                      <div className="flex items-center gap-2">
+                        <OrderBadges item={g} testId={`admin-group-paid-${g.group_id}`} />
+                        <Badge className="bg-secondary text-[10px]">{srcLabel(g.source)}</Badge>
+                        <Button variant="ghost" size="sm" className="text-destructive h-7" onClick={() => unenrollGroup(g.group_id)} data-testid={`remove-group-${g.group_id}`}><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Select value={groupToAdd} onValueChange={setGroupToAdd}><SelectTrigger className="bg-ink border-white/10 h-9" data-testid="enroll-group-select"><SelectValue placeholder="Grup eğitimine ekle..." /></SelectTrigger>
+                    <SelectContent>{groups.map((g) => <SelectItem key={g.group_id} value={g.group_id}>{g.title}</SelectItem>)}</SelectContent></Select>
+                  <Button onClick={enrollGroup} size="sm" className="bg-gold text-ink font-semibold shrink-0" data-testid="manual-group-enroll"><Plus className="w-4 h-4" /></Button>
+                </div>
+              </div>
+
               {/* Payments + invoice upload */}
               <div className="mt-4">
                 <h3 className="font-heading font-semibold text-sm mb-2">Ödemeler & Fatura</h3>
                 <div className="space-y-2">
                   {detail.payments.length === 0 ? <p className="text-sm text-muted-foreground">Ödeme yok.</p> : detail.payments.map((p) => (
                     <div key={p.order_id} className="flex items-center justify-between bg-ink rounded-lg p-3 text-sm">
-                      <div><p>{formatPrice(p.total)} ₺ <Badge className="ml-1 text-[10px] bg-secondary">{statusLabel(p.status)}</Badge></p><p className="text-xs text-muted-foreground">{formatDate(p.created_at)}</p></div>
+                      <div><p>{formatPrice(p.total)} ₺ <Badge className="ml-1 text-[10px] bg-secondary" data-testid={`profile-payment-status-${p.order_id}`}>{statusLabel(p.status)}</Badge> <Badge className="text-[10px] bg-secondary">{methodLabel(p)}</Badge></p><p className="text-xs text-muted-foreground">{p.items?.map((i) => i.title).join(", ")}</p><p className="text-[11px] text-muted-foreground">#{p.order_id} · {formatDate(p.created_at)}</p></div>
                       {p.status === "paid" && (
                         <div className="flex items-center gap-2">
                           <input type="file" accept="application/pdf" className="hidden" ref={(el) => (invRefs.current[p.order_id] = el)} onChange={(e) => uploadInvoice(p.order_id, e.target.files[0])} />
