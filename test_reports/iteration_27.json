@@ -1,0 +1,21 @@
+{
+  "summary": "Iteration 27: Verified billing info flow end-to-end (backend + frontend). Backend: 9/9 pytest cases passing in /app/backend/tests/test_iteration27_billing.py covering (a) guest checkout with corporate billing on course_4f638d946cb2 → account auto-created, billing stored on order and persisted to users.billing; (b) GET/PUT /api/payments/billing (auth) round-trip; (c) PUT /api/admin/students/{id}/billing persists and returns 404 for unknown user; (d) logged-in second checkout saves billing on the new order; (e) GET /api/admin/payments lists orders with billing field. Frontend: Guest checkout on /odeme shows BillingFields (billing-individual/billing-corporate/billing-company/billing-taxno/billing-taxoffice/billing-city/billing-district/billing-address) — selected corporate, filled TEST_FE values, transfer method; placing order shows transfer-result and account-created-dialog. /panel/ayarlar → settings-tab-billing renders prefilled corporate form (company_name='TEST_FE_Firma'), save-billing persists after reload (shows 'TEST_FE_Firma_Edited'). Admin /yonetim/odemeler shows 8 toggle-billing-{order_id} buttons; clicking expands order-billing-{oid} summary with the correct rows and order-billing-{oid}-copy triggers 'Fatura bilgileri kopyalandı' toast. Admin /yonetim/ogrenciler profile dialog contains student-billing-section with summary rows (Tür/Kurumsal, Firma Ünvanı, Vergi Dairesi, Vergi No, İl/İlçe, Adres, Kopyala). edit-student-billing opens form, save-student-billing persists with toast 'Fatura bilgileri kaydedildi'. All data-testids present and functional. Test users (test_fe_*, TEST_*) cleaned up at end.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iteration27_billing.py", "/app/test_reports/pytest/iter27.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_payments.checkout correctly guards users.billing update behind has_billing() so empty submissions do not wipe saved billing — matches spec.",
+    "BillingSummary renders a `${testId}-empty` fallback for orders without billing — Admin Payments uses order-billing-{oid}-empty when billing missing, satisfying the 'orders without billing show -empty text' requirement.",
+    "Checkout.jsx fetches /payments/billing on login and sets editBilling=false only when hasBilling() — spec-conformant (checkout-saved-billing + checkout-edit-billing wiring verified in code).",
+    "Low priority: AdminPayments calls GET /api/admin/payments which currently returns full order list including billing fields; for large tenants consider adding pagination (not blocking)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration27_billing.py", "/app/test_reports/iteration_27.json", "/app/test_reports/pytest/iter27.xml"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100%"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "Transient: created guest users with test_*@example.com + test_fe_*@example.com and corresponding transfer orders on course_4f638d946cb2 and meta-reklamlari-instagram-facebook. All test users deleted at end via DELETE /api/admin/students/{id}. Orders tagged TEST_ remain only if an unexpected error prevented cleanup; status is awaiting_transfer so they are safely ignored.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Billing flow fully covered. If modifying checkout, re-run tests/test_iteration27_billing.py. UI testIds confirmed: billing-individual, billing-corporate, billing-tckn, billing-company, billing-taxno, billing-taxoffice, billing-city, billing-district, billing-address, checkout-saved-billing, checkout-edit-billing, settings-tab-billing, save-billing, toggle-billing-{oid}, order-billing-{oid}(/-copy/-empty), student-billing-section, student-billing, student-billing-copy, edit-student-billing, save-student-billing.",
+  "rca of the issue": "N/A — no bugs found."
+}
