@@ -101,6 +101,10 @@ async def public_instructor(slug: str):
     card = instructor_card(d)
     docs = await db.courses.find({"instructor_id": d["instructor_id"], "is_published": True}, {"_id": 0}).sort("created_at", -1).to_list(200)
     card["courses"] = [course_summary(c) for c in docs]
+    from routes_group import _public, _instructors
+    imap = await _instructors()
+    gdocs = await db.group_trainings.find({"instructor_id": d["instructor_id"], "is_published": True}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    card["groups"] = [await _public(g, imap) for g in gdocs]
     return card
 
 

@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { CourseCard } from "@/components/CourseCard";
 import { GroupCard } from "@/components/GroupCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Seo } from "@/components/Seo";
-import { toEmbed, isDirectVideo } from "@/lib/video";
+import { VideoDialog } from "@/components/CleanPlayer";
 import { optImg } from "@/lib/page";
 
 const perks = [
@@ -78,7 +77,7 @@ export default function Home() {
     document.title = `${settings.site_name || "Akademi"} - Dijital Pazarlama Eğitimleri`;
   }, [settings.site_name]);
 
-  const openVideo = (url, vertical = false) => { setActiveVideo(toEmbed(url)); setVideoVertical(vertical); setVideoOpen(true); };
+  const openVideo = (url, vertical = false) => { setActiveVideo(url); setVideoVertical(vertical); setVideoOpen(true); };
   const testimonials = settings.testimonials || [];
   const shuffledT = useMemo(() => [...testimonials].sort(() => Math.random() - 0.5), [testimonials.length]);
   const [tStart, setTStart] = useState(0);
@@ -357,12 +356,7 @@ export default function Home() {
         </section>
       )}
 
-      <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
-        <DialogContent className={`${videoVertical ? "max-w-[420px]" : "max-w-3xl"} p-0 gap-0 bg-black border-white/10 overflow-hidden`}>
-          <DialogTitle className="sr-only">Tanıtım Videosu</DialogTitle>
-          <div className={videoVertical ? "aspect-[9/16]" : "aspect-video"}>{activeVideo && (isDirectVideo(activeVideo) ? <video src={activeVideo} autoPlay controls playsInline className="w-full h-full" data-testid="home-video-player" /> : <iframe title="Video" src={activeVideo + (activeVideo.includes("?") ? "&" : "?") + "autoplay=1"} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />)}</div>
-        </DialogContent>
-      </Dialog>
+      <VideoDialog url={activeVideo} open={videoOpen} onOpenChange={setVideoOpen} vertical={videoVertical} title="Tanıtım Videosu" testId="home-video" />
     </div>
   );
 }

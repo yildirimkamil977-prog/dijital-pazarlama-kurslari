@@ -6,7 +6,7 @@ import api, { formatPrice } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { toEmbed } from "@/lib/video";
+import { CleanPlayer } from "@/components/CleanPlayer";
 import { ReviewMedia } from "@/components/ReviewMedia";
 import { RichContent } from "@/components/RichContent";
 import { optImg, takeInitial, usePageSeo } from "@/lib/page";
@@ -95,7 +95,7 @@ export default function GroupDetail() {
           {/* MAIN */}
           <div className="lg:col-span-2 space-y-10">
             <div className="relative aspect-video rounded-3xl overflow-hidden bg-ink border border-white/10 shadow-2xl">
-              {g.promo_video && playPromo ? <iframe title="Tanıtım" src={`${toEmbed(g.promo_video)}${toEmbed(g.promo_video).includes("?") ? "&" : "?"}autoplay=1`} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="group-promo" />
+              {g.promo_video && playPromo ? <CleanPlayer url={g.promo_video} title="Tanıtım" testId="group-promo" />
                 : (
                   <button type="button" className="group w-full h-full relative" onClick={() => g.promo_video && setPlayPromo(true)} aria-label="Tanıtım videosunu oynat" data-testid="group-promo-poster" disabled={!g.promo_video}>
                     {(g.promo_thumb || g.image) ? <img src={optImg(g.promo_thumb || g.image, 1200)} alt={g.title} fetchpriority="high" width="1200" height="675" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-gold/10 to-ink" />}

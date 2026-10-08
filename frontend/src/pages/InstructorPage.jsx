@@ -4,6 +4,7 @@ import { m as motion } from "framer-motion";
 import { Loader2, User, BookOpen, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
 import { CourseCard } from "@/components/CourseCard";
+import { GroupCard } from "@/components/GroupCard";
 import { Seo } from "@/components/Seo";
 import { useSite } from "@/context/SiteContext";
 
@@ -42,7 +43,7 @@ export default function InstructorPage() {
             <div>
               <h1 className="font-heading font-black text-4xl sm:text-5xl tracking-tighter leading-none">{data.name}</h1>
               {data.title && <p className="mt-3 text-lg text-gold font-medium">{data.title}</p>}
-              <p className="mt-3 text-sm text-muted-foreground flex items-center gap-2"><BookOpen className="w-4 h-4" /> {data.courses?.length || 0} eğitim</p>
+              <p className="mt-3 text-sm text-muted-foreground flex items-center gap-2"><BookOpen className="w-4 h-4" /> {(data.courses?.length || 0) + (data.groups?.length || 0)} eğitim</p>
             </div>
           </motion.div>
           {data.bio && <p className="mt-8 text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line" data-testid="instructor-bio">{data.bio}</p>}
@@ -57,6 +58,14 @@ export default function InstructorPage() {
           </div>
         ) : (
           <p className="text-muted-foreground">Bu eğitmene ait yayında eğitim bulunmuyor.</p>
+        )}
+        {data.groups?.length > 0 && (
+          <div className="mt-16" data-testid="instructor-groups-section">
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl tracking-tight mb-8">Canlı Grup Eğitimleri</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.groups.map((g, i) => <GroupCard key={g.group_id} g={g} index={i} />)}
+            </div>
+          </div>
         )}
       </div>
     </div>

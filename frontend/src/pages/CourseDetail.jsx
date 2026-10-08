@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { toEmbed } from "@/lib/video";
+import { CleanPlayer } from "@/components/CleanPlayer";
 import { ReviewMedia } from "@/components/ReviewMedia";
 import { RichContent } from "@/components/RichContent";
 import { CourseNotifyForm } from "@/components/CourseNotifyForm";
@@ -321,7 +321,7 @@ export default function CourseDetail() {
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl p-0 gap-0 bg-black border-white/10 overflow-hidden">
           <DialogTitle className="sr-only">{preview?.title || "Video önizleme"}</DialogTitle>
-          <div className="aspect-video">{preview?.video_url && <iframe title={preview.title} src={`${toEmbed(preview.video_url)}${toEmbed(preview.video_url).includes("?") ? "&" : "?"}autoplay=1`} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen data-testid="preview-iframe" />}</div>
+          <div className="aspect-video">{preview?.video_url && <CleanPlayer url={preview.video_url} title={preview.title} testId="preview-player" />}</div>
           <div className="p-4 bg-ink-surface"><p className="font-heading font-semibold text-sm">{preview?.title}</p></div>
         </DialogContent>
       </Dialog>
