@@ -8,6 +8,7 @@ from fastapi import APIRouter, Request, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from media import optimize_image
+from routes_payments import Billing
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
@@ -335,6 +336,16 @@ async def student_detail(user_id: str, request: Request):
     for c in certs:
         c["has_file"] = bool(c.get("file")); c.pop("file", None)
     return {"user": u, "courses": courses, "groups": groups, "payments": payments, "certificates": certs}
+
+
+@router.put("/students/{user_id}/billing")
+async def admin_save_billing(user_id: str, body: Billing, request: Request):
+    await require_admin(request)
+    b = body.model_dump()
+    r = await db.users.update_one({"user_id": user_id}, {"$set": {"billing": b}})
+    if not r.matched_count:
+        raise HTTPException(status_code=404, detail="Öğrenci bulunamadı")
+    return b
 
 
 @router.delete("/students/{user_id}")

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, Save, User, Lock, ChevronLeft } from "lucide-react";
+import { Loader2, Save, User, Lock, ChevronLeft, Receipt } from "lucide-react";
+import { BillingFields, EMPTY_BILLING } from "@/components/BillingForm";
 import api, { apiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,14 @@ export default function StudentSettings() {
   const [pwd, setPwd] = useState({ current_password: "", new_password: "", confirm: "" });
   const [savingP, setSavingP] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
+  const [billing, setBilling] = useState(EMPTY_BILLING);
+  const [savingB, setSavingB] = useState(false);
+  useEffect(() => { api.get("/payments/billing").then(({ data }) => setBilling({ ...EMPTY_BILLING, ...data })).catch(() => {}); }, []);
+  const saveBilling = async (e) => {
+    e.preventDefault(); setSavingB(true);
+    try { await api.put("/payments/billing", billing); toast.success("Fatura bilgilerin kaydedildi"); }
+    catch (err) { toast.error(apiError(err)); } finally { setSavingB(false); }
+  };
 
   useEffect(() => {
     document.title = "Hesap Ayarları - Akademi";
@@ -47,6 +56,7 @@ export default function StudentSettings() {
       <Tabs defaultValue="profile">
         <TabsList className="bg-ink-surface border border-white/5">
           <TabsTrigger value="profile" data-testid="settings-tab-profile"><User className="w-4 h-4 mr-2" /> Profil</TabsTrigger>
+          <TabsTrigger value="billing" data-testid="settings-tab-billing"><Receipt className="w-4 h-4 mr-2" /> Fatura</TabsTrigger>
           <TabsTrigger value="password" data-testid="settings-tab-password"><Lock className="w-4 h-4 mr-2" /> Şifre</TabsTrigger>
         </TabsList>
 
@@ -55,6 +65,14 @@ export default function StudentSettings() {
             <div><Label>Ad Soyad</Label><Input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} className={inputCls} data-testid="profile-name" required /></div>
             <div><Label>E-posta</Label><Input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} className={inputCls} data-testid="profile-email" required /></div>
             <Button type="submit" disabled={savingP} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-profile">{savingP ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="billing" className="mt-6">
+          <form onSubmit={saveBilling} className="bg-ink-surface border border-white/5 rounded-2xl p-7" data-testid="settings-billing-form">
+            <p className="text-sm text-muted-foreground mb-5">Faturan bu bilgilere göre kesilir. Sonraki siparişlerinde otomatik kullanılır.</p>
+            <BillingFields billing={billing} setBilling={setBilling} inputCls={inputCls} />
+            <Button type="submit" disabled={savingB} className="mt-5 bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-billing">{savingB ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
           </form>
         </TabsContent>
 

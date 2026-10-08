@@ -1,12 +1,33 @@
 import { useEffect, useState, useRef } from "react";
 import { Loader2, Search, BookOpen, Plus, Trash2, KeyRound, Upload, Download, Award, ChevronLeft, ChevronRight, ShoppingBag, Users, FileDown, RotateCcw } from "lucide-react";
 import { MultiSelectFilter } from "@/components/admin/MultiSelectFilter";
+import { BillingSummary, BillingFields, EMPTY_BILLING } from "@/components/BillingForm";
 import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
 
 const SRC_LABEL = { purchase: "Satın Alma", free: "Ücretsiz", transfer: "Havale/EFT", manual: "Manuel Kayıt", gift: "Hediye" };
 const srcLabel = (s) => SRC_LABEL[s] || "Manuel Kayıt";
 const STATUS_LABEL = { paid: "Ödendi", pending: "Tamamlanmadı", awaiting_transfer: "Havale Bekleniyor", failed: "Başarısız", token_failed: "Başarısız" };
 const statusLabel = (s) => STATUS_LABEL[s] || s;
+const StudentBilling = ({ user, onSaved }) => {
+  const [edit, setEdit] = useState(null);
+  const save = async () => {
+    try { await api.put(`/admin/students/${user.user_id}/billing`, edit); toast.success("Fatura bilgileri kaydedildi"); setEdit(null); onSaved(); } catch (e) { toast.error(apiError(e)); }
+  };
+  return (
+    <div className="mt-4" data-testid="student-billing-section">
+      <div className="flex items-center justify-between mb-2"><h3 className="font-heading font-semibold text-sm">Fatura Bilgileri</h3>
+        {!edit && <Button variant="outline" size="sm" className="border-white/15 h-7" onClick={() => setEdit({ ...EMPTY_BILLING, ...(user.billing || {}) })} data-testid="edit-student-billing">Düzenle</Button>}</div>
+      <div className="bg-ink rounded-lg p-3">
+        {edit ? (
+          <>
+            <BillingFields billing={edit} setBilling={setEdit} />
+            <div className="flex gap-2 mt-4"><Button size="sm" className="bg-gold text-ink font-semibold" onClick={save} data-testid="save-student-billing">Kaydet</Button><Button size="sm" variant="ghost" onClick={() => setEdit(null)}>İptal</Button></div>
+          </>
+        ) : <BillingSummary billing={user.billing} name={user.name} copy testId="student-billing" />}
+      </div>
+    </div>
+  );
+};
 const methodLabel = (o) => (!o.total ? "Ücretsiz" : o.payment_method === "transfer" ? "Havale/EFT" : "Kredi Kartı");
 const OrderBadges = ({ item, testId }) => (
   <>
@@ -144,6 +165,8 @@ export default function AdminStudents() {
                 <Button variant="outline" size="sm" className="border-white/15 h-7 ml-auto" onClick={resetPw} data-testid="reset-password-btn"><KeyRound className="w-3.5 h-3.5 mr-1.5" /> Şifre Sıfırla & Gönder</Button>
                 {detail.user.role !== "admin" && <Button variant="outline" size="sm" className="border-destructive/40 text-red-400 h-7" onClick={() => deleteStudent(detail.user)} data-testid="delete-student-btn"><Trash2 className="w-3.5 h-3.5 mr-1.5" /> Öğrenciyi Sil</Button>}
               </div>
+
+              <StudentBilling user={detail.user} onSaved={refreshDetail} />
 
               {/* Courses & progress */}
               <div className="mt-2">

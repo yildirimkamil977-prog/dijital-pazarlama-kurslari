@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { Loader2, Upload, Trash2, Download, CheckCircle2, Search, TrendingUp, ShoppingBag, Wallet, Clock, X, CreditCard, Landmark } from "lucide-react";
+import { BillingSummary } from "@/components/BillingForm";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export default function AdminPayments() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
+  const [openBilling, setOpenBilling] = useState({});
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -210,7 +212,11 @@ export default function AdminPayments() {
                       <p className="text-sm font-medium truncate">{o.user_name || o.user_email}{o.user_name && o.user_email && <span className="text-xs text-muted-foreground font-normal" data-testid={`payment-email-${o.order_id}`}> · {o.user_email}</span>}</p>
                       <p className="text-xs text-muted-foreground truncate">{o.items?.map((i) => i.title).join(", ")}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">#{o.order_id} · {formatDate(o.created_at)}{o.discount_code ? ` · Kod: ${o.discount_code}` : ""}</p>
-                      <Badge className="mt-1.5 text-[10px] bg-secondary border-white/10" data-testid={`payment-method-badge-${o.order_id}`}>{METHOD_LABEL[methodOf(o)]}</Badge>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge className="text-[10px] bg-secondary border-white/10" data-testid={`payment-method-badge-${o.order_id}`}>{METHOD_LABEL[methodOf(o)]}</Badge>
+                        <button type="button" onClick={() => setOpenBilling((s) => ({ ...s, [o.order_id]: !s[o.order_id] }))} className="text-[11px] text-gold hover:underline" data-testid={`toggle-billing-${o.order_id}`}>{openBilling[o.order_id] ? "Fatura Bilgilerini Gizle" : "Fatura Bilgileri"}</button>
+                      </div>
+                      {openBilling[o.order_id] && <div className="mt-2 bg-ink rounded-lg p-3 max-w-md"><BillingSummary billing={o.billing} name={o.user_name} copy testId={`order-billing-${o.order_id}`} /></div>}
                       {o.status === "awaiting_transfer" && o.transfer_notified && (
                         <div className="mt-2 text-[11px] bg-blue-500/10 border border-blue-500/20 rounded-lg px-2.5 py-1.5 text-blue-300" data-testid={`transfer-notification-${o.order_id}`}>
                           <span className="font-semibold">Havale bildirimi alındı</span>

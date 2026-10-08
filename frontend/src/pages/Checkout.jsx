@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, Tag, ShieldCheck, X, MessageCircle, CreditCard, Building2, User, Landmark, CheckCircle2, Copy } from "lucide-react";
+import { Loader2, Tag, ShieldCheck, X, MessageCircle, CreditCard, Landmark, CheckCircle2, Copy } from "lucide-react";
 import api, { apiError, formatPrice } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -11,9 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { trCities } from "@/data/trCities";
+import { BillingFields, BillingSummary, EMPTY_BILLING, hasBilling } from "@/components/BillingForm";
 import { trackInitiateCheckout, trackPurchase, trackRegister } from "@/lib/track";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
@@ -33,7 +31,12 @@ export default function Checkout() {
   const [method, setMethod] = useState("paytr");
   const [accept, setAccept] = useState(false);
   const [customer, setCustomer] = useState({ name: "", email: "", phone: "" });
-  const [billing, setBilling] = useState({ type: "individual", tckn: "", company_name: "", tax_office: "", tax_no: "", city: "", district: "", address: "" });
+  const [billing, setBilling] = useState(EMPTY_BILLING);
+  const [editBilling, setEditBilling] = useState(true);
+  useEffect(() => {
+    if (!user) { setEditBilling(true); return; }
+    api.get("/payments/billing").then(({ data }) => { if (hasBilling(data)) { setBilling({ ...EMPTY_BILLING, ...data }); setEditBilling(false); } }).catch(() => {});
+  }, [user]);
   const [transferInfo, setTransferInfo] = useState(null);
 
   useEffect(() => { document.title = "Ödeme - Akademi"; }, []);
@@ -52,7 +55,6 @@ export default function Checkout() {
   const total = Math.max(0, afterCode - transferDisc);
   const originalTotal = items.reduce((s, i) => s + (i.original_price ?? i.price ?? 0), 0);
   const campaignSavings = Math.max(0, originalTotal - subtotal);
-  const districts = trCities.find((c) => c.name === billing.city)?.districts || [];
   const [pwdInfo, setPwdInfo] = useState(false);
 
   const applyDiscount = async () => {
@@ -166,41 +168,18 @@ export default function Checkout() {
 
           {/* Billing */}
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6">
-            <h2 className="font-heading font-semibold mb-4">Fatura Bilgileri</h2>
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              {[["individual", "Bireysel", User], ["corporate", "Kurumsal", Building2]].map(([v, l, Ic]) => (
-                <button key={v} onClick={() => setBilling({ ...billing, type: v })} data-testid={`billing-${v}`}
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-colors duration-200 ${billing.type === v ? "border-gold bg-gold/10 text-gold" : "border-white/10 text-muted-foreground hover:border-white/20"}`}>
-                  <Ic className="w-4 h-4" /> {l}
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading font-semibold">Fatura Bilgileri</h2>
+              {user && !editBilling && <button type="button" onClick={() => setEditBilling(true)} className="text-gold text-xs font-semibold hover:underline" data-testid="checkout-edit-billing">Düzenle</button>}
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {billing.type === "individual" ? (
-                <div className="sm:col-span-2"><Label>TC Kimlik No</Label><Input value={billing.tckn} onChange={(e) => setBilling({ ...billing, tckn: e.target.value })} className={inputCls} data-testid="billing-tckn" /></div>
-              ) : (
-                <>
-                  <div><Label>Firma Ünvanı</Label><Input value={billing.company_name} onChange={(e) => setBilling({ ...billing, company_name: e.target.value })} className={inputCls} data-testid="billing-company" /></div>
-                  <div><Label>Vergi No</Label><Input value={billing.tax_no} onChange={(e) => setBilling({ ...billing, tax_no: e.target.value })} className={inputCls} data-testid="billing-taxno" /></div>
-                  <div className="sm:col-span-2"><Label>Vergi Dairesi</Label><Input value={billing.tax_office} onChange={(e) => setBilling({ ...billing, tax_office: e.target.value })} className={inputCls} data-testid="billing-taxoffice" /></div>
-                </>
-              )}
-              <div>
-                <Label>İl</Label>
-                <Select value={billing.city} onValueChange={(v) => setBilling({ ...billing, city: v, district: "" })}>
-                  <SelectTrigger className={inputCls} data-testid="billing-city"><SelectValue placeholder="Şehir seçin" /></SelectTrigger>
-                  <SelectContent className="max-h-72">{trCities.map((c) => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>İlçe</Label>
-                <Select value={billing.district} onValueChange={(v) => setBilling({ ...billing, district: v })} disabled={!billing.city}>
-                  <SelectTrigger className={inputCls} data-testid="billing-district"><SelectValue placeholder={billing.city ? "İlçe seçin" : "Önce şehir seçin"} /></SelectTrigger>
-                  <SelectContent className="max-h-72">{districts.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="sm:col-span-2"><Label>Adres</Label><Textarea value={billing.address} onChange={(e) => setBilling({ ...billing, address: e.target.value })} className={inputCls} rows={2} placeholder="Mahalle, cadde, kapı no..." data-testid="billing-address" /></div>
-            </div>
+            {user && !editBilling ? (
+              <div data-testid="checkout-saved-billing"><BillingSummary billing={billing} name={user.name} testId="checkout-billing" /><p className="text-[11px] text-muted-foreground mt-3">Kayıtlı fatura bilgilerin kullanılacak.</p></div>
+            ) : (
+              <>
+                <BillingFields billing={billing} setBilling={setBilling} inputCls={inputCls} />
+                <p className="text-[11px] text-muted-foreground mt-3">Bilgilerin bir sonraki siparişlerin için hesabına kaydedilir.</p>
+              </>
+            )}
           </section>
 
           {/* Payment method */}

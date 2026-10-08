@@ -43,6 +43,24 @@ class Billing(BaseModel):
     address: str = ""
 
 
+def has_billing(b: dict) -> bool:
+    return any((b.get(k) or "").strip() for k in ("tckn", "company_name", "tax_no", "tax_office", "city", "address"))
+
+
+@router.get("/billing")
+async def my_billing(request: Request):
+    user = await get_current_user(request)
+    return user.get("billing") or {}
+
+
+@router.put("/billing")
+async def save_my_billing(body: Billing, request: Request):
+    user = await get_current_user(request)
+    b = body.model_dump()
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"billing": b}})
+    return b
+
+
 class CheckoutIn(BaseModel):
     items: List[CheckoutItem]
     discount_code: Optional[str] = None
@@ -229,6 +247,8 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
     total = round(after_code - transfer_discount, 2)
 
     billing = body.billing.model_dump() if body.billing else {}
+    if has_billing(billing):
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"billing": billing}})
     order = {
         "order_id": new_id("PT").replace("_", ""), "user_id": user["user_id"],
         "user_email": user["email"], "user_name": user.get("name"),
