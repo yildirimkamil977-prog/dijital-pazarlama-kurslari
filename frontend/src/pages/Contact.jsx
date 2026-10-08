@@ -1,14 +1,15 @@
 import { useEffect } from "react";
 import { Mail, Phone, MapPin, MessageCircle, Clock } from "lucide-react";
 import { useSite } from "@/context/SiteContext";
+import { waNumber, telHref } from "@/lib/phone";
 
 export default function Contact() {
   const { settings } = useSite();
   useEffect(() => { document.title = `İletişim - ${settings.site_name || "Akademi"}`; window.scrollTo(0, 0); }, [settings.site_name]);
-  const wa = (settings.whatsapp_number || settings.support_phone || "").replace(/\D/g, "");
+  const wa = waNumber(settings.whatsapp_number || settings.support_phone);
 
   const cards = [
-    { icon: Phone, label: "Destek Hattı", value: settings.support_phone, href: settings.support_phone ? `tel:${settings.support_phone.replace(/\D/g, "")}` : null },
+    { icon: Phone, label: "Destek Hattı", value: settings.support_phone, href: settings.support_phone ? telHref(settings.support_phone) : null },
     { icon: Mail, label: "Destek E-posta", value: settings.contact_email, href: settings.contact_email ? `mailto:${settings.contact_email}` : null },
     { icon: MapPin, label: "Adres", value: settings.address, href: null },
   ];
@@ -39,7 +40,7 @@ export default function Contact() {
           <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" data-testid="contact-whatsapp"
             className="bg-[#25D366]/10 border border-[#25D366]/30 rounded-2xl p-7 hover:bg-[#25D366]/15 transition-colors duration-200 flex items-center gap-4">
             <span className="w-12 h-12 rounded-xl bg-[#25D366] flex items-center justify-center shrink-0"><MessageCircle className="w-6 h-6 text-white" fill="white" /></span>
-            <div><p className="font-heading font-semibold">WhatsApp'tan Yaz</p><p className="text-sm text-muted-foreground">Anında yanıt için en hızlı yol</p></div>
+            <div><p className="font-heading font-semibold">WhatsApp'tan Yaz</p>{settings.whatsapp_number && <p className="text-sm font-medium mt-0.5" data-testid="contact-whatsapp-number">{settings.whatsapp_number}</p>}<p className="text-sm text-muted-foreground">Anında yanıt için en hızlı yol</p></div>
           </a>
         )}
       </div>

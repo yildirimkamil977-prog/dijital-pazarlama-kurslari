@@ -424,5 +424,6 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Sadece "{students_count} öğrenci" yazıları kaldırıldı
 - CleanPlayer/VideoDialog (components/CleanPlayer.jsx): YouTube/Vimeo kontrolleri gizli, sadece ortada oynat/durdur; tanıtım videoları (anasayfa, kurs önizleme, grup tanıtım) ve yorum videoları büyük pop-up'ta (iteration_26 geçti)
 - Eğitmen sayfası: "Canlı Grup Eğitimleri" bölümü (grup eğitiminde eğitmen seçili olmalı)
-- Fatura bilgileri: checkout'ta girilen bilgi siparişe + users.billing'e kaydedilir; checkout'ta kayıtlı özet + Düzenle; Ödemeler'de açılır "Fatura Bilgileri" + Kopyala; admin öğrenci profilinde görüntüle/düzenle; öğrenci /panel/ayarlar "Fatura" sekmesi (GET/PUT /api/payments/billing, PUT /api/admin/students/{id}/billing) (iteration_27 geçti) (anasayfa güven kartı, kurs detay alt şeridi); bölümler ve hero "5.000'den fazla öğrenci" kutusu yerinde
+- Fatura bilgileri: checkout'ta girilen bilgi siparişe + users.billing'e kaydedilir; checkout'ta kayıtlı özet + Düzenle; Ödemeler'de açılır "Fatura Bilgileri" + Kopyala; admin öğrenci profilinde görüntüle/düzenle; öğrenci /panel/ayarlar "Fatura" sekmesi (GET/PUT /api/payments/billing, PUT /api/admin/students/{id}/billing) (iteration_27 geçti)
+- WhatsApp numarası Genel > Site Bilgileri'ne (Destek Telefonu yanına) taşındı; iletişim sayfası, footer, sepet/ödeme "Destek Ekibi" kutusu iki numarayı da gösterir; lib/phone.js waNumber (0532… → 90532…) ve telHref (anasayfa güven kartı, kurs detay alt şeridi); bölümler ve hero "5.000'den fazla öğrenci" kutusu yerinde
 

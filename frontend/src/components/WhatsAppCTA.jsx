@@ -1,11 +1,13 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Phone } from "lucide-react";
 import { useSite } from "@/context/SiteContext";
+import { waNumber, telHref } from "@/lib/phone";
 
 export function WhatsAppCTA({ text = "Sorularınız için WhatsApp'tan yazın, hemen yanıtlayalım.", prefill = "Merhaba, bilgi almak istiyorum.", testId = "whatsapp-cta" }) {
   const { settings } = useSite();
-  const wa = (settings.whatsapp_number || settings.support_phone || "").replace(/\D/g, "");
+  const wa = waNumber(settings.whatsapp_number || settings.support_phone);
   if (!wa) return null;
   return (
+    <div className="space-y-2">
     <a
       href={`https://wa.me/${wa}?text=${encodeURIComponent(prefill)}`}
       target="_blank"
@@ -25,7 +27,14 @@ export function WhatsAppCTA({ text = "Sorularınız için WhatsApp'tan yazın, h
           <span className="inline-flex items-center gap-1 text-[11px] text-[#4ade80] font-medium"><span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" /> Çevrimiçi</span>
         </p>
         <p className="text-xs text-muted-foreground leading-snug mt-0.5">{text}</p>
+        {settings.whatsapp_number && <p className="text-xs text-[#4ade80] font-medium mt-1" data-testid={`${testId}-number`}>{settings.whatsapp_number}</p>}
       </div>
     </a>
+    {settings.support_phone && (
+      <a href={telHref(settings.support_phone)} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-gold transition-colors duration-200 px-1" data-testid={`${testId}-phone`}>
+        <Phone className="w-3.5 h-3.5" /> Destek Hattı: <span className="text-foreground font-medium">{settings.support_phone}</span>
+      </a>
+    )}
+    </div>
   );
 }

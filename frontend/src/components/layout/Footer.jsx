@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Mail, Phone, MapPin } from "lucide-react";
+import { GraduationCap, Mail, Phone, MapPin, MessageCircle } from "lucide-react";
 import { useSite } from "@/context/SiteContext";
+import { waNumber, telHref } from "@/lib/phone";
 
 const legal = [
   { to: "/sozlesmeler/kvkk", label: "KVKK Aydınlatma Metni" },
@@ -32,7 +33,10 @@ export function Footer() {
               </a>
             )}
             {settings.support_phone && (
-              <span className="flex items-center gap-2"><Phone className="w-4 h-4" /> {settings.support_phone}</span>
+              <a href={telHref(settings.support_phone)} className="flex items-center gap-2 hover:text-gold transition-colors duration-200" data-testid="footer-phone"><Phone className="w-4 h-4" /> {settings.support_phone}</a>
+            )}
+            {settings.whatsapp_number && (
+              <a href={`https://wa.me/${waNumber(settings.whatsapp_number)}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-[#25D366] transition-colors duration-200" data-testid="footer-whatsapp"><MessageCircle className="w-4 h-4" /> {settings.whatsapp_number}</a>
             )}
             {settings.address && (
               <span className="flex items-start gap-2"><MapPin className="w-4 h-4 shrink-0 mt-0.5" /> {settings.address}</span>

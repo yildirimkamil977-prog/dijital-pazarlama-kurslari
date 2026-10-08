@@ -1,9 +1,10 @@
 import { useSite } from "@/context/SiteContext";
 import { MessageCircle } from "lucide-react";
+import { waNumber } from "@/lib/phone";
 
 export function WhatsAppButton() {
   const { settings } = useSite();
-  const num = (settings.whatsapp_number || "").replace(/\D/g, "");
+  const num = waNumber(settings.whatsapp_number);
   if (!num) return null;
   const msg = encodeURIComponent(settings.whatsapp_message || "Merhaba");
   return (

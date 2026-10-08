@@ -88,7 +88,8 @@ export default function AdminSettings() {
               <div><Label>Site Adı</Label><Input value={s.site_name || ""} onChange={(e) => g({ site_name: e.target.value })} className={inputCls} data-testid="setting-site-name" /></div>
               <div><Label>Slogan</Label><Input value={s.tagline || ""} onChange={(e) => g({ tagline: e.target.value })} className={inputCls} /></div>
               <div><Label>İletişim E-postası</Label><Input value={s.contact_email || ""} onChange={(e) => g({ contact_email: e.target.value })} className={inputCls} /></div>
-              <div><Label>Destek Telefonu</Label><Input value={s.support_phone || ""} onChange={(e) => g({ support_phone: e.target.value })} className={inputCls} /></div>
+              <div><Label>Destek Telefonu</Label><Input value={s.support_phone || ""} onChange={(e) => g({ support_phone: e.target.value })} className={inputCls} placeholder="0(850) 000 00 00" data-testid="setting-support-phone" /></div>
+              <div><Label>WhatsApp Numarası</Label><Input value={s.whatsapp_number || ""} onChange={(e) => g({ whatsapp_number: e.target.value })} className={inputCls} placeholder="0532 000 00 00" data-testid="setting-whatsapp" /><p className="text-xs text-muted-foreground mt-1">İletişim sayfası, footer, sepet ve ödeme destek alanında kullanılır.</p></div>
               <div><Label>Öğrenci Sayısı (gösterim)</Label><Input value={s.students_count || ""} onChange={(e) => g({ students_count: e.target.value })} className={inputCls} /></div>
             </div>
           </section>
@@ -126,10 +127,8 @@ export default function AdminSettings() {
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
             <h2 className="font-heading font-semibold">WhatsApp Destek</h2>
             <p className="text-sm text-muted-foreground">Numara girilince site genelinde ve sepet/ödeme sayfalarında WhatsApp butonu görünür.</p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div><Label>WhatsApp Numarası</Label><Input value={s.whatsapp_number || ""} onChange={(e) => g({ whatsapp_number: e.target.value })} className={inputCls} placeholder="905XXXXXXXXX" data-testid="setting-whatsapp" /></div>
-              <div><Label>Varsayılan Mesaj</Label><Input value={s.whatsapp_message || ""} onChange={(e) => g({ whatsapp_message: e.target.value })} className={inputCls} /></div>
-            </div>
+            <p className="text-xs text-muted-foreground">WhatsApp numarası Genel &gt; Site Bilgileri bölümünden değiştirilir.</p>
+            <div className="max-w-md"><Label>Varsayılan Mesaj</Label><Input value={s.whatsapp_message || ""} onChange={(e) => g({ whatsapp_message: e.target.value })} className={inputCls} /></div>
           </section>
           <Button onClick={saveGeneral} disabled={busy === "g"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-campaign">{busy === "g" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
         </TabsContent>
