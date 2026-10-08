@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/ImageUpload";
 import { toast } from "sonner";
 
-const gKeys = ["site_name", "tagline", "contact_email", "support_phone", "hero_title", "hero_subtitle", "about_text", "students_count", "email_enabled", "hero_video_url", "hero_poster", "whatsapp_number", "whatsapp_message", "bundle_discount_pct", "transfer_discount_pct", "promo_enabled", "promo_text"];
+const gKeys = ["site_name", "tagline", "contact_email", "notify_email", "support_phone", "hero_title", "hero_subtitle", "about_text", "students_count", "email_enabled", "hero_video_url", "hero_poster", "whatsapp_number", "whatsapp_message", "bundle_discount_pct", "transfer_discount_pct", "promo_enabled", "promo_text"];
 const numKeys = ["bundle_discount_pct", "transfer_discount_pct"];
 
 export default function AdminSettings() {
@@ -58,6 +58,7 @@ export default function AdminSettings() {
 
   const saveTracking = async () => { setBusy("t"); try { await api.put("/admin/settings/tracking", tracking); toast.success("Takip kodları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveSeo = async () => { setBusy("seo"); try { await api.put("/admin/settings/seo", seo); toast.success("SEO ayarları kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
+  const testEmail = async () => { setBusy("te"); try { const { data } = await api.post("/admin/settings/test-email"); toast.success(`Test maili gönderildi: ${data.to}${data.emails_enabled ? "" : " (Uyarı: otomatik e-postalar kapalı)"}`); } catch (e) { toast.error(apiError(e), { duration: 10000 }); } finally { setBusy(""); } };
   const saveTestimonials = async () => { setBusy("tt"); try { await api.put("/admin/settings/testimonials", testimonials); await api.put("/admin/settings/reviews-visibility", { enabled: s.reviews_enabled !== false }); toast.success("Yorumlar kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveLegal = async () => { setBusy("lg"); try { await api.put("/admin/settings/legal", legal); toast.success("Sözleşmeler kaydedildi"); } catch (e) { toast.error(apiError(e)); } finally { setBusy(""); } };
   const saveTemplate = async (tpl) => { try { await api.put(`/admin/email-templates/${tpl.key}`, { subject: tpl.subject, html: tpl.html, enabled: tpl.enabled }); toast.success("Şablon kaydedildi"); } catch (e) { toast.error(apiError(e)); } };
@@ -88,6 +89,10 @@ export default function AdminSettings() {
               <div><Label>Site Adı</Label><Input value={s.site_name || ""} onChange={(e) => g({ site_name: e.target.value })} className={inputCls} data-testid="setting-site-name" /></div>
               <div><Label>Slogan</Label><Input value={s.tagline || ""} onChange={(e) => g({ tagline: e.target.value })} className={inputCls} /></div>
               <div><Label>İletişim E-postası</Label><Input value={s.contact_email || ""} onChange={(e) => g({ contact_email: e.target.value })} className={inputCls} /></div>
+              <div className="sm:col-span-2" data-testid="notify-email-box"><Label>Yönetici Bildirim E-postası</Label>
+                <div className="flex gap-2 mt-1.5"><Input value={s.notify_email || ""} onChange={(e) => g({ notify_email: e.target.value })} className="bg-ink border-white/10" placeholder={s.contact_email || "ornek@alanadi.com"} data-testid="setting-notify-email" />
+                  <Button type="button" variant="outline" className="border-white/15 shrink-0" onClick={testEmail} disabled={busy === "te"} data-testid="test-notify-email">{busy === "te" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Test maili gönder"}</Button></div>
+                <p className="text-xs text-muted-foreground mt-1">Kurs/grup satışı, havale bildirimi, danışmanlık talebi, yeni kayıt ve eğitim tamamlama bildirimleri bu adrese gider. Boş bırakılırsa İletişim E-postası kullanılır. Test öncesi Kaydet'e basın.</p></div>
               <div><Label>Destek Telefonu</Label><Input value={s.support_phone || ""} onChange={(e) => g({ support_phone: e.target.value })} className={inputCls} placeholder="0(850) 000 00 00" data-testid="setting-support-phone" /></div>
               <div><Label>WhatsApp Numarası</Label><Input value={s.whatsapp_number || ""} onChange={(e) => g({ whatsapp_number: e.target.value })} className={inputCls} placeholder="0532 000 00 00" data-testid="setting-whatsapp" /><p className="text-xs text-muted-foreground mt-1">İletişim sayfası, footer, sepet ve ödeme destek alanında kullanılır.</p></div>
               <div><Label>Öğrenci Sayısı (gösterim)</Label><Input value={s.students_count || ""} onChange={(e) => g({ students_count: e.target.value })} className={inputCls} /></div>

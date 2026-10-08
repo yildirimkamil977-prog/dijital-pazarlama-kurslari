@@ -358,12 +358,14 @@ async def send_email(to_email: str, subject: str, html: str, reply_to: Optional[
                                  headers={"Authorization": f"Bearer {RESEND_API_KEY}"}, json=payload)
             r.raise_for_status()
             logger.info(f"E-posta gönderildi (Resend, {to_email}): {subject}")
+            return True, ""
         except Exception as e:
-            logger.error(f"E-posta gönderilemedi (Resend, {to_email}): {e} {getattr(getattr(e, 'response', None), 'text', '')}")
-        return
+            err = f"{e} {getattr(getattr(e, 'response', None), 'text', '')}"
+            logger.error(f"E-posta gönderilemedi (Resend, {to_email}): {err}")
+            return False, err
     if not EMAIL_KEY:
         logger.warning("EMERGENT_EMAIL_KEY yok, e-posta atlanıyor")
-        return
+        return False, "E-posta servisi yapılandırılmamış (RESEND_API_KEY / RESEND_FROM eksik)"
     payload = {"to": [to_email], "subject": subject, "html": html, "from_name": EMAIL_FROM_NAME}
     if reply_to:
         payload["contact_email"] = reply_to
@@ -372,13 +374,15 @@ async def send_email(to_email: str, subject: str, html: str, reply_to: Optional[
             r = await c.post(f"{EMAIL_BASE_URL}/api/v1/email/send",
                              headers={"X-Email-Key": EMAIL_KEY}, json=payload)
         r.raise_for_status()
+        return True, ""
     except Exception as e:
         logger.error(f"E-posta gönderilemedi ({to_email}): {e}")
+        return False, str(e)
 
 
 def schedule_email(key: str, to_email: str, ctx: dict):
     """Fire-and-forget templated email so user requests aren't blocked."""
-    asyncio.create_task(send_templated(key, to_email, ctx))
+    _bg(send_templated(key, to_email, ctx))
 
 
 def render_email_shell(inner_html: str, s: dict) -> str:
@@ -410,13 +414,19 @@ def render_email_shell(inner_html: str, s: dict) -> str:
     )
 
 
+def admin_notify_email(settings: dict) -> str:
+    return (settings.get("notify_email") or settings.get("contact_email") or "").strip()
+
+
 async def _email_admin_notification(title: str, body: str):
     try:
         settings = await get_settings_doc()
         if not settings.get("email_enabled", True):
+            logger.info(f"Yönetici bildirimi atlandı (e-postalar kapalı): {title}")
             return
-        admin_email = settings.get("notify_email") or settings.get("contact_email")
+        admin_email = admin_notify_email(settings)
         if not admin_email:
+            logger.warning(f"Yönetici bildirim e-postası tanımlı değil, mail atlanan: {title}")
             return
         frontend = os.environ.get("CORS_ORIGINS", "").split(",")[0]
         inner = (
@@ -427,16 +437,26 @@ async def _email_admin_notification(title: str, body: str):
         )
         html = render_email_shell(inner, settings)
         await send_email(admin_email, f"[Bildirim] {title}", html, reply_to=settings.get("contact_email"))
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"Yönetici bildirimi gönderilemedi ({title}): {e}")
 
 
-async def push_notification(ntype: str, title: str, body: str = "", meta: dict = None):
+_bg_tasks = set()
+
+
+def _bg(coro):
+    t = asyncio.create_task(coro)
+    _bg_tasks.add(t)
+    t.add_done_callback(_bg_tasks.discard)
+
+
+async def push_notification(ntype: str, title: str, body: str = "", meta: dict = None, email: bool = True):
     await db.notifications.insert_one({
         "notif_id": new_id("ntf"), "type": ntype, "title": title, "body": body,
         "meta": meta or {}, "read": False, "created_at": now_utc().isoformat(),
     })
-    asyncio.create_task(_email_admin_notification(title, body))
+    if email:
+        _bg(_email_admin_notification(title, body))
 
 
 async def send_templated(key: str, to_email: str, ctx: dict):

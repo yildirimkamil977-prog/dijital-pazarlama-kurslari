@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import re
 from typing import Optional
 
-from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, get_settings_doc, schedule_email, push_notification
+from deps import db, now_utc, new_id, get_current_user, get_optional_user, get_public_settings, get_settings_doc, schedule_email, push_notification, admin_notify_email
 
 FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 
@@ -344,8 +344,8 @@ async def save_progress(body: ProgressIn, request: Request):
             issued = True
             schedule_email("completion", user["email"],
                            {"name": user.get("name"), "course_title": c["title"], "certificate_code": code})
-            await push_notification("completion", "Eğitim tamamlandı", f"{user.get('name')} · {c['title']}", {"user": user.get("name"), "course": c["title"]})
-            _admin_email = (await get_settings_doc()).get("contact_email")
+            await push_notification("completion", "Eğitim tamamlandı", f"{user.get('name')} · {c['title']}", {"user": user.get("name"), "course": c["title"]}, email=False)
+            _admin_email = admin_notify_email(await get_settings_doc())
             if _admin_email:
                 schedule_email("course_completed_admin", _admin_email,
                                {"name": user.get("name"), "email": user.get("email"), "course_title": c["title"], "certificate_code": code})

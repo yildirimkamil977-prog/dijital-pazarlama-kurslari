@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from deps import (
     db, now_utc, new_id, get_current_user, get_optional_user, get_paytr_credentials,
-    get_settings_doc, hash_password, create_session, set_session_cookie, schedule_email, push_notification,
+    get_settings_doc, hash_password, create_session, set_session_cookie, schedule_email, push_notification, admin_notify_email,
 )
 
 router = APIRouter(prefix="/payments")
@@ -278,6 +278,7 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
             "amount": f"{total:.2f}", "order_id": oid, "bank_info": _bank_html(banks),
             "notify_url": f"{FRONTEND_URL}/havale-bildirimi?oid={oid}",
         })
+        await push_notification("transfer_order", "Yeni havale/EFT siparişi", f"{user.get('name','')} · {', '.join(i['title'] for i in items)} · {total:.0f} ₺ · {oid}", {"order_id": oid})
         return {"status": "transfer", "order_id": oid, "total": total, "bank_accounts": banks, "account_created": created}
 
     # PayTR card
@@ -422,9 +423,9 @@ async def transfer_notification(body: TransferNotifyIn):
     }
     await db.orders.update_one({"order_id": body.order_id},
                                {"$set": {"transfer_notified": True, "transfer_notification": notif}})
-    await push_notification("transfer_notified", "Havale bildirimi alındı", f"{notif['sender_name'] or order.get('user_name','')} · {order['order_id']}", {"order_id": order["order_id"]})
+    await push_notification("transfer_notified", "Havale bildirimi alındı", f"{notif['sender_name'] or order.get('user_name','')} · {order['order_id']}", {"order_id": order["order_id"]}, email=False)
     settings = await get_settings_doc()
-    admin_email = settings.get("contact_email")
+    admin_email = admin_notify_email(settings)
     if admin_email:
         schedule_email("transfer_notified_admin", admin_email, {
             "order_id": order["order_id"],

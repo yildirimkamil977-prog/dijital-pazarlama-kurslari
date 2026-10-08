@@ -429,4 +429,5 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Kurs tanıtım videosu: CourseEditor'a "Tanıtım Videosu" alanı (courses.promo_video); kurs detayda video varsa kapakta play + VideoDialog, boşsa sadece kapak (play ikonu yok)
 - Kurs kartlarında "Tanıtım var" işareti (course_summary.has_promo): Kurslar sayfası (görselin sol altı) ve anasayfa kartları (sağ üst)
 - Yorumlar genel göster/gizle (settings.reviews_enabled, PUT /api/admin/settings/reviews-visibility): kapalıyken /settings/public testimonials, kurs ve grup detay reviews boş döner; Ayarlar > Yorumlar üstünde switch + Kaydet
+- Yönetici bildirim e-postası (settings.notify_email, boşsa contact_email) + "Test maili gönder" (POST /api/admin/settings/test-email gerçek Resend hatasını gösterir); tüm push_notification'lar (satış, havale siparişi/bildirimi, danışmanlık, kayıt) bu adrese mail atar; hatalar loglanır; yeni "Yeni havale/EFT siparişi" bildirimi
 

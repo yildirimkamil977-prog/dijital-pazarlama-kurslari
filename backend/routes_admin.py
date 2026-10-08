@@ -14,6 +14,7 @@ from typing import List, Optional, Any
 
 from deps import (
     db, now_utc, new_id, require_admin, fernet, get_settings_doc, schedule_email, push_notification, hash_password,
+    admin_notify_email, render_email_shell, send_email,
 )
 
 router = APIRouter(prefix="/admin")
@@ -658,7 +659,7 @@ async def admin_get_settings(request: Request):
     p = doc.get("paytr", {})
     return {
         "site_name": doc.get("site_name"), "tagline": doc.get("tagline"),
-        "contact_email": doc.get("contact_email"), "support_phone": doc.get("support_phone"),
+        "contact_email": doc.get("contact_email"), "notify_email": doc.get("notify_email", ""), "support_phone": doc.get("support_phone"),
         "hero_title": doc.get("hero_title"), "hero_subtitle": doc.get("hero_subtitle"),
         "about_text": doc.get("about_text"), "students_count": doc.get("students_count"),
         "email_enabled": doc.get("email_enabled", True),
@@ -689,6 +690,7 @@ class GeneralSettingsIn(BaseModel):
     site_name: str
     tagline: str = ""
     contact_email: str = ""
+    notify_email: str = ""
     support_phone: str = ""
     hero_title: str = ""
     hero_subtitle: str = ""
@@ -711,6 +713,20 @@ async def update_general(body: GeneralSettingsIn, request: Request):
     await require_admin(request)
     await db.settings.update_one({"_id": "site"}, {"$set": body.model_dump(exclude_unset=True)})
     return {"ok": True}
+
+
+@router.post("/settings/test-email")
+async def test_admin_email(request: Request):
+    await require_admin(request)
+    s = await get_settings_doc()
+    to = admin_notify_email(s)
+    if not to:
+        raise HTTPException(status_code=400, detail="Yönetici bildirim e-postası veya iletişim e-postası tanımlı değil")
+    html = render_email_shell('<h2 style="margin:0 0 10px;color:#fff;font-size:20px">Test bildirimi</h2><p style="color:#cbd2e0">Bu mail geldiyse yönetici bildirimleri bu adrese ulaşıyor.</p>', s)
+    ok, err = await send_email(to, "[Bildirim] Test maili", html)
+    if not ok:
+        raise HTTPException(status_code=400, detail=f"Gönderilemedi ({to}): {err[:300]}")
+    return {"ok": True, "to": to, "emails_enabled": s.get("email_enabled", True)}
 
 
 class LegalDocIn(BaseModel):
