@@ -427,4 +427,5 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Fatura bilgileri: checkout'ta girilen bilgi siparişe + users.billing'e kaydedilir; checkout'ta kayıtlı özet + Düzenle; Ödemeler'de açılır "Fatura Bilgileri" + Kopyala; admin öğrenci profilinde görüntüle/düzenle; öğrenci /panel/ayarlar "Fatura" sekmesi (GET/PUT /api/payments/billing, PUT /api/admin/students/{id}/billing) (iteration_27 geçti)
 - WhatsApp numarası Genel > Site Bilgileri'ne (Destek Telefonu yanına) taşındı; iletişim sayfası, footer, sepet/ödeme "Destek Ekibi" kutusu iki numarayı da gösterir; lib/phone.js waNumber (0532… → 90532…) ve telHref
 - Kurs tanıtım videosu: CourseEditor'a "Tanıtım Videosu" alanı (courses.promo_video); kurs detayda video varsa kapakta play + VideoDialog, boşsa sadece kapak (play ikonu yok)
+- Kurs kartlarında "Tanıtım var" işareti (course_summary.has_promo): Kurslar sayfası (görselin sol altı) ve anasayfa kartları (sağ üst)
 

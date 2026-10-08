@@ -33,6 +33,11 @@ export function CourseCard({ course, index = 0 }) {
         ) : course.category && (
           <Badge className="absolute top-3 left-3 bg-ink/80 backdrop-blur text-foreground border-white/10 text-[11px]">{course.category}</Badge>
         )}
+        {course.has_promo && (
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 bg-ink/80 backdrop-blur text-foreground border border-white/10 rounded-full px-2.5 py-1 text-[11px] font-medium" data-testid={`course-has-promo-${course.course_id}`}>
+            <PlayCircle className="w-3.5 h-3.5 text-gold" /> Tanıtım var
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col flex-1 p-5">

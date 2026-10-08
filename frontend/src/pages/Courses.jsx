@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { m as motion } from "framer-motion";
-import { Loader2, Layers, Clock, CheckCircle2, ArrowRight, Award, Infinity as InfinityIcon, User } from "lucide-react";
+import { Loader2, Layers, Clock, CheckCircle2, ArrowRight, Award, Infinity as InfinityIcon, User, PlayCircle } from "lucide-react";
 import api, { formatPrice, formatDuration } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +53,11 @@ export default function Courses() {
                   ) : upcoming ? (
                     <Badge className="absolute top-4 right-4 bg-gold text-ink font-black shadow-lg">{savePct > 0 ? `%${savePct} Erken Kayıt` : "Erken Kayıt"}</Badge>
                   ) : hasDiscount && <Badge className="absolute top-4 right-4 bg-gold text-ink font-bold">%{savePct} indirim</Badge>}
+                  {c.has_promo && (
+                    <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 bg-ink/80 backdrop-blur text-foreground border border-white/10 rounded-full px-3 py-1 text-xs font-medium" data-testid={`course-has-promo-${c.course_id}`}>
+                      <PlayCircle className="w-4 h-4 text-gold" /> Tanıtım var
+                    </span>
+                  )}
                 </Link>
 
                 <div className="p-2 lg:p-4">

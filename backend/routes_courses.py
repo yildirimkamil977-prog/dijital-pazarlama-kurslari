@@ -45,6 +45,7 @@ def course_summary(c: dict) -> dict:
         "thumbnail": c.get("thumbnail", ""), "instructor_name": c.get("instructor_name", ""),
         "instructor_id": c.get("instructor_id", ""),
         "is_published": c.get("is_published", False), "sale_closed": c.get("sale_closed", False),
+        "has_promo": bool(c.get("promo_video")),
         "lesson_count": len(lessons), "total_seconds": total_seconds,
         "what_you_learn": c.get("what_you_learn", []),
         **_course_pricing(c),
