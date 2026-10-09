@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Loader2, Save, CreditCard, Mail, Globe, ShieldCheck, AlertTriangle, Info, Code, Star, Plus, Trash2, Megaphone, FileText } from "lucide-react";
+import { Loader2, Save, CreditCard, Mail, Globe, ShieldCheck, AlertTriangle, Info, Code, Star, Plus, Trash2, Megaphone, FileText, Landmark } from "lucide-react";
+import { BankAccountsSettings } from "@/components/admin/BankAccountsSettings";
 import api, { apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,7 @@ export default function AdminSettings() {
           <TabsTrigger value="general" data-testid="settings-tab-general"><Globe className="w-4 h-4 mr-2" /> Genel</TabsTrigger>
           <TabsTrigger value="campaign" data-testid="settings-tab-campaign"><Megaphone className="w-4 h-4 mr-2" /> Kampanya</TabsTrigger>
           <TabsTrigger value="paytr" data-testid="settings-tab-paytr"><CreditCard className="w-4 h-4 mr-2" /> PayTR</TabsTrigger>
+          <TabsTrigger value="bank" data-testid="settings-tab-bank"><Landmark className="w-4 h-4 mr-2" /> Banka Hesapları</TabsTrigger>
           <TabsTrigger value="tracking" data-testid="settings-tab-tracking"><Code className="w-4 h-4 mr-2" /> Takip Kodları</TabsTrigger>
           <TabsTrigger value="seo" data-testid="settings-tab-seo"><Globe className="w-4 h-4 mr-2" /> SEO</TabsTrigger>
           <TabsTrigger value="testimonials" data-testid="settings-tab-testimonials"><Star className="w-4 h-4 mr-2" /> Yorumlar</TabsTrigger>
@@ -137,6 +139,8 @@ export default function AdminSettings() {
           </section>
           <Button onClick={saveGeneral} disabled={busy === "g"} className="bg-gold hover:bg-gold-hover text-ink font-semibold" data-testid="save-campaign">{busy === "g" ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Kaydet</>}</Button>
         </TabsContent>
+
+        <TabsContent value="bank" className="mt-6"><BankAccountsSettings initial={s.bank_accounts} /></TabsContent>
 
         {/* PAYTR */}
         <TabsContent value="paytr" className="mt-6 space-y-6">
