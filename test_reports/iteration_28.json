@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 28: Validated cart cross-sell behavior and admin cross-sell picker for courses + group trainings. Backend: 9/9 pytest cases passing in /app/backend/tests/test_iteration28_cross_sell.py — GET /api/recommendations returns [] when no cross_sell_ids set for cart items (incl. group grp_741a4764d948 with empty cross_sell), returns only admin-selected items, excludes items already in cart, excludes sale_closed=true items, and correctly returns kind='group' with group_id for group recs. Admin PUT /api/admin/courses/{id} and /api/admin/group-trainings/{id} persist cross_sell_ids including mixed course+group ids. Frontend: /sepet with only grp_741a4764d948 (empty cross_sell) does NOT render cart-cross-sell area (hidden as required). Setting course_42e213ed6670 (SEO, cross_sell=[course_4f638d946cb2, course_8b53eae5576a]) in cart renders cart-cross-sell with rec-course_4f638d946cb2 and rec-course_8b53eae5576a; clicking add-rec-course_4f638d946cb2 adds the course (cart-item-course_4f638d946cb2 appears) and the suggestion disappears. Admin CourseEditor /yonetim/kurslar/course_42e213ed6670: cross-sell-picker renders with both cross-sell-course_* (video kurs) AND cross-sell-grp_* (canlı grup) entries. Admin AdminGroupTrainings edit form: cross-sell-picker renders, lists courses (cross-sell-course_42e213ed6670 etc.), save-group button present. State restored to spec after tests (course_42e213ed6670 cross_sell=[course_4f638d946cb2,course_8b53eae5576a]; others cleared; grp_741a4764d948 cross_sell=[]).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Cart (/sepet)", "issues": ["Minor: img src='' passed when thumbnail is empty causing React warning about empty src attribute re-downloading page (Cart.jsx:51 and :74). Not blocking."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration28_cross_sell.py",
+    "/app/test_reports/pytest/iter28.xml"
+  ],
+  "action_items": [
+    "Optional: In Cart.jsx (lines 51, 74) guard <img src> to avoid empty string to silence React warning (e.g., src={i.thumbnail || undefined})."
+  ],
+  "critical_code_review_comments": [
+    "routes_courses.recommendations correctly: (a) returns [] when no cart item has cross_sell_ids, (b) excludes items already in cart via `r not in cart_ids`, (c) excludes unpublished / sale_closed / effective_price==0 courses, (d) excludes full-capacity and unpublished groups, (e) preserves kind='course'|'group' with course_id==group_id for groups — matches spec.",
+    "CrossSellPicker.jsx lists both courses and group_trainings, uses data-testid=`cross-sell-${id}`, and excludes the current item via excludeId — matches spec.",
+    "GroupIn pydantic model includes cross_sell_ids: list = [] and admin_update persists it via model_dump — verified by backend test."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration28_cross_sell.py",
+    "/app/test_reports/iteration_28.json",
+    "/app/test_reports/pytest/iter28.xml"
+  ],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100%"},
+  "test_credentials": "Admin: yildirimkamil977@gmail.com / Admin!2026Panel",
+  "seed_data_creation": "Transient mutations to course/group cross_sell_ids and sale_closed during tests. Final state restored to spec: course_42e213ed6670.cross_sell_ids=[course_4f638d946cb2,course_8b53eae5576a]; course_4f638d946cb2.cross_sell_ids=[]; course_8b53eae5576a.cross_sell_ids=[] and sale_closed=false; grp_741a4764d948.cross_sell_ids=[].",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Cross-sell feature fully covered. Key testids: cart-cross-sell, rec-<id>, add-rec-<id>, cart-item-<course_id|grp_id>, cross-sell-picker, cross-sell-<id>, save-course, save-group, edit-group-<id>. Backend endpoint: GET /api/recommendations?ids=<csv>. localStorage key 'akademi_cart' uses items with {course_id, group_id?, kind?, title, price, original_price, slug, thumbnail}.",
+  "rca of the issue": "N/A — no bugs. Original issue (suggestions showing without cross-sell selection and showing sale-closed items) has been fixed: recommendations endpoint only pulls from each cart item's cross_sell_ids list and filters out sale_closed, unpublished, free, full-capacity items. Admin group training editor now exposes CrossSellPicker so group cross_sell_ids can be managed."
+}

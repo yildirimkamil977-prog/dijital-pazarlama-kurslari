@@ -48,7 +48,7 @@ export default function Cart() {
           <div className="lg:col-span-8 space-y-4">
             {items.map((i) => (
               <div key={i.course_id} data-testid={`cart-item-${i.course_id}`} className="flex gap-4 bg-ink-surface border border-white/5 rounded-2xl p-4">
-                <img src={i.thumbnail} alt={i.title} className="w-32 h-20 object-cover rounded-lg shrink-0" />
+                {i.thumbnail ? <img src={i.thumbnail} alt={i.title} className="w-32 h-20 object-cover rounded-lg shrink-0" /> : <div className="w-32 h-20 rounded-lg shrink-0 bg-ink-elevated" />}
                 <div className="flex-1 flex flex-col justify-between">
                   <Link to={i.kind === "group" ? `/canli-grup-egitimleri/${i.slug}` : `/kurslar/${i.slug}`} className="font-medium hover:text-gold transition-colors duration-200">{i.title}</Link>
                   <div className="flex items-center justify-between">
@@ -71,7 +71,7 @@ export default function Cart() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   {visibleRecs.map((r) => (
                     <div key={r.course_id} data-testid={`rec-${r.course_id}`} className="flex gap-3 bg-ink border border-white/5 rounded-xl p-3">
-                      <img src={r.thumbnail} alt={r.title} className="w-20 h-14 object-cover rounded-lg shrink-0" />
+                      {r.thumbnail ? <img src={r.thumbnail} alt={r.title} className="w-20 h-14 object-cover rounded-lg shrink-0" /> : <div className="w-20 h-14 rounded-lg shrink-0 bg-ink-elevated" />}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium line-clamp-1">{r.title}</p>
                         {r.kind === "group" && <p className="text-[10px] text-gold/80">Canlı Grup Eğitimi</p>}
