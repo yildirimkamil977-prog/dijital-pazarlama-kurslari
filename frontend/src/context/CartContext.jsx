@@ -22,7 +22,7 @@ export function CartProvider({ children }) {
         thumbnail: course.thumbnail, price, original_price: course.price,
       }];
     });
-    trackAddToCart({ id: course.course_id, title: course.title, price });
+    trackAddToCart({ id: course.course_id, title: course.title, price, category: "Video Kurs" });
   };
 
   const remove = (course_id) => setItems((prev) => prev.filter((i) => i.course_id !== course_id));
@@ -32,7 +32,7 @@ export function CartProvider({ children }) {
       course_id: g.group_id, group_id: g.group_id, kind: "group", title: g.title, slug: g.slug,
       thumbnail: g.image, price, original_price: g.price,
     }]));
-    trackAddToCart({ id: g.group_id, title: g.title, price });
+    trackAddToCart({ id: g.group_id, title: g.title, price, category: "Canlı Grup Eğitimi" });
   };
   const clear = () => { setItems([]); localStorage.removeItem("pending_discount_code"); };
   const has = (course_id) => items.some((i) => i.course_id === course_id);

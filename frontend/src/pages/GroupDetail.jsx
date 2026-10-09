@@ -16,6 +16,7 @@ import { useSite } from "@/context/SiteContext";
 import { Seo } from "@/components/Seo";
 import { SocialLinks } from "@/components/SocialLinks";
 import { toast } from "sonner";
+import { trackViewContent } from "@/lib/track";
 
 const MEET_LOGO = "https://cdn.simpleicons.org/googlemeet";
 const trDate = (d) => { try { return new Date(d + "T00:00:00").toLocaleDateString("tr-TR", { day: "2-digit", month: "long", year: "numeric", weekday: "long" }); } catch { return d; } };
@@ -31,7 +32,7 @@ export default function GroupDetail() {
   const [playPromo, setPlayPromo] = useState(false);
   const seo = usePageSeo(`/canli-grup-egitimleri/${slug}`);
 
-  useEffect(() => { api.get(`/group-trainings/${slug}`).then(({ data }) => setG(data)).catch(() => setG((cur) => cur)).finally(() => setLoading(false)); }, [slug]);
+  useEffect(() => { api.get(`/group-trainings/${slug}`).then(({ data }) => { setG(data); trackViewContent({ id: data.group_id, title: data.title, price: data.effective_price ?? data.price, category: "Canlı Grup Eğitimi" }); }).catch(() => setG((cur) => cur)).finally(() => setLoading(false)); }, [slug]);
 
   const inCart = g ? has(g.group_id) : false;
   const buy = () => { if (!inCart) addGroup(g); navigate(user ? "/odeme" : "/giris"); };

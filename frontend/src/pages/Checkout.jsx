@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BillingFields, BillingSummary, EMPTY_BILLING, hasBilling } from "@/components/BillingForm";
-import { trackInitiateCheckout, trackPurchase, trackRegister } from "@/lib/track";
+import { trackInitiateCheckout, trackPurchase, trackRegister, toTrackItems } from "@/lib/track";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
 export default function Checkout() {
@@ -68,7 +68,7 @@ export default function Checkout() {
     if (!accept) { toast.error("Devam etmek için sözleşmeleri onaylayın."); return; }
     if (!user && (!customer.name || !customer.email || !customer.phone)) { toast.error("Ad, e-posta ve telefon zorunludur."); return; }
     setProcessing(true);
-    trackInitiateCheckout({ value: total, numItems: items.length });
+    trackInitiateCheckout({ value: total, items: toTrackItems(items) });
     try {
       const { data } = await api.post("/payments/checkout", {
         items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "" })),
@@ -78,7 +78,7 @@ export default function Checkout() {
         billing,
       });
       if (!user) await refresh();
-      if (data.status === "free") { clear(); if (data.account_created) trackRegister(); trackPurchase({ orderId: data.order_id, value: total, items: items.map((i) => ({ id: i.course_id, title: i.title, price: i.price })) }); toast.success(data.account_created ? "Kayıt tamamlandı! Giriş bilgilerin e-postana gönderildi." : "Kayıt tamamlandı!"); navigate(`/odeme/sonuc?oid=${data.order_id}`); }
+      if (data.status === "free") { clear(); if (data.account_created) trackRegister(); trackPurchase({ orderId: data.order_id, value: total, items: toTrackItems(items) }); toast.success(data.account_created ? "Kayıt tamamlandı! Giriş bilgilerin e-postana gönderildi." : "Kayıt tamamlandı!"); navigate(`/odeme/sonuc?oid=${data.order_id}`); }
       else if (data.status === "paytr") { setIframeUrl(data.iframe_url); }
       else if (data.status === "transfer") { clear(); if (data.account_created) { trackRegister(); setPwdInfo(true); } setTransferInfo(data); }
     } catch (e) { toast.error(apiError(e)); } finally { setProcessing(false); }

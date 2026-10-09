@@ -18,7 +18,7 @@ export default function AdminSettings() {
   const [s, setS] = useState(null);
   const [templates, setTemplates] = useState([]);
   const [paytr, setPaytr] = useState({ merchant_id: "", merchant_key: "", merchant_salt: "", notification_url: "", test_mode: true });
-  const [tracking, setTracking] = useState({ head_code: "", body_code: "", ga_id: "", meta_pixel_id: "", google_ads_id: "", google_ads_purchase_label: "" });
+  const [tracking, setTracking] = useState({ head_code: "", body_code: "", ga_id: "", meta_pixel_id: "", google_ads_id: "", google_ads_purchase_label: "", google_ads_add_to_cart_label: "", google_ads_checkout_label: "" });
   const [seo, setSeo] = useState({ meta_title: "", meta_description: "", meta_keywords: "", og_image: "" });
   const [courses, setCourses] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
@@ -163,7 +163,13 @@ export default function AdminSettings() {
         {/* TRACKING */}
         <TabsContent value="tracking" className="mt-6 space-y-6">
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-3 text-sm text-muted-foreground">
-            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" /><p>Dönüşüm takibi ve reklam optimizasyonu için ölçüm kodlarını buraya ekle. ID'ler otomatik entegre edilir; özel kodlar &lt;head&gt; ve &lt;body&gt; alanlarına eklenir.</p>
+            <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+            <div className="space-y-1.5" data-testid="tracking-guide">
+              <p className="text-foreground font-medium">Dönüşümler otomatik kurulu: ID ve etiketleri girmeniz yeterli, kod yapıştırmayın.</p>
+              <p><b>Google Ads:</b> Google Ads &gt; Hedefler &gt; Dönüşümler &gt; "Web sitesi" dönüşümü oluşturun &gt; "Etiketi kendiniz yükleyin". Koddaki <code className="text-gold">send_to: 'AW-123456789/AbC-D_efGh'</code> satırında <b>AW-123456789</b> = Google Ads ID, <b>AbC-D_efGh</b> = dönüşüm etiketi. Dönüşüm değeri olarak "Her dönüşüm için farklı değerler kullan" seçin.</p>
+              <p><b>Gönderilen olaylar:</b> Kurs/grup sayfası görüntüleme (ViewContent / view_item), sepete ekleme (AddToCart / add_to_cart), ödemeye başlama (InitiateCheckout / begin_checkout), kayıt (CompleteRegistration / sign_up) ve satın alma (Purchase / purchase). Hepsi TL tutarıyla, satın alma sipariş numarasıyla gider.</p>
+              <p><b>Not:</b> Sadece kartla ve ücretsiz satışlar dönüşüm sayılır; havale satışları sayılmaz. Özel kod alanları sadece ek araçlar (Hotjar, Clarity vb.) içindir; buraya dönüşüm etiketi yapıştırırsanız her sayfada satış sayılır.</p>
+            </div>
           </div>
           <section className="bg-ink-surface border border-white/5 rounded-2xl p-6 space-y-4">
             <div className="grid sm:grid-cols-3 gap-4">
@@ -171,6 +177,8 @@ export default function AdminSettings() {
               <div><Label>Meta Pixel ID</Label><Input value={tracking.meta_pixel_id} onChange={(e) => setTracking({ ...tracking, meta_pixel_id: e.target.value })} className={inputCls} placeholder="1234567890" data-testid="tracking-meta" /></div>
               <div><Label>Google Ads ID</Label><Input value={tracking.google_ads_id} onChange={(e) => setTracking({ ...tracking, google_ads_id: e.target.value })} className={inputCls} placeholder="AW-XXXXXXX" data-testid="tracking-gads" /></div>
               <div><Label>Google Ads Dönüşüm Etiketi (Satın Alma)</Label><Input value={tracking.google_ads_purchase_label || ""} onChange={(e) => setTracking({ ...tracking, google_ads_purchase_label: e.target.value })} className={inputCls} placeholder="AbC-D_efGh" data-testid="tracking-gads-label" /></div>
+              <div><Label>Google Ads Etiketi (Sepete Ekleme) <span className="text-muted-foreground font-normal">· isteğe bağlı</span></Label><Input value={tracking.google_ads_add_to_cart_label || ""} onChange={(e) => setTracking({ ...tracking, google_ads_add_to_cart_label: e.target.value })} className={inputCls} placeholder="XyZ-12_abc" data-testid="tracking-gads-cart-label" /></div>
+              <div><Label>Google Ads Etiketi (Ödemeye Başlama) <span className="text-muted-foreground font-normal">· isteğe bağlı</span></Label><Input value={tracking.google_ads_checkout_label || ""} onChange={(e) => setTracking({ ...tracking, google_ads_checkout_label: e.target.value })} className={inputCls} placeholder="QwE-34_def" data-testid="tracking-gads-checkout-label" /></div>
             </div>
             <div><Label>Özel &lt;head&gt; Kodu</Label><Textarea value={tracking.head_code} onChange={(e) => setTracking({ ...tracking, head_code: e.target.value })} className={`${inputCls} font-mono text-xs`} rows={4} placeholder="<script>...</script>" data-testid="tracking-head" /></div>
             <div><Label>Özel &lt;body&gt; Kodu</Label><Textarea value={tracking.body_code} onChange={(e) => setTracking({ ...tracking, body_code: e.target.value })} className={`${inputCls} font-mono text-xs`} rows={4} placeholder="<noscript>...</noscript>" /></div>

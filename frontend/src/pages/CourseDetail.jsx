@@ -18,7 +18,7 @@ import { Seo } from "@/components/Seo";
 import { SocialLinks } from "@/components/SocialLinks";
 import { Countdown } from "@/components/Countdown";
 import { useSite } from "@/context/SiteContext";
-import { trackInitiateCheckout, trackPurchase } from "@/lib/track";
+import { trackInitiateCheckout, trackPurchase, trackViewContent } from "@/lib/track";
 import { toast } from "sonner";
 
 const fmtDate = (s) => { try { return new Date(s).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" }); } catch { return s; } };
@@ -42,7 +42,7 @@ export default function CourseDetail() {
 
   useEffect(() => {
     setCourse((c) => { if (!c || c.slug !== slug) setLoading(true); return c; });
-    api.get(`/courses/${slug}`).then(({ data }) => setCourse(data))
+    api.get(`/courses/${slug}`).then(({ data }) => { setCourse(data); trackViewContent({ id: data.course_id, title: data.title, price: data.effective_price ?? data.price, category: "Video Kurs" }); })
       .catch(() => toast.error("Eğitim bulunamadı")).finally(() => setLoading(false));
   }, [slug]);
 
@@ -58,13 +58,13 @@ export default function CourseDetail() {
   const inCart = has(course.course_id);
   const isFree = price === 0;
   const handleAdd = () => { add(course); toast.success("Sepete eklendi"); };
-  const handleBuy = () => { if (!inCart) add(course); trackInitiateCheckout({ value: price, numItems: 1 }); navigate(user ? "/odeme" : "/giris"); };
+  const handleBuy = () => { if (!inCart) add(course); trackInitiateCheckout({ value: price, items: [{ id: course.course_id, title: course.title, price, category: "Video Kurs" }] }); navigate(user ? "/odeme" : "/giris"); };
   const handleFreeEnroll = async () => {
     if (!user) { if (!inCart) add(course); navigate("/odeme"); return; }
     setEnrolling(true);
     try {
       const { data } = await api.post("/payments/checkout", { items: [{ course_id: course.course_id }], payment_method: "paytr", billing: {} });
-      trackPurchase({ orderId: data.order_id, value: 0, items: [{ id: course.course_id, title: course.title, price: 0 }] });
+      trackPurchase({ orderId: data.order_id, value: 0, items: [{ id: course.course_id, title: course.title, price: 0, category: "Video Kurs" }] });
       toast.success("Kayıt tamamlandı! Eğitime yönlendiriliyorsun.");
       navigate(`/panel/izle/${course.course_id}`);
     } catch (e) { toast.error(apiError(e)); } finally { setEnrolling(false); }

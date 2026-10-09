@@ -749,6 +749,8 @@ class TrackingIn(BaseModel):
     meta_pixel_id: str = ""
     google_ads_id: str = ""
     google_ads_purchase_label: str = ""
+    google_ads_add_to_cart_label: str = ""
+    google_ads_checkout_label: str = ""
 
 
 @router.put("/settings/tracking")
