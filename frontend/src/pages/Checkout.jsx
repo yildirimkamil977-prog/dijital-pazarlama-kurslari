@@ -15,6 +15,19 @@ import { BillingFields, BillingSummary, EMPTY_BILLING, hasBilling } from "@/comp
 import { trackInitiateCheckout, trackPurchase, trackRegister, toTrackItems } from "@/lib/track";
 import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 
+function CopyBtn({ value, label, done, testId }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(value); } catch { const t = document.createElement("textarea"); t.value = value; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+    setCopied(true); toast.success(done); setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button type="button" onClick={copy} data-testid={testId} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors duration-200 ${copied ? "bg-green-500/15 text-green-400" : "bg-gold text-ink hover:bg-gold-hover"}`}>
+      {copied ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? "Kopyalandı" : label}
+    </button>
+  );
+}
+
 export default function Checkout() {
   const { items, subtotal, remove, clear } = useCart();
   const { user, refresh, logout } = useAuth();
@@ -116,15 +129,19 @@ export default function Checkout() {
         </div>
         <div className="space-y-3">
           {transferInfo.bank_accounts.map((b, i) => (
-            <div key={i} className="bg-ink-surface border border-white/10 rounded-2xl p-5">
+            <div key={i} className="bg-ink-surface border border-white/10 rounded-2xl p-5" data-testid={`transfer-bank-${i}`}>
               <p className="font-heading font-semibold">{b.bank_name}</p>
               <p className="text-sm text-muted-foreground mt-1">Alıcı: {b.holder}</p>
-              <div className="flex items-center justify-between mt-2 bg-ink rounded-lg p-3">
-                <span className="font-mono text-sm">{b.iban}</span>
-                <button onClick={() => { navigator.clipboard?.writeText(b.iban); toast.success("IBAN kopyalandı"); }} className="text-gold"><Copy className="w-4 h-4" /></button>
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-2 bg-ink rounded-lg p-3">
+                <span className="font-mono text-sm break-all" data-testid={`transfer-iban-${i}`}>{b.iban}</span>
+                <CopyBtn value={b.iban.replace(/\s/g, "")} label="IBAN'ı Kopyala" done="IBAN kopyalandı" testId={`copy-iban-${i}`} />
               </div>
             </div>
           ))}
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-ink-surface border border-white/10 rounded-2xl p-4">
+            <div><p className="text-xs text-muted-foreground">Açıklamaya yazılacak sipariş no</p><p className="font-mono text-sm font-semibold">{transferInfo.order_id}</p></div>
+            <CopyBtn value={transferInfo.order_id} label="Sipariş No Kopyala" done="Sipariş no kopyalandı" testId="copy-order-id" />
+          </div>
         </div>
         <Button onClick={() => navigate(`/havale-bildirimi?oid=${transferInfo.order_id}`)} className="w-full mt-8 bg-gold hover:bg-gold-hover text-ink font-bold h-12" data-testid="go-transfer-notify">Ödememi Bildir</Button>
         <Button onClick={() => navigate("/panel")} variant="outline" className="w-full mt-3 border-white/15 h-12">Panelime Git</Button>

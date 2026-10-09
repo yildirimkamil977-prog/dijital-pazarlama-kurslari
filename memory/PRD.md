@@ -433,5 +433,6 @@ Admin: yildirimkamil977@gmail.com / Admin!2026Panel
 - Hakkımda → Hakkımızda (URL /hakkimizda, eski /hakkimda yönlendirir; SEO, sitemap, Caddyfile, llms.txt güncellendi); görsel kullanıcının profil.png'si (/img/hakkimizda.webp); ana menüden Hakkımızda ve İletişim kaldırıldı (footer'da duruyor)
 - Dönüşüm takibi düzeltildi: gtag/fbq kuyrukları hemen kuruluyor (gecikmeli script yüklemede olay kaybı yok), window.__SITE_TRACKING__ artık set ediliyor (önceden Google Ads satın alma dönüşümü hiç tetiklenmiyordu); ViewContent/view_item (kurs+grup), AddToCart, InitiateCheckout, Purchase (sipariş başına 1 kez, localStorage), grup ürün id/kategori; Google Ads sepete ekleme & ödemeye başlama etiket alanları; ayarlarda kurulum rehberi. Havale satışları kullanıcı kararıyla sayılmıyor.
 - Ayarlar > "Banka Hesapları" sekmesi (components/admin/BankAccountsSettings.jsx): çoklu hesap ekle/sil, IBAN otomatik biçim + TR/26 karakter kontrolü (PUT /api/admin/settings/bank-accounts). Öncesinde UI yoktu, seed'deki "Örnek Banka" gösteriliyordu.
+- Havale ekranı: belirgin "IBAN'ı Kopyala" (boşluksuz kopyalar, "Kopyalandı" durumu, eski tarayıcı fallback) ve "Sipariş No Kopyala" butonları
 - BEKLEYEN: Genel Bakış kartları düzeltmesi için kullanıcıya soru soruldu (kayıt sayısı sadece öğrenci, gelir admin test siparişleri hariç, Bekleyen = havale bekleyen) – cevap bekleniyor.
 
