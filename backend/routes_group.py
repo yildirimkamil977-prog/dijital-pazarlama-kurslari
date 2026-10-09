@@ -175,6 +175,7 @@ class GroupIn(BaseModel):
     instructor_id: str = ""
     lessons: list = []
     curriculum: list = []
+    cross_sell_ids: list = []
     is_published: bool = False
 
 

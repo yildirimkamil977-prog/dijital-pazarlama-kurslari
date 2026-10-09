@@ -9,7 +9,7 @@ import { WhatsAppCTA } from "@/components/WhatsAppCTA";
 import { toast } from "sonner";
 
 export default function Cart() {
-  const { items, remove, add, subtotal } = useCart();
+  const { items, remove, add, addGroup, subtotal } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [recs, setRecs] = useState([]);
@@ -17,13 +17,18 @@ export default function Cart() {
   useEffect(() => {
     document.title = "Sepetim - Akademi";
     if (items.length) {
-      const ids = items.filter((i) => i.kind !== "group").map((i) => i.course_id).join(",");
-      api.get(`/recommendations?ids=${ids}`).then(({ data }) => setRecs(data)).catch(() => {});
+      const ids = items.map((i) => i.group_id || i.course_id).join(",");
+      api.get(`/recommendations?ids=${ids}`).then(({ data }) => setRecs(data)).catch(() => setRecs([]));
     } else setRecs([]);
     // eslint-disable-next-line
   }, [items.length]);
 
-  const addRec = (r) => { add({ course_id: r.course_id, title: r.title, slug: r.slug, thumbnail: r.thumbnail, price: r.price, discount_price: r.bundle_price }); toast.success("Kampanyalı fiyatla eklendi"); };
+  const addRec = (r) => {
+    if (r.kind === "group") addGroup({ group_id: r.group_id, title: r.title, slug: r.slug, image: r.thumbnail, price: r.price, effective_price: r.bundle_price });
+    else add({ course_id: r.course_id, title: r.title, slug: r.slug, thumbnail: r.thumbnail, price: r.price, discount_price: r.bundle_price });
+    toast.success("Kampanyalı fiyatla eklendi");
+  };
+  const visibleRecs = recs.filter((r) => !items.some((i) => (i.group_id || i.course_id) === r.course_id));
 
   const originalTotal = items.reduce((s, i) => s + (i.original_price ?? i.price ?? 0), 0);
   const savings = Math.max(0, originalTotal - subtotal);
@@ -59,16 +64,17 @@ export default function Cart() {
             ))}
 
             {/* Cross-sell / campaign */}
-            {recs.length > 0 && (
-              <div className="mt-8 bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-2xl p-6">
-                <h2 className="font-heading font-semibold flex items-center gap-2 mb-1"><Sparkles className="w-5 h-5 text-gold" /> Bunları da ekle, {recs[0]?.bundle_pct > 0 ? `%${recs[0].bundle_pct} indirim kazan` : "keşfet"}</h2>
+            {visibleRecs.length > 0 && (
+              <div className="mt-8 bg-gradient-to-br from-gold/10 to-ink-surface border border-gold/15 rounded-2xl p-6" data-testid="cart-cross-sell">
+                <h2 className="font-heading font-semibold flex items-center gap-2 mb-1"><Sparkles className="w-5 h-5 text-gold" /> Bunları da ekle, {visibleRecs[0]?.bundle_pct > 0 ? `%${visibleRecs[0].bundle_pct} indirim kazan` : "keşfet"}</h2>
                 <p className="text-sm text-muted-foreground mb-5">Birlikte alınan eğitimlerde sana özel kampanyalı fiyatlar.</p>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {recs.map((r) => (
+                  {visibleRecs.map((r) => (
                     <div key={r.course_id} data-testid={`rec-${r.course_id}`} className="flex gap-3 bg-ink border border-white/5 rounded-xl p-3">
                       <img src={r.thumbnail} alt={r.title} className="w-20 h-14 object-cover rounded-lg shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium line-clamp-1">{r.title}</p>
+                        {r.kind === "group" && <p className="text-[10px] text-gold/80">Canlı Grup Eğitimi</p>}
                         <div className="flex items-center gap-2 mt-1">
                           {r.bundle_price < r.price && <span className="text-xs text-muted-foreground line-through">{formatPrice(r.price)} ₺</span>}
                           <span className="text-sm font-bold text-gold">{formatPrice(r.bundle_price)} ₺</span>

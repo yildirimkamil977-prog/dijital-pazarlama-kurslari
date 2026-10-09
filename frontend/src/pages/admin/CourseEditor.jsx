@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
+import { CrossSellPicker } from "@/components/admin/CrossSellPicker";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -34,12 +34,10 @@ export default function CourseEditor() {
   const [launch, setLaunch] = useState(null);
   const [openModules, setOpenModules] = useState({});
   const [openLessons, setOpenLessons] = useState({});
-  const [allCourses, setAllCourses] = useState([]);
   const [instructors, setInstructors] = useState([]);
 
   useEffect(() => {
     document.title = isNew ? "Yeni Kurs" : "Kurs Düzenle";
-    api.get("/admin/courses").then(({ data }) => setAllCourses(data)).catch(() => {});
     api.get("/admin/instructors").then(({ data }) => setInstructors(data)).catch(() => {});
     api.get("/admin/discounts").then(({ data }) => setCodes(data)).catch(() => {});
     if (!isNew) {
@@ -304,19 +302,7 @@ export default function CourseEditor() {
         </section>
 
         {/* Cross-sell campaign */}
-        <section className="bg-ink-surface border border-white/5 rounded-2xl p-6">
-          <h2 className="font-heading font-semibold mb-1">Kampanya — Birlikte Önerilen Eğitimler</h2>
-          <p className="text-sm text-muted-foreground mb-4">Bu eğitim sepetteyken önerilecek diğer eğitimleri seç. (İndirim oranı Ayarlar &gt; Kampanya bölümünden belirlenir.)</p>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {allCourses.filter((c) => c.course_id !== id).map((c) => (
-              <label key={c.course_id} className="flex items-center gap-3 bg-ink border border-white/5 rounded-lg p-3 cursor-pointer text-sm">
-                <Checkbox checked={form.cross_sell_ids.includes(c.course_id)} onCheckedChange={(v) => set("cross_sell_ids", v ? [...form.cross_sell_ids, c.course_id] : form.cross_sell_ids.filter((x) => x !== c.course_id))} data-testid={`cross-sell-${c.course_id}`} />
-                <span className="truncate">{c.title}</span>
-              </label>
-            ))}
-            {allCourses.filter((c) => c.course_id !== id).length === 0 && <p className="text-sm text-muted-foreground">Önerilecek başka eğitim yok.</p>}
-          </div>
-        </section>
+        <CrossSellPicker value={form.cross_sell_ids} onChange={(v) => set("cross_sell_ids", v)} excludeId={id} />
       </div>
     </div>
   );

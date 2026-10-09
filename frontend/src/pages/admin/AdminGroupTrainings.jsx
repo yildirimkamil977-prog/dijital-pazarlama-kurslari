@@ -8,10 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ImageUpload";
 import { GroupCurriculumEditor } from "@/components/admin/GroupCurriculumEditor";
+import { CrossSellPicker } from "@/components/admin/CrossSellPicker";
 const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 import { toast } from "sonner";
 
-const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, discount_price: "", capacity: 20, instructor_id: "", lessons: [], curriculum: [], is_published: false };
+const empty = { title: "", description: "", long_description: "", image: "", promo_video: "", what_you_learn: [], requirements: [], price: 0, discount_price: "", capacity: 20, instructor_id: "", lessons: [], curriculum: [], cross_sell_ids: [], is_published: false };
 
 export default function AdminGroupTrainings() {
   const [items, setItems] = useState([]);
@@ -28,7 +29,7 @@ export default function AdminGroupTrainings() {
   useEffect(() => { document.title = "Yönetim - Grup Eğitimleri"; load(); }, []);
 
   const openNew = () => { setForm(empty); setEditing("new"); };
-  const openEdit = async (id) => { const { data } = await api.get(`/admin/group-trainings/${id}`); setForm({ ...empty, ...data, lessons: data.lessons || [], curriculum: data.curriculum || [] }); setEditing(id); };
+  const openEdit = async (id) => { const { data } = await api.get(`/admin/group-trainings/${id}`); setForm({ ...empty, ...data, lessons: data.lessons || [], curriculum: data.curriculum || [], cross_sell_ids: data.cross_sell_ids || [] }); setEditing(id); };
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const addLesson = () => set("lessons", [...form.lessons, { id: "", title: "", date: "", time: "10:00", end_time: "17:00", meet_link: "", recording_url: "" }]);
   const updLesson = (i, k, v) => set("lessons", form.lessons.map((l, idx) => idx === i ? { ...l, [k]: v } : l));
@@ -79,6 +80,8 @@ export default function AdminGroupTrainings() {
         <div className="flex items-center gap-3"><Switch checked={form.is_published} onCheckedChange={(v) => set("is_published", v)} data-testid="group-published" /><Label>Yayında</Label></div>
 
         <GroupCurriculumEditor value={form.curriculum} onChange={(v) => set("curriculum", v)} />
+
+        <CrossSellPicker value={form.cross_sell_ids} onChange={(v) => set("cross_sell_ids", v)} excludeId={editing} />
 
         <div className="pt-2 border-t border-white/10">
           <div className="flex items-center justify-between mb-3"><Label className="flex items-center gap-2"><Video className="w-4 h-4 text-gold" /> Eğitim Takvimi · Meet & Kayıt Linkleri</Label>
