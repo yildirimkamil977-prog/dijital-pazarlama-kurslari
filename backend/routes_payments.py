@@ -221,6 +221,15 @@ async def _resolve_user(request, response, body):
 async def checkout(body: CheckoutIn, request: Request, response: Response):
     if not body.items:
         raise HTTPException(status_code=400, detail="Sepet boş")
+    for it in body.items:
+        if it.private_id:
+            p = await db.private_trainings.find_one({"private_id": it.private_id, "is_published": True}, {"_id": 0, "sale_stopped": 1, "title": 1})
+            if not p or p.get("sale_stopped"):
+                raise HTTPException(status_code=400, detail=f"'{(p or {}).get('title', 'Eğitim')}' için bu ayki kontenjan doldu")
+        elif it.group_id:
+            g = await db.group_trainings.find_one({"group_id": it.group_id, "is_published": True}, {"_id": 0})
+            if not g or group_sales_closed(g):
+                raise HTTPException(status_code=400, detail=f"'{(g or {}).get('title', 'Eğitim')}' eğitimi satışa kapandı")
     user, created = await _resolve_user(request, response, body)
     items = []
     subtotal = 0.0
@@ -232,6 +241,8 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
                 raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
             if p.get("sale_stopped"):
                 raise HTTPException(status_code=400, detail=f"'{p['title']}' için bu ayki kontenjan doldu")
+            if await db.private_enrollments.find_one({"private_id": p["private_id"], "user_id": user["user_id"]}):
+                raise HTTPException(status_code=400, detail=f"'{p['title']}' eğitimine zaten kayıtlısınız")
             price = private_price(p)
             subtotal += price
             items.append({"course_id": "", "private_id": p["private_id"], "title": p["title"], "price": price})

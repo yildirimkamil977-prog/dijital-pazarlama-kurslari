@@ -57,7 +57,7 @@ function BuyBox({ p, inCart, onBuy, onAdd }) {
         <span className="font-heading font-black text-4xl text-gold" data-testid="private-price">{formatPrice(p.effective_price)} ₺</span>
         {save && <span className="text-muted-foreground line-through mb-1">{formatPrice(p.price)} ₺</span>}
       </div>
-      <p className="text-xs text-muted-foreground mt-2">{p.lesson_count} ders · {p.lesson_duration} · Google Meet</p>
+      <p className="text-xs text-muted-foreground mt-2">{p.lesson_count} ders · Google Meet</p>
       {p.sale_stopped ? <Waitlist p={p} /> : (
         <div className="mt-5 space-y-3">
           <Button onClick={onBuy} className="w-full h-12 bg-gold hover:bg-gold-hover text-ink font-bold" data-testid="private-buy">Hemen Kaydol</Button>

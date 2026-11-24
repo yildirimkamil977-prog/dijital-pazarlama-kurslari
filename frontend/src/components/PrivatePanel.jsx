@@ -14,7 +14,7 @@ export default function PrivatePanel() {
       {list.map((e) => (
         <div key={e.enr_id} className="bg-ink-surface border border-white/5 rounded-2xl p-6" data-testid={`my-private-${e.private_id}`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><p className="text-[11px] text-gold font-bold uppercase tracking-wider">Bire Bir Canlı Eğitim</p><h3 className="font-heading font-bold text-lg mt-1">{e.title}</h3><p className="text-xs text-muted-foreground mt-1">{e.lesson_count} ders · {e.lesson_duration} · Google Meet</p></div>
+            <div><p className="text-[11px] text-gold font-bold uppercase tracking-wider">Bire Bir Canlı Eğitim</p><h3 className="font-heading font-bold text-lg mt-1">{e.title}</h3><p className="text-xs text-muted-foreground mt-1">{e.lesson_count} ders · Google Meet</p></div>
             {e.questions_until ? <span className="inline-flex items-center gap-1.5 text-xs bg-gold/10 text-gold border border-gold/20 rounded-full px-3 py-1" data-testid="private-questions-until"><MessageCircleQuestion className="w-3.5 h-3.5" /> Soru hakkı: {formatDate(e.questions_until)} tarihine kadar</span> : null}
           </div>
           {e.recordings.length === 0 && <p className="text-sm text-muted-foreground mt-4 flex items-start gap-2"><PhoneCall className="w-4 h-4 text-gold mt-0.5 shrink-0" /> Ders programını planlamak için seninle iletişime geçeceğiz. Ders kayıtların burada görünecek.</p>}

@@ -1,0 +1,39 @@
+{
+  "summary": "Tested Bire Bir (1:1) live trainings end-to-end plus automatic closing of group sales. Backend: 13 pytest tests, 12 passed. Covered: public list and detail (404 handling), notify/waitlist (bad email gives 400, duplicate emails ignored, email case normalised), admin create/read/update/delete (Turkish slug, unpublished training hidden from public), sale_stopped blocking checkout (400), reopen returning the notified count and marking the waitlist notified (no second notification), transfer checkout giving awaiting_transfer at the discounted price 12500, mark-paid creating a private_enrollment, admin notification of type 'private', NO consulting credit (available_credits stays 0, no enrollments record), admin students list, enrollment update (empty recording URLs dropped), and /my/private-trainings returning recordings with questions_until = last lesson + 30 days. Group grp_741a4764d948 returns sales_closed=true and its checkout returns 400. Emails private_purchase, private_reopen, bank_transfer and account_created were sent but Resend returned 401 (expected locally). Frontend (Playwright): all requested flows passed. Checked: navbar link, hero CTA text and link, home private section, list cards, detail sections, add to cart, cart page, guest transfer checkout in the UI, admin list, sale toggle stop/reopen (toast 'Satış açıldı · 1 kişiye mail gönderildi'), edit form and save, students dialog recordings editor and save, waitlist form when sale is stopped, and the student panel tab-private with recording link and questions-until date. Group detail shows 'Bu eğitim tamamlandı' with no group-buy button; the list shows group-card-completed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/my/private-trainings", "issue": "Returns 500 (ValueError in datetime.fromisoformat, routes_private.py:109) when an enrollment's last_lesson_date is not ISO, e.g. '20.11.2026'. PUT /api/admin/private-enrollments does not validate last_lesson_date. The admin UI uses a date input, so this only happens through the API, but one bad record breaks the whole student tab. Fix: validate the date in EnrollUpdateIn, or wrap the parse in try/except."},
+      {"endpoint": "POST /api/payments/checkout", "issue": "_resolve_user runs before item validation. A guest checkout that fails (sale_stopped private training, closed group, full capacity) still creates the user account, logs them in and sends the account_created email."},
+      {"endpoint": "POST /api/payments/checkout (private_id)", "issue": "There is no check for an existing private enrollment. A user can pay again for the same private training, but enroll_private_item skips creating a new enrollment, so the second order is paid with no new record (only a duplicate email and notification). Decide whether a repeat purchase is allowed; if it is, create a new enrollment."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin /yonetim/bire-bir-egitimler students dialog", "issues": ["The recording date and 'Son ders tarihi' fields use the browser's native date input (mm/dd/yyyy) instead of the shadcn Calendar/Popover.", "Eğitmen in the edit form is a native <select>, not a shadcn Select."]},
+      {"screen": "Private detail waitlist box", "issues": ["The text is split into a heading 'Bu ayki kontenjanımız dolmuştur' and a sub-line 'Kısa süre içerisinde tekrar kayıtlar açılacaktır...', not the single exact sentence from the spec. It reads fine; this is just a note."]},
+      {"screen": "Group detail (completed)", "issues": ["The buy box still shows 'Kalan Yer 12 kişi' / '0/12 kayıt dolu' under 'Bu eğitim tamamlandı'. Consider hiding the capacity rows once sales are closed.", "The large media area at the top left is an empty gradient box when there is no promo video."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration29_private_trainings.py", "/app/test_reports/pytest/pytest_iter29.xml"],
+  "action_items": [
+    "Validate or guard last_lesson_date parsing in routes_private.my_private (500 on non-ISO date)",
+    "Move guest account creation in checkout until after item validation, so failed checkouts don't create accounts or send account_created emails",
+    "Decide how a repeat purchase of the same private training should work (block it, or create a new enrollment)",
+    "Optional: use the shadcn date picker in the admin private enrollment editor; hide capacity rows on a completed group detail page"
+  ],
+  "critical_code_review_comments": [
+    "routes_private.my_private: unguarded datetime.fromisoformat (500 on a bad date)",
+    "PayTR callback, mark_paid and _enroll_free each have their own enrollment-dispatch logic (DRY). Consider one shared fulfil_order(order) helper.",
+    "admin_list runs 2 count_documents per training (N+1); fine at the current scale",
+    "routes_admin.py is 913 lines (>700). Consider splitting it."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration29_private_trainings.py"],
+  "success_rate": {"backend": "92% (12/13)", "frontend": "100%"},
+  "seed_data_creation": "Temporary TEST users, orders, private_enrollments and private_waitlist entries were created and then deleted by id/email. Sample prv_8bac646f6471 is restored to sale_stopped=false (price 15000, discount 12500, published). Notifications of type private/waitlist created during testing are still in the notifications collection.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The system clock is Nov 2026, so the group's first lesson (2026-09-07) is in the past and sales_closed=true. Mongo DB is test_database; the session collection is user_sessions. The pytest file uses pymongo for cleanup and runs with '-p no:xdist -o addopts=\"\"'. Guest checkout sets a session cookie and needs a requests.Session. Resend returns 401 locally (expected)."
+}

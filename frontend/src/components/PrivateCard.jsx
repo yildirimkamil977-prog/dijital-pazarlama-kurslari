@@ -11,7 +11,7 @@ export const privateFeatures = (p) => [
   { icon: Briefcase, title: "Tamamen uygulamalı", text: "Gerçek işletme hesapları üzerinden ilerlenir." },
   { icon: ListOrdered, title: `${p?.lesson_count || 8} ders`, text: "Net, planlı ve hedef odaklı bir ders paketi." },
   { icon: Route, title: "İhtiyacına göre müfredat", text: "Hazır müfredat var; istersen tamamen senin ihtiyacına göre ilerleriz." },
-  { icon: Timer, title: p?.lesson_duration || "60-90 dakika", text: "Her ders 1 ile 1,5 saat arasında sürer." },
+  { icon: Timer, title: "Ders süresi 1 - 1,5 saat", text: "Her ders ihtiyaca göre 1 ile 1,5 saat arasında sürer." },
   { icon: HardDriveDownload, title: "Ömür boyu ders kayıtları", text: "Tüm dersler kaydedilir, öğrenci panelinden ömür boyu izlenir." },
   { icon: MessageCircleQuestion, title: "1 ay soru hakkı", text: "Eğitim bittikten sonra 1 ay boyunca soru sorabilirsin." },
 ];
@@ -28,7 +28,7 @@ export function PrivateCard({ p, testId }) {
       <div className="p-5 flex flex-col flex-1">
         <h3 className="font-heading font-bold text-lg leading-snug group-hover:text-gold transition-colors duration-200">{p.title}</h3>
         <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{p.description}</p>
-        <p className="text-xs text-muted-foreground mt-3">{p.lesson_count} ders · {p.lesson_duration} · Google Meet</p>
+        <p className="text-xs text-muted-foreground mt-3">{p.lesson_count} ders · Google Meet</p>
         <div className="mt-auto pt-4 flex items-end justify-between">
           <div>
             {save && <span className="text-xs text-muted-foreground line-through mr-2">{formatPrice(p.price)} ₺</span>}

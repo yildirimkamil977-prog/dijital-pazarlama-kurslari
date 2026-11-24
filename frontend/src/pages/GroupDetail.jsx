@@ -255,14 +255,14 @@ export default function GroupDetail() {
               </div>
 
               <div className="p-6">
-                <div className="space-y-3 text-sm">
+                {!g.sales_closed && <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Users className="w-4 h-4" /> Kontenjan</span><span className="font-medium">{g.capacity} kişi</span></div>
                   <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><Radio className="w-4 h-4" /> Kalan Yer</span><span data-testid="group-remaining" className={g.low_stock ? "text-red-400 font-bold" : "font-medium text-green-400"}>{g.remaining} kişi</span></div>
                   {g.start_date && <div className="flex items-center justify-between"><span className="text-muted-foreground flex items-center gap-2"><CalendarDays className="w-4 h-4" /> Başlangıç</span><span className="font-medium text-right text-xs">{trDate(g.start_date)}</span></div>}
-                </div>
+                </div>}
 
                 {/* kontenjan bar */}
-                {g.capacity > 0 && (
+                {g.capacity > 0 && !g.sales_closed && (
                   <div className="mt-4">
                     <div className="h-2 rounded-full bg-white/8 overflow-hidden">
                       <div className={`h-full rounded-full ${g.low_stock ? "bg-red-500" : "bg-gold"}`} style={{ width: `${Math.min(100, Math.round((g.enrolled / g.capacity) * 100))}%` }} />
@@ -271,7 +271,7 @@ export default function GroupDetail() {
                   </div>
                 )}
 
-                {g.low_stock && !g.sold_out && (
+                {g.low_stock && !g.sold_out && !g.sales_closed && (
                   <div data-testid="group-urgency" className="mt-4 flex items-center gap-2 bg-red-500/15 border border-red-500/30 text-red-300 rounded-xl px-3 py-2.5 text-sm font-semibold animate-pulse">
                     <AlertTriangle className="w-4 h-4 shrink-0" /> Acele et! Son {g.remaining} kontenjan kaldı
                   </div>
@@ -310,7 +310,7 @@ export default function GroupDetail() {
             <span className="font-heading font-black text-xl text-gold whitespace-nowrap" data-testid="group-mobile-price">{formatPrice(price)} ₺</span>
             {savePct > 0 && <Badge className="text-[10px] bg-destructive/15 text-red-400 border-destructive/20" data-testid="group-mobile-discount-badge">%{savePct} indirim</Badge>}
           </div>
-          <p className={`text-[11px] ${g.low_stock ? "text-red-400" : "text-muted-foreground"}`}>{g.remaining} kontenjan kaldı</p>
+          <p className={`text-[11px] ${g.low_stock && !g.sales_closed ? "text-red-400" : "text-muted-foreground"}`}>{g.sales_closed ? "Satışlar kapandı" : `${g.remaining} kontenjan kaldı`}</p>
         </div>
         {g.sales_closed ? (
           <Button disabled className="flex-1 h-12" data-testid="group-mobile-completed">Eğitim Tamamlandı</Button>

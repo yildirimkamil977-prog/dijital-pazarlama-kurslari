@@ -105,8 +105,11 @@ async def my_private(request: Request):
     for e in await db.private_enrollments.find({"user_id": user["user_id"]}, {"_id": 0}).sort("enrolled_at", -1).to_list(100):
         p = await db.private_trainings.find_one({"private_id": e["private_id"]}, {"_id": 0}) or {}
         until = ""
-        if e.get("last_lesson_date"):
-            until = (datetime.fromisoformat(e["last_lesson_date"]) + timedelta(days=30)).date().isoformat()
+        try:
+            if e.get("last_lesson_date"):
+                until = (datetime.fromisoformat(e["last_lesson_date"]) + timedelta(days=30)).date().isoformat()
+        except ValueError:
+            pass
         out.append({**e, "title": p.get("title", ""), "image": p.get("image", ""), "slug": p.get("slug", ""),
                     "lesson_count": p.get("lesson_count"), "lesson_duration": p.get("lesson_duration", ""), "questions_until": until})
     return out
@@ -203,6 +206,8 @@ async def admin_students(private_id: str, request: Request):
 @router.put("/admin/private-enrollments/{enr_id}")
 async def admin_update_enrollment(enr_id: str, body: EnrollUpdateIn, request: Request):
     await require_admin(request)
+    if body.last_lesson_date and not re.match(r"^\d{4}-\d{2}-\d{2}$", body.last_lesson_date):
+        raise HTTPException(status_code=400, detail="Son ders tarihi YYYY-AA-GG biçiminde olmalı")
     recs = [{"title": (r.get("title") or "").strip(), "url": (r.get("url") or "").strip(), "date": r.get("date", "")}
             for r in body.recordings if (r.get("url") or "").strip()]
     r = await db.private_enrollments.update_one({"enr_id": enr_id}, {"$set": {"recordings": recs, "last_lesson_date": body.last_lesson_date, "note": body.note}})

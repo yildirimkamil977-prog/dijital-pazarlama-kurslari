@@ -97,7 +97,7 @@ export default function AdminPrivateTrainings() {
         <div><Label>Fiyat (₺)</Label><Input type="number" value={form.price} onChange={(e) => set("price", e.target.value)} className={inputCls} data-testid="private-price-input" /></div>
         <div><Label>İndirimli Fiyat (₺) <span className="text-muted-foreground font-normal">· isteğe bağlı</span></Label><Input type="number" value={form.discount_price} onChange={(e) => set("discount_price", e.target.value)} className={inputCls} data-testid="private-discount-input" /></div>
         <div><Label>Ders Sayısı</Label><Input type="number" value={form.lesson_count} onChange={(e) => set("lesson_count", e.target.value)} className={inputCls} data-testid="private-lessons-input" /></div>
-        <div><Label>Ders Süresi</Label><Input value={form.lesson_duration} onChange={(e) => set("lesson_duration", e.target.value)} className={inputCls} /></div>
+        <div />
         <div><Label>Eğitmen</Label><select value={form.instructor_id} onChange={(e) => set("instructor_id", e.target.value)} className="w-full h-10 rounded-md bg-ink border border-white/10 px-3 text-sm mt-1.5" data-testid="private-instructor"><option value="">Seçin</option>{instructors.map((i) => <option key={i.instructor_id} value={i.instructor_id}>{i.name}</option>)}</select></div>
         <div><Label>Tanıtım Videosu (YouTube/Vimeo)</Label><Input value={form.promo_video} onChange={(e) => set("promo_video", e.target.value)} className={inputCls} /></div>
         <div className="sm:col-span-2"><Label>Kapak Görseli</Label><div className="mt-1.5"><ImageUpload value={form.image} onChange={(v) => set("image", v)} testId="private-image" /></div></div>
