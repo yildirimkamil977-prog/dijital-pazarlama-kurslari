@@ -166,6 +166,8 @@ async def save_availability(enr_id: str, body: AvailabilityIn, request: Request)
     if not av:
         raise HTTPException(status_code=400, detail="En az bir gün ve saat aralığı seçin")
     note = body.note.strip()[:1000]
+    if e.get("availability_at") and e.get("availability") == av and e.get("availability_note", "") == note:
+        return {"ok": True, "unchanged": True}
     first = not e.get("availability_at")
     await db.private_enrollments.update_one({"enr_id": enr_id}, {"$set": {"availability": av, "availability_note": note,
                                                                        "availability_at": now_utc().isoformat()}})
@@ -257,7 +259,7 @@ async def admin_students(private_id: str, request: Request):
 @router.put("/admin/private-enrollments/{enr_id}")
 async def admin_update_enrollment(enr_id: str, body: EnrollUpdateIn, request: Request):
     await require_admin(request)
-    if body.last_lesson_date and not re.match(r"^\d{4}-\d{2}-\d{2}$", body.last_lesson_date):
+    if body.last_lesson_date and not (re.match(r"^\d{4}-\d{2}-\d{2}$", body.last_lesson_date) and _questions_until({"last_lesson_date": body.last_lesson_date})):
         raise HTTPException(status_code=400, detail="Son ders tarihi YYYY-AA-GG biçiminde olmalı")
     recs = [{"title": (r.get("title") or "").strip(), "url": (r.get("url") or "").strip(), "date": r.get("date", "")}
             for r in body.recordings if (r.get("url") or "").strip()]

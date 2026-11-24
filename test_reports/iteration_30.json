@@ -1,0 +1,39 @@
+{
+  "summary": "Tested the 1:1 private training availability form, questions_until in the admin screens, and the private_* email templates. Backend: 12/12 pytest tests passed. Checked: PUT /my/private-enrollments/{id}/availability (401 without login, 404 for another user's or an unknown enrollment, 400 'En az bir gün...' when empty or when every day/slot is invalid, invalid days and slots filtered out, note trimmed, availability/availability_note/availability_at saved, admin notification 'Müsaitlik formu dolduruldu' and then 'güncellendi', availability_received email attempted); /my/private-trainings returns availability fields and questions_until; admin students list and student detail 'privates' (title, availability, questions_until=last+30d, paid_amount, order_status); admin enrollment update emails ['recording'], ['completed'], [], both together, 400 for a non-ISO date, 404 for an unknown id; all 5 private_* templates are in the DB and in /admin/email-templates, and private_purchase includes the müsaitlik CTA. Frontend (Playwright, desktop plus a mobile check): a free checkout with a 100% TEST_ code shows /odeme/sonuc with payment-success and post-payment-availability, the info note text is correct, an empty submit shows the error toast, slot toggling works (aria-pressed), and submitting hides the form, shows the toast and saves to the DB. In the student panel Bire Bir Eğitimlerim tab, the form shows, then the summary my-availability-*, and edit-availability (Düzenle) updates it with the button reading 'Güncelle'. Admin students dialog: admin-availability-* shows the summary or 'Öğrenci henüz formu doldurmadı.'; saving the last lesson date shows the toast 'soru hakkı maili gönderildi' and admin-questions-until reads '20 Aralık 2026 tarihine kadar'. Admin student detail: student-privates-section shows availability and the student-private-questions badge. Emails were attempted, but Resend returns 401 (expected). All TEST_ data was cleaned up.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PUT /api/admin/private-enrollments/{enr_id}", "issue": "The regex check accepts impossible dates such as 2026-13-45. The bad value is stored, _questions_until silently returns '', and the private_completed email is still sent with an empty {{questions_until}}. Validate with datetime.fromisoformat and return 400."},
+      {"endpoint": "PUT /api/my/private-enrollments/{enr_id}/availability", "issue": "Every save (including repeated 'Güncelle' clicks) sends a student email, an admin notification and an admin email. There is no throttle or dedupe, so a student can spam the admin. Consider skipping when availability and note are unchanged."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PrivatePanel Availability onSaved", "issue": "setEdit(false) runs before load() finishes, so the summary briefly shows the old availability after 'Güncelle'. If the user clicks Düzenle again within this window, AvailabilityForm starts from stale data (useState initial value) and could overwrite the new selection. Reproduced once: the re-opened form showed a deselected slot. Fix: await load() before setEdit(false), or use the saved value.", "selector": "[data-testid^=edit-availability-]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/odeme/sonuc post-payment availability form (desktop) and the mobile panel", "issues": ["PaymentResult uses a max-w-lg container but the table has min-w-[520px], so the 5th column (21:00-23:00) is cut off and needs a horizontal scroll even on 1920px desktop. On mobile (390px) only 2 of 5 columns are visible. When scrolled, the day labels scroll away too, so users can't tell which row is which day. Suggest a wider container (max-w-2xl) on PaymentResult, a sticky first column, and a mobile layout of per-day chips."],
+       "note": "After a successful submit on PaymentResult the form just disappears. A short inline confirmation such as 'Müsaitlik bilgin alındı' would be clearer than relying on the toast alone."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration30_private_availability.py", "/app/backend/tests/iter30_ui_setup.py", "/app/test_reports/pytest/pytest_iter30.xml"],
+  "action_items": [
+    "Widen the PaymentResult container or make the availability grid responsive with a sticky day column (the 21:00-23:00 column is hidden on desktop)",
+    "PrivatePanel: await load() before leaving edit mode, to avoid the stale form/summary",
+    "Validate last_lesson_date as a real date (not only the regex) in admin_update_enrollment",
+    "Optional: dedupe or throttle availability-save emails and notifications when nothing changed"
+  ],
+  "critical_code_review_comments": [
+    "routes_private.admin_update_enrollment: the regex-only date validation lets invalid dates through to storage and email",
+    "save_availability: user_name is put into the admin notification and emails without HTML escaping (only the note is escaped). This is the existing pattern, but names are user-controlled.",
+    "PrivatePanel hides the availability form once recordings exist, so a student cannot edit availability later. Confirm this is intended.",
+    "routes_admin.py is still over 900 lines; consider splitting it"
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration30_private_availability.py", "/app/backend/tests/iter30_ui_setup.py"],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "100% of the requested flows work (1 low-priority stale-state bug, 1 layout issue)"},
+  "seed_data_creation": "TEST_ private trainings, TEST_ users (test_avail*/test_ui*@example.com), orders, enrollments, the TEST_FREE* discount code and related notifications were all created and then deleted by id. Verified: 0 left.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run with: pytest tests/test_iteration30_private_availability.py -p no:xdist -o addopts=''. Resend does not log the subject, so email tests count the 'E-posta ... (recipient)' log lines in backend.err.log per recipient. Use 'python iter30_ui_setup.py setup|cleanup' to create UI fixtures (/tmp/iter30_ui.json). PrivateDetail renders two private-buy buttons; use :visible. Clock is Nov 2026. Card (PayTR) is mocked/unconfigured, so the free (100% code) and transfer+mark-paid paths were used."
+}

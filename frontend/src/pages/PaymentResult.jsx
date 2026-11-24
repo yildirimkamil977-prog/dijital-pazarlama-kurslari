@@ -16,6 +16,7 @@ export default function PaymentResult() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [privates, setPrivates] = useState([]);
+  const [sentAv, setSentAv] = useState(false);
   const loadPrivates = () => api.get("/my/private-trainings").then(({ data }) => setPrivates(data.filter((e) => e.order_id === oid && !e.availability_at))).catch(() => {});
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function PaymentResult() {
   const pending = order?.status === "pending" && !failParam;
 
   return (
-    <div className="max-w-lg mx-auto px-5 py-24 text-center">
+    <div className={`${privates.length ? "max-w-2xl" : "max-w-lg"} mx-auto px-5 py-24 text-center`}>
       {loading ? (
         <>
           <Loader2 className="w-12 h-12 text-gold animate-spin mx-auto" />
@@ -53,9 +54,10 @@ export default function PaymentResult() {
           {privates.length > 0 && (
             <div className="mt-8 text-left space-y-4" data-testid="post-payment-availability">
               <p className="text-center font-heading font-bold text-lg">Son bir adım: Ders programını birlikte planlayalım</p>
-              {privates.map((e) => <div key={e.enr_id}><p className="text-sm font-semibold mb-2">{e.title}</p><AvailabilityForm enrollment={e} onSaved={loadPrivates} /></div>)}
+              {privates.map((e) => <div key={e.enr_id}><p className="text-sm font-semibold mb-2">{e.title}</p><AvailabilityForm enrollment={e} onSaved={() => { setSentAv(true); loadPrivates(); }} /></div>)}
             </div>
           )}
+          {sentAv && privates.length === 0 && <p className="mt-8 text-sm text-green-400 bg-green-500/10 border border-green-500/20 rounded-xl p-4" data-testid="availability-sent-confirmation">Müsaitlik bilgin alındı. Eğitmen inceleyip ders programın için sana dönüş yapacak.</p>}
           <Button onClick={() => navigate("/panel")} className="mt-8 bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-8">Panelime Git</Button>
         </div>
       ) : pending ? (

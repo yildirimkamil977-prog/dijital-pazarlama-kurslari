@@ -7,7 +7,7 @@ import { AvailabilityForm, AvailabilitySummary } from "@/components/Availability
 
 function Availability({ e, onSaved }) {
   const [edit, setEdit] = useState(false);
-  if (!e.availability_at || edit) return <div className="mt-5"><AvailabilityForm enrollment={e} onSaved={() => { setEdit(false); onSaved(); }} /></div>;
+  if (!e.availability_at || edit) return <div className="mt-5"><AvailabilityForm enrollment={e} onSaved={async () => { await onSaved(); setEdit(false); }} /></div>;
   return (
     <div className="mt-5 bg-ink rounded-xl p-4" data-testid={`my-availability-${e.enr_id}`}>
       <div className="flex items-center justify-between mb-2"><p className="text-sm font-semibold">Müsaitlik bilgin gönderildi</p><button className="text-xs text-gold" onClick={() => setEdit(true)} data-testid={`edit-availability-${e.enr_id}`}>Düzenle</button></div>
