@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Loader2, Search, BookOpen, Plus, Trash2, KeyRound, Upload, Download, Award, ChevronLeft, ChevronRight, ShoppingBag, Users, FileDown, RotateCcw } from "lucide-react";
 import { MultiSelectFilter } from "@/components/admin/MultiSelectFilter";
 import { BillingSummary, BillingFields, EMPTY_BILLING } from "@/components/BillingForm";
+import { AvailabilitySummary } from "@/components/AvailabilityForm";
 import api, { formatPrice, formatDate, apiError, API } from "@/lib/api";
 
 const SRC_LABEL = { purchase: "Satın Alma", free: "Ücretsiz", transfer: "Havale/EFT", manual: "Manuel Kayıt", gift: "Hediye" };
@@ -208,6 +209,24 @@ export default function AdminStudents() {
                   <Select value={groupToAdd} onValueChange={setGroupToAdd}><SelectTrigger className="bg-ink border-white/10 h-9" data-testid="enroll-group-select"><SelectValue placeholder="Grup eğitimine ekle..." /></SelectTrigger>
                     <SelectContent>{groups.map((g) => <SelectItem key={g.group_id} value={g.group_id}>{g.title}</SelectItem>)}</SelectContent></Select>
                   <Button onClick={enrollGroup} size="sm" className="bg-gold text-ink font-semibold shrink-0" data-testid="manual-group-enroll"><Plus className="w-4 h-4" /></Button>
+                </div>
+              </div>
+
+              <div className="mt-4" data-testid="student-privates-section">
+                <h3 className="font-heading font-semibold text-sm mb-2">Bire Bir Canlı Eğitimler</h3>
+                <div className="space-y-2">
+                  {!(detail.privates || []).length ? <p className="text-sm text-muted-foreground">Kayıtlı bire bir eğitim yok.</p> : detail.privates.map((p) => (
+                    <div key={p.enr_id} className="bg-ink rounded-lg p-3" data-testid={`student-private-${p.enr_id}`}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div><p className="text-sm font-medium">{p.title}</p><p className="text-xs text-muted-foreground">{p.lesson_count} ders · {p.recordings?.length || 0} kayıt yüklendi</p></div>
+                        <div className="flex items-center gap-2">
+                          <OrderBadges item={p} testId={`admin-private-paid-${p.enr_id}`} />
+                          {p.questions_until ? <Badge className="bg-gold/15 text-gold text-[10px]" data-testid={`student-private-questions-${p.enr_id}`}>Soru hakkı: {formatDate(p.questions_until)}</Badge> : <Badge className="bg-secondary text-[10px]">Eğitim sürüyor</Badge>}
+                        </div>
+                      </div>
+                      <div className="mt-2 border-t border-white/5 pt-2">{p.availability_at ? <AvailabilitySummary av={p.availability} note={p.availability_note} /> : <p className="text-xs text-amber-400">Müsaitlik formu henüz doldurulmadı.</p>}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

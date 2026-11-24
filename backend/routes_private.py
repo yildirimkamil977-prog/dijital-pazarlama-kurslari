@@ -1,5 +1,6 @@
 import os
 import re
+import html as _html
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Request
@@ -63,6 +64,36 @@ class NotifyIn(BaseModel):
     name: str = ""
 
 
+DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+SLOTS = ["09:00-12:00", "12:00-15:00", "15:00-18:00", "18:00-21:00", "21:00-23:00"]
+
+
+class AvailabilityIn(BaseModel):
+    availability: dict = {}
+    note: str = ""
+
+
+def _questions_until(e: dict) -> str:
+    try:
+        if e.get("last_lesson_date"):
+            return (datetime.fromisoformat(e["last_lesson_date"]) + timedelta(days=30)).date().isoformat()
+    except ValueError:
+        pass
+    return ""
+
+
+def _tr_date(iso: str) -> str:
+    return ".".join(reversed(iso[:10].split("-"))) if iso else ""
+
+
+def _availability_html(av: dict, note: str) -> str:
+    rows = "".join(f"<tr><td style=\"padding:6px 12px 6px 0;color:#fff;font-weight:bold\">{d}</td><td style=\"padding:6px 0;color:#c7cbd6\">{', '.join(av[d])}</td></tr>" for d in DAYS if av.get(d))
+    out = f"<table style=\"border-collapse:collapse;margin:8px 0 14px\">{rows}</table>"
+    if note:
+        out += f"<p style=\"color:#8a92a6\">Notun: {_html.escape(note)}</p>"
+    return out
+
+
 class EnrollUpdateIn(BaseModel):
     recordings: list = []
     last_lesson_date: str = ""
@@ -104,12 +135,7 @@ async def my_private(request: Request):
     out = []
     for e in await db.private_enrollments.find({"user_id": user["user_id"]}, {"_id": 0}).sort("enrolled_at", -1).to_list(100):
         p = await db.private_trainings.find_one({"private_id": e["private_id"]}, {"_id": 0}) or {}
-        until = ""
-        try:
-            if e.get("last_lesson_date"):
-                until = (datetime.fromisoformat(e["last_lesson_date"]) + timedelta(days=30)).date().isoformat()
-        except ValueError:
-            pass
+        until = _questions_until(e)
         out.append({**e, "title": p.get("title", ""), "image": p.get("image", ""), "slug": p.get("slug", ""),
                     "lesson_count": p.get("lesson_count"), "lesson_duration": p.get("lesson_duration", ""), "questions_until": until})
     return out
@@ -127,6 +153,29 @@ async def enroll_private_item(order: dict, private_id: str):
                                                              "panel_url": SITE() + "/panel"})
     await push_notification("private", "Yeni bire bir eğitim kaydı — planlama için iletişime geçin",
                             f"{order.get('user_name', '')} · {order['user_email']} · {p.get('title', '')}", {"private_id": private_id})
+
+
+@router.put("/my/private-enrollments/{enr_id}/availability")
+async def save_availability(enr_id: str, body: AvailabilityIn, request: Request):
+    user = await get_current_user(request)
+    e = await db.private_enrollments.find_one({"enr_id": enr_id, "user_id": user["user_id"]})
+    if not e:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    av = {d: [s for s in SLOTS if s in (body.availability.get(d) or [])] for d in DAYS}
+    av = {d: v for d, v in av.items() if v}
+    if not av:
+        raise HTTPException(status_code=400, detail="En az bir gün ve saat aralığı seçin")
+    note = body.note.strip()[:1000]
+    first = not e.get("availability_at")
+    await db.private_enrollments.update_one({"enr_id": enr_id}, {"$set": {"availability": av, "availability_note": note,
+                                                                       "availability_at": now_utc().isoformat()}})
+    p = await db.private_trainings.find_one({"private_id": e["private_id"]}) or {}
+    schedule_email("private_availability_received", e["user_email"], {"name": e.get("user_name", ""), "training": p.get("title", ""),
+                   "availability_html": _availability_html(av, note), "panel_url": SITE() + "/panel"})
+    summary = " · ".join(f"{d}: {', '.join(v)}" for d, v in av.items())
+    await push_notification("private", f"Müsaitlik formu {'dolduruldu' if first else 'güncellendi'} — {p.get('title', '')}",
+                            f"{e.get('user_name', '')} · {e['user_email']} · {summary}" + (f" · Not: {note}" if note else ""), {"private_id": e["private_id"]})
+    return {"ok": True}
 
 
 # ---------- Admin ----------
@@ -199,6 +248,8 @@ async def admin_delete(private_id: str, request: Request):
 async def admin_students(private_id: str, request: Request):
     await require_admin(request)
     enr = await db.private_enrollments.find({"private_id": private_id}, {"_id": 0}).sort("enrolled_at", -1).to_list(500)
+    for e in enr:
+        e["questions_until"] = _questions_until(e)
     wl = await db.private_waitlist.find({"private_id": private_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return {"enrollments": enr, "waitlist": wl}
 
@@ -210,7 +261,21 @@ async def admin_update_enrollment(enr_id: str, body: EnrollUpdateIn, request: Re
         raise HTTPException(status_code=400, detail="Son ders tarihi YYYY-AA-GG biçiminde olmalı")
     recs = [{"title": (r.get("title") or "").strip(), "url": (r.get("url") or "").strip(), "date": r.get("date", "")}
             for r in body.recordings if (r.get("url") or "").strip()]
-    r = await db.private_enrollments.update_one({"enr_id": enr_id}, {"$set": {"recordings": recs, "last_lesson_date": body.last_lesson_date, "note": body.note}})
-    if not r.matched_count:
+    old = await db.private_enrollments.find_one({"enr_id": enr_id})
+    if not old:
         raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
-    return {"ok": True}
+    await db.private_enrollments.update_one({"enr_id": enr_id}, {"$set": {"recordings": recs, "last_lesson_date": body.last_lesson_date, "note": body.note}})
+    p = await db.private_trainings.find_one({"private_id": old["private_id"]}) or {}
+    ctx = {"name": old.get("user_name", ""), "training": p.get("title", ""), "panel_url": SITE() + "/panel"}
+    old_urls = {r.get("url") for r in old.get("recordings", [])}
+    new_recs = [r for r in recs if r["url"] not in old_urls]
+    sent = []
+    if new_recs:
+        names = ", ".join(r["title"] or "Ders kaydı" for r in new_recs)
+        schedule_email("private_recording_added", old["user_email"], {**ctx, "recording_count": len(new_recs), "recordings": names})
+        sent.append("recording")
+    if body.last_lesson_date and body.last_lesson_date != old.get("last_lesson_date"):
+        until = _questions_until({"last_lesson_date": body.last_lesson_date})
+        schedule_email("private_completed", old["user_email"], {**ctx, "questions_until": _tr_date(until)})
+        sent.append("completed")
+    return {"ok": True, "emails": sent}

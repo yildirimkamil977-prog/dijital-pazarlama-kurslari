@@ -331,13 +331,20 @@ async def student_detail(user_id: str, request: Request):
         groups.append({"group_id": ge["group_id"], "title": g["title"], "start_date": dates[0] if dates else None,
                        "session_count": len(g.get("lessons", [])), "enrolled_at": ge.get("enrolled_at"),
                        "source": "purchase" if ge.get("order_id") else "manual", **_order_info(order)})
+    from routes_private import _questions_until
+    privates = []
+    for pe in await db.private_enrollments.find({"user_id": user_id}, {"_id": 0}).sort("enrolled_at", -1).to_list(100):
+        pt = await db.private_trainings.find_one({"private_id": pe["private_id"]}, {"_id": 0, "title": 1, "lesson_count": 1}) or {}
+        order = await db.orders.find_one({"order_id": pe.get("order_id")}, {"_id": 0, "invoice.data": 0}) if pe.get("order_id") else None
+        privates.append({**pe, "title": pt.get("title", ""), "lesson_count": pt.get("lesson_count"),
+                         "questions_until": _questions_until(pe), **_order_info(order)})
     payments = await db.orders.find({"user_id": user_id, "status": {"$in": PAYMENT_STATUSES}}, {"_id": 0, "invoice.data": 0}).sort("created_at", -1).to_list(200)
     for p in payments:
         p["has_invoice"] = bool(p.get("invoice")); p.pop("invoice", None)
     certs = await db.certificates.find({"user_id": user_id}, {"_id": 0, "file.data": 0}).to_list(100)
     for c in certs:
         c["has_file"] = bool(c.get("file")); c.pop("file", None)
-    return {"user": u, "courses": courses, "groups": groups, "payments": payments, "certificates": certs}
+    return {"user": u, "courses": courses, "groups": groups, "privates": privates, "payments": payments, "certificates": certs}
 
 
 @router.put("/students/{user_id}/billing")

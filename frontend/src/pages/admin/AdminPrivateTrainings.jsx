@@ -11,6 +11,7 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { GroupCurriculumEditor } from "@/components/admin/GroupCurriculumEditor";
 import { CrossSellPicker } from "@/components/admin/CrossSellPicker";
 import { toast } from "sonner";
+import { AvailabilitySummary } from "@/components/AvailabilityForm";
 
 const RichTextEditor = lazy(() => import("@/components/admin/RichTextEditor"));
 const empty = { title: "", slug: "", description: "", long_description: "", image: "", promo_video: "", price: 0, discount_price: "", lesson_count: 8, lesson_duration: "60-90 dakika", curriculum: [], what_you_learn: [], requirements: [], instructor_id: "", cross_sell_ids: [], sale_stopped: false, is_published: false };
@@ -19,11 +20,22 @@ const inputCls = "bg-ink border-white/10 mt-1.5";
 function EnrollmentRow({ e, onSaved }) {
   const [f, setF] = useState({ recordings: e.recordings || [], last_lesson_date: e.last_lesson_date || "", note: e.note || "" });
   const setRec = (i, k, v) => setF({ ...f, recordings: f.recordings.map((r, j) => (j === i ? { ...r, [k]: v } : r)) });
-  const save = async () => { try { await api.put(`/admin/private-enrollments/${e.enr_id}`, f); toast.success("Kaydedildi"); onSaved(); } catch (err) { toast.error(apiError(err)); } };
+  const save = async () => {
+    try {
+      const { data } = await api.put(`/admin/private-enrollments/${e.enr_id}`, f);
+      const m = [data.emails?.includes("recording") && "yeni kayıt maili", data.emails?.includes("completed") && "soru hakkı maili"].filter(Boolean);
+      toast.success(m.length ? `Kaydedildi · öğrenciye ${m.join(" ve ")} gönderildi` : "Kaydedildi"); onSaved();
+    } catch (err) { toast.error(apiError(err)); }
+  };
   return (
     <div className="bg-ink rounded-xl p-4" data-testid={`private-enr-${e.enr_id}`}>
       <p className="font-semibold text-sm">{e.user_name} <span className="text-muted-foreground font-normal">· {e.user_email}{e.user_phone ? ` · ${e.user_phone}` : ""}</span></p>
       <p className="text-[11px] text-muted-foreground">Kayıt: {formatDate(e.enrolled_at)} · #{e.order_id}</p>
+      {e.questions_until && <p className="mt-2 inline-block text-xs bg-gold/10 text-gold border border-gold/20 rounded-full px-3 py-1" data-testid={`admin-questions-until-${e.enr_id}`}>Soru hakkı: {formatDate(e.questions_until)} tarihine kadar</p>}
+      <div className="mt-3 bg-ink-surface rounded-lg p-3" data-testid={`admin-availability-${e.enr_id}`}>
+        <p className="text-xs font-semibold mb-1.5">Müsaitlik Formu {e.availability_at && <span className="text-muted-foreground font-normal">· {formatDate(e.availability_at)}</span>}</p>
+        {e.availability_at ? <AvailabilitySummary av={e.availability} note={e.availability_note} /> : <p className="text-xs text-amber-400">Öğrenci henüz formu doldurmadı.</p>}
+      </div>
       <div className="space-y-2 mt-3">
         {f.recordings.map((r, i) => (
           <div key={i} className="grid grid-cols-12 gap-2">
