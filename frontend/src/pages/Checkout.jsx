@@ -57,7 +57,7 @@ export default function Checkout() {
     const pending = localStorage.getItem("pending_discount_code");
     if (!pending || !items.length || discount) return;
     setCode(pending);
-    api.post("/payments/validate-discount", { code: pending, subtotal, items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "", price: i.price })) })
+    api.post("/payments/validate-discount", { code: pending, subtotal, items: items.map((i) => ({ course_id: i.kind === "group" || i.kind === "private" ? "" : i.course_id, group_id: i.group_id || "", private_id: i.private_id || "", price: i.price })) })
       .then(({ data }) => { setDiscount(data); toast.success(`${pending} indirim kodu otomatik uygulandı`); })
       .catch(() => {});
     // eslint-disable-next-line
@@ -73,7 +73,7 @@ export default function Checkout() {
   const applyDiscount = async () => {
     if (!code.trim()) return;
     setApplying(true);
-    try { const { data } = await api.post("/payments/validate-discount", { code, subtotal, items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "", price: i.price })) }); setDiscount(data); toast.success("İndirim kodu uygulandı"); }
+    try { const { data } = await api.post("/payments/validate-discount", { code, subtotal, items: items.map((i) => ({ course_id: i.kind === "group" || i.kind === "private" ? "" : i.course_id, group_id: i.group_id || "", private_id: i.private_id || "", price: i.price })) }); setDiscount(data); toast.success("İndirim kodu uygulandı"); }
     catch (e) { toast.error(apiError(e)); setDiscount(null); } finally { setApplying(false); }
   };
 
@@ -84,7 +84,7 @@ export default function Checkout() {
     trackInitiateCheckout({ value: total, items: toTrackItems(items) });
     try {
       const { data } = await api.post("/payments/checkout", {
-        items: items.map((i) => ({ course_id: i.kind === "group" ? "" : i.course_id, group_id: i.group_id || "" })),
+        items: items.map((i) => ({ course_id: i.kind === "group" || i.kind === "private" ? "" : i.course_id, group_id: i.group_id || "", private_id: i.private_id || "" })),
         discount_code: discount?.code || null,
         payment_method: method,
         customer: user ? null : customer,

@@ -16,6 +16,7 @@ import routes_consulting
 import routes_group
 import routes_seo
 import routes_waitlist
+import routes_private
 from media import migrate_images
 
 logging.basicConfig(level=logging.INFO,
@@ -39,6 +40,7 @@ api_router.include_router(routes_consulting.router)
 api_router.include_router(routes_group.router)
 api_router.include_router(routes_seo.router)
 api_router.include_router(routes_waitlist.router)
+api_router.include_router(routes_private.router)
 app.include_router(api_router)
 
 app.add_middleware(
@@ -125,6 +127,14 @@ async def seed():
     }
     for _k, (_s, _h) in _gt.items():
         await db.email_templates.update_one({"key": _k}, {"$set": {"key": _k, "name": _k, "subject": _s, "html": _h, "enabled": True}}, upsert=True)
+    _btn = "background:#FFB800;color:#07090f;padding:12px 26px;border-radius:9px;text-decoration:none;font-weight:bold"
+    _pt = {
+        "private_purchase": ("Bire Bir Canlı Eğitim kaydın alındı - {{site_name}}", f"<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Kaydın alındı! 🎓</h2><p>Merhaba {{{{name}}}},</p><p><strong>{{{{training}}}}</strong> bire bir canlı eğitimine kaydın oluşturuldu.</p><p>Ders programını senin müsait gün ve saatlerine göre planlamak için <strong>en kısa sürede seninle iletişime geçeceğiz</strong>. Dersler Google Meet üzerinden yapılır; tüm ders kayıtları öğrenci panelinde ömür boyu erişimine açılır.</p><div style=\"margin:24px 0\"><a href=\"{{{{panel_url}}}}\" style=\"{_btn}\">Panelime Git</a></div>"),
+        "private_reopen": ("Kontenjan açıldı: {{training}} - {{site_name}}", f"<h2 style=\"margin:0 0 14px;color:#fff;font-size:22px\">Kontenjan açıldı! 🚀</h2><p>Merhaba {{{{name}}}},</p><p><strong>{{{{training}}}}</strong> eğitimini bire bir almak isterseniz kontenjan açılmıştır. Kontenjan sınırlı olduğu için yerini hemen ayırtabilirsin.</p><div style=\"margin:24px 0\"><a href=\"{{{{training_url}}}}\" style=\"{_btn}\">Hemen Kaydol</a></div><p style=\"font-size:13px;color:#8a92a6\">Bu e-postayı \"Açılınca haber ver\" listesine katıldığın için aldın.</p>"),
+    }
+    _pnames = {"private_purchase": "Bire Bir Canlı Eğitim - Kayıt", "private_reopen": "Bire Bir Canlı Eğitim - Kontenjan Açıldı"}
+    for _k, (_s, _h) in _pt.items():
+        await db.email_templates.update_one({"key": _k}, {"$setOnInsert": {"key": _k, "name": _pnames[_k], "subject": _s, "html": _h, "enabled": True}}, upsert=True)
 
     # Demo courses
     if await db.courses.count_documents({}) == 0:

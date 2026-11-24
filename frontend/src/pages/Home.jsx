@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { CourseCard } from "@/components/CourseCard";
 import { GroupCard } from "@/components/GroupCard";
+import { PrivateCard } from "@/components/PrivateCard";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Seo } from "@/components/Seo";
 import { VideoDialog } from "@/components/CleanPlayer";
@@ -67,6 +68,7 @@ export default function Home() {
   const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [privates, setPrivates] = useState([]);
   const [videoOpen, setVideoOpen] = useState(false);
   const [activeVideo, setActiveVideo] = useState("");
   const [videoVertical, setVideoVertical] = useState(false);
@@ -74,6 +76,7 @@ export default function Home() {
   useEffect(() => {
     api.get("/courses").then(({ data }) => setCourses(data)).catch(() => {});
     api.get("/group-trainings").then(({ data }) => setGroups(data)).catch(() => {});
+    api.get("/private-trainings").then(({ data }) => setPrivates(data)).catch(() => {});
     document.title = `${settings.site_name || "Akademi"} - Dijital Pazarlama Eğitimleri`;
   }, [settings.site_name]);
 
@@ -123,12 +126,12 @@ export default function Home() {
               <span className="flex items-center gap-2"><Radio className="w-4 h-4 text-gold" /> Her ay canlı yayın</span>
               <span className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-gold" /> 1 saat ücretsiz danışmanlık</span>
             </div>
-            {groups.length > 0 && (
-              <Link to="/canli-grup-egitimleri" data-testid="hero-group-cta" className="mt-8 inline-flex items-center gap-3 bg-gradient-to-r from-red-500/10 to-gold/10 border border-white/10 rounded-2xl pl-3 pr-4 py-2.5 hover:border-gold/40 transition-colors duration-200 group">
+            {privates.length > 0 && (
+              <Link to="/bire-bir-canli-egitimler" data-testid="hero-group-cta" className="mt-8 inline-flex items-center gap-3 bg-gradient-to-r from-red-500/10 to-gold/10 border border-white/10 rounded-2xl pl-3 pr-4 py-2.5 hover:border-gold/40 transition-colors duration-200 group">
                 <span className="inline-flex items-center gap-1.5 bg-red-500 text-white text-[11px] font-bold px-2 py-1 rounded-full">
                   <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" /></span> CANLI
                 </span>
-                <span className="text-sm text-foreground/90">Google Meet ile <b className="text-gold">Canlı Grup Eğitimleri</b> başladı</span>
+                <span className="text-sm text-foreground/90">Google Meet ile <b className="text-gold">Bire Bir Canlı Eğitimler</b> başladı</span>
                 <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
             )}
@@ -187,6 +190,23 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {privates.length > 0 && (
+        <section className="max-w-7xl mx-auto px-5 sm:px-8 pt-20" data-testid="home-private-section">
+          <div className="relative overflow-hidden rounded-3xl border border-gold/20 bg-gradient-to-br from-gold/10 via-ink-surface to-ink p-8 sm:p-12">
+            <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-center">
+              <div>
+                <span className="inline-flex items-center gap-1.5 bg-gold text-ink text-[11px] font-bold px-2.5 py-1 rounded-full">YENİ · 1:1 CANLI</span>
+                <h2 className="font-heading font-black text-3xl sm:text-4xl tracking-tight mt-4">Bire Bir Canlı Eğitimler</h2>
+                <p className="text-muted-foreground mt-4 text-base">Eğitmenle birebir, Google Meet üzerinden. Program senin müsait gün ve saatlerine göre planlanır; gerçek işletme hesaplarında uygulamalı ilerlenir, tüm ders kayıtları ömür boyu panelinde.</p>
+                <ul className="mt-6 grid grid-cols-2 gap-2 text-sm">{["Sana özel program", "Uygulamalı dersler", "Ömür boyu kayıtlar", "1 ay soru hakkı"].map((t) => <li key={t} className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-gold" /> {t}</li>)}</ul>
+                <Link to="/bire-bir-canli-egitimler" className="inline-flex items-center gap-2 mt-8 bg-gold text-ink font-bold rounded-full px-6 py-3 hover:bg-gold-hover transition-colors duration-200" data-testid="home-private-cta">Eğitimleri İncele <ArrowRight className="w-4 h-4" /></Link>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">{privates.slice(0, 2).map((p) => <PrivateCard key={p.private_id} p={p} testId={`home-private-${p.private_id}`} />)}</div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* PERKS */}
       <section className="max-w-7xl mx-auto px-5 sm:px-8 py-24">

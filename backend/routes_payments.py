@@ -24,6 +24,7 @@ FRONTEND_URL = os.environ.get("CORS_ORIGINS", "").split(",")[0]
 class CheckoutItem(BaseModel):
     course_id: str = ""
     group_id: str = ""
+    private_id: str = ""
 
 
 class Customer(BaseModel):
@@ -131,6 +132,13 @@ async def validate_discount(body: dict, request: Request):
     }
 
 
+def group_sales_closed(g: dict) -> bool:
+    from zoneinfo import ZoneInfo
+    from datetime import datetime
+    dates = sorted(l.get("date") for l in g.get("lessons", []) if l.get("date"))
+    return bool(dates) and dates[0] <= datetime.now(ZoneInfo("Europe/Istanbul")).date().isoformat()
+
+
 def group_price(g: dict) -> float:
     dp = g.get("discount_price")
     price = float(g.get("price", 0))
@@ -150,7 +158,11 @@ async def enroll_group_item(order: dict, group_id: str):
 
 
 async def _enroll_free(user, order):
+    from routes_private import enroll_private_item
     for it in order["items"]:
+        if it.get("private_id"):
+            await enroll_private_item(order, it["private_id"])
+            continue
         if it.get("group_id"):
             await enroll_group_item(order, it["group_id"])
             continue
@@ -213,10 +225,23 @@ async def checkout(body: CheckoutIn, request: Request, response: Response):
     items = []
     subtotal = 0.0
     for it in body.items:
+        if it.private_id:
+            from routes_private import private_price
+            p = await db.private_trainings.find_one({"private_id": it.private_id, "is_published": True}, {"_id": 0})
+            if not p:
+                raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
+            if p.get("sale_stopped"):
+                raise HTTPException(status_code=400, detail=f"'{p['title']}' için bu ayki kontenjan doldu")
+            price = private_price(p)
+            subtotal += price
+            items.append({"course_id": "", "private_id": p["private_id"], "title": p["title"], "price": price})
+            continue
         if it.group_id:
             g = await db.group_trainings.find_one({"group_id": it.group_id, "is_published": True}, {"_id": 0})
             if not g:
                 raise HTTPException(status_code=404, detail="Eğitim bulunamadı")
+            if group_sales_closed(g):
+                raise HTTPException(status_code=400, detail=f"'{g['title']}' eğitimi başladığı için satışa kapandı")
             if await db.group_enrollments.find_one({"group_id": g["group_id"], "user_id": user["user_id"]}):
                 raise HTTPException(status_code=400, detail=f"'{g['title']}' eğitimine zaten kayıtlısınız")
             if await db.group_enrollments.count_documents({"group_id": g["group_id"]}) >= g.get("capacity", 0):
@@ -366,7 +391,11 @@ async def paytr_callback(request: Request):
                 "name": order.get("user_name", ""),
                 "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
         if not is_consulting and kind != "group":
+            from routes_private import enroll_private_item
             for it in order["items"]:
+                if it.get("private_id"):
+                    await enroll_private_item(order, it["private_id"])
+                    continue
                 if it.get("group_id"):
                     await enroll_group_item(order, it["group_id"])
                     continue

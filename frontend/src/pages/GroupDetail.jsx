@@ -277,7 +277,9 @@ export default function GroupDetail() {
                   </div>
                 )}
 
-                {g.sold_out ? (
+                {g.sales_closed ? (
+                  <div className="w-full mt-5 rounded-xl border border-green-500/20 bg-green-500/10 p-4 text-center" data-testid="group-completed"><p className="font-heading font-bold text-green-400">Bu eğitim tamamlandı</p><p className="text-xs text-muted-foreground mt-1">Satışlar kapandı. Yeni dönem açıldığında burada duyurulacak.</p></div>
+                ) : g.sold_out ? (
                   <Button disabled className="w-full mt-5 h-13 py-3.5" data-testid="group-soldout">Kontenjan Doldu</Button>
                 ) : (
                   <div className="mt-5 space-y-3">
@@ -310,7 +312,9 @@ export default function GroupDetail() {
           </div>
           <p className={`text-[11px] ${g.low_stock ? "text-red-400" : "text-muted-foreground"}`}>{g.remaining} kontenjan kaldı</p>
         </div>
-        {g.sold_out ? (
+        {g.sales_closed ? (
+          <Button disabled className="flex-1 h-12" data-testid="group-mobile-completed">Eğitim Tamamlandı</Button>
+        ) : g.sold_out ? (
           <Button disabled className="flex-1 h-12" data-testid="group-mobile-soldout">Kontenjan Doldu</Button>
         ) : (
           <Button onClick={buy} data-testid="group-mobile-buy" className="flex-1 h-12 bg-gold hover:bg-gold-hover text-ink font-bold">Eğitime Kaydol</Button>

@@ -19,7 +19,8 @@ export function GroupCard({ g, index = 0, headingAs: H = "h3" }) {
             <span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" /></span> CANLI
           </span>
           <span className="absolute top-3 right-3 inline-flex items-center gap-1.5 bg-ink/80 backdrop-blur text-[11px] font-medium px-2.5 py-1 rounded-full border border-white/10"><img src={MEET_LOGO} alt="" className="w-3.5 h-3.5" /> Google Meet</span>
-          {g.sold_out ? <span className="absolute bottom-3 left-3 bg-secondary text-white text-[11px] font-bold px-2.5 py-1 rounded-full">Kontenjan Doldu</span>
+          {g.sales_closed ? <span className="absolute bottom-3 left-3 bg-green-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full" data-testid={`group-card-completed-${g.group_id}`}>Eğitim Tamamlandı</span>
+          : g.sold_out ? <span className="absolute bottom-3 left-3 bg-secondary text-white text-[11px] font-bold px-2.5 py-1 rounded-full">Kontenjan Doldu</span>
             : g.low_stock && <span className="absolute bottom-3 left-3 bg-gold text-ink text-[11px] font-bold px-2.5 py-1 rounded-full animate-pulse">Son {g.remaining} kontenjan!</span>}
         </div>
         <div className="p-5 flex flex-col flex-1">

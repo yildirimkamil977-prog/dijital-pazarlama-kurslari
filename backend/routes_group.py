@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 
-from routes_payments import group_price
+from routes_payments import group_price, group_sales_closed
 from deps import (db, now_utc, new_id, get_current_user, require_admin,
                   get_settings_doc, schedule_email, push_notification, get_paytr_credentials)
 
@@ -62,7 +62,7 @@ async def _public(doc, imap, with_links=False):
             "discount_price": doc.get("discount_price"), "effective_price": group_price(doc),
             "capacity": cap, "enrolled": enrolled, "remaining": remaining, "low_stock": remaining <= 10,
             "sold_out": remaining <= 0, "lessons": pub_lessons, "curriculum": doc.get("curriculum", []),
-            "start_date": lessons[0].get("date") if lessons else None,
+            "start_date": lessons[0].get("date") if lessons else None, "sales_closed": group_sales_closed(doc),
             "instructor": imap.get(doc.get("instructor_id")), "is_published": doc.get("is_published", False)}
 
 

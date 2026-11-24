@@ -411,14 +411,15 @@ async def download_invoice(order_id: str, request: Request):
 @router.get("/recommendations")
 async def recommendations(request: Request, ids: str = ""):
     """Cross-sell: only admin-selected, published, on-sale, paid courses/groups not already in cart."""
-    from routes_payments import group_price
+    from routes_payments import group_price, group_sales_closed
     cart_ids = [x for x in ids.split(",") if x]
     settings = await get_public_settings()
     bundle_pct = settings.get("bundle_discount_pct", 0)
     rec_ids = []
     for cid in cart_ids:
         src = await db.courses.find_one({"course_id": cid}, {"_id": 0, "cross_sell_ids": 1}) or \
-            await db.group_trainings.find_one({"group_id": cid}, {"_id": 0, "cross_sell_ids": 1}) or {}
+            await db.group_trainings.find_one({"group_id": cid}, {"_id": 0, "cross_sell_ids": 1}) or \
+            await db.private_trainings.find_one({"private_id": cid}, {"_id": 0, "cross_sell_ids": 1}) or {}
         rec_ids += [r for r in src.get("cross_sell_ids", []) if r not in cart_ids and r not in rec_ids]
     if not rec_ids:
         return []
@@ -432,7 +433,7 @@ async def recommendations(request: Request, ids: str = ""):
     async for g in db.group_trainings.find({"group_id": {"$in": rec_ids}, "is_published": True}, {"_id": 0}):
         base = group_price(g)
         enrolled = await db.group_enrollments.count_documents({"group_id": g["group_id"]})
-        if base > 0 and not (g.get("capacity") and enrolled >= g["capacity"]):
+        if base > 0 and not group_sales_closed(g) and not (g.get("capacity") and enrolled >= g["capacity"]):
             out.append({"kind": "group", "course_id": g["group_id"], "group_id": g["group_id"], "title": g["title"], "slug": g.get("slug", ""),
                         "thumbnail": g.get("image", ""), "price": base, "bundle_price": bundle(base), "bundle_pct": bundle_pct})
     out.sort(key=lambda r: rec_ids.index(r["course_id"]))

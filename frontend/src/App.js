@@ -12,6 +12,8 @@ import PublicLayout from "@/components/layout/PublicLayout";
 import Home from "@/pages/Home";
 import CourseDetail from "@/pages/CourseDetail";
 import GroupDetail from "@/pages/GroupDetail";
+import PrivateList from "@/pages/PrivateList";
+import PrivateDetail from "@/pages/PrivateDetail";
 
 const About = lazy(() => import("@/pages/About"));
 const Courses = lazy(() => import("@/pages/Courses"));
@@ -52,6 +54,8 @@ function AppRouter() {
           <Route path="/egitmen/:slug" element={<InstructorPage />} />
           <Route path="/canli-grup-egitimleri" element={<GroupList />} />
           <Route path="/canli-grup-egitimleri/:slug" element={<GroupDetail />} />
+          <Route path="/bire-bir-canli-egitimler" element={<PrivateList />} />
+          <Route path="/bire-bir-canli-egitimler/:slug" element={<PrivateDetail />} />
           <Route path="/sepet" element={<Cart />} />
           <Route path="/iletisim" element={<Contact />} />
           <Route path="/odeme" element={<Checkout />} />

@@ -587,7 +587,11 @@ async def mark_paid(order_id: str, request: Request):
             "panel_url": (os.environ.get("CORS_ORIGINS", "").split(",")[0]) + "/panel"})
     else:
         from routes_payments import enroll_group_item
+        from routes_private import enroll_private_item
         for it in order["items"]:
+            if it.get("private_id"):
+                await enroll_private_item(order, it["private_id"])
+                continue
             if it.get("group_id"):
                 await enroll_group_item(order, it["group_id"])
                 continue

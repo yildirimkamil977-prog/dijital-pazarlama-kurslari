@@ -15,6 +15,7 @@ import AdminInstructors from "@/pages/admin/AdminInstructors";
 import AdminConsulting from "@/pages/admin/AdminConsulting";
 import AdminApprovedConsulting from "@/pages/admin/AdminApprovedConsulting";
 import AdminGroupTrainings from "@/pages/admin/AdminGroupTrainings";
+import AdminPrivateTrainings from "@/pages/admin/AdminPrivateTrainings";
 
 const nav = [
   { to: "/yonetim", label: "Genel Bakış", icon: LayoutDashboard, end: true },
@@ -23,6 +24,7 @@ const nav = [
   { to: "/yonetim/danismanlik", label: "Danışmanlık", icon: CalendarClock },
   { to: "/yonetim/danismanlik-onay", label: "Onaylı Danışmanlıklar", icon: Video },
   { to: "/yonetim/grup-egitimleri", label: "Grup Eğitimleri", icon: Users },
+  { to: "/yonetim/bire-bir-egitimler", label: "Bire Bir Eğitimler", icon: Video },
   { to: "/yonetim/ogrenciler", label: "Öğrenciler", icon: Users },
   { to: "/yonetim/odemeler", label: "Ödemeler", icon: CreditCard },
   { to: "/yonetim/indirimler", label: "İndirim Kodları", icon: Tag },
@@ -90,6 +92,7 @@ export default function AdminPanel() {
             <Route path="danismanlik" element={<AdminConsulting />} />
             <Route path="danismanlik-onay" element={<AdminApprovedConsulting />} />
             <Route path="grup-egitimleri" element={<AdminGroupTrainings />} />
+            <Route path="bire-bir-egitimler" element={<AdminPrivateTrainings />} />
             <Route path="ogrenciler" element={<AdminStudents />} />
             <Route path="odemeler" element={<AdminPayments />} />
             <Route path="indirimler" element={<AdminDiscounts />} />

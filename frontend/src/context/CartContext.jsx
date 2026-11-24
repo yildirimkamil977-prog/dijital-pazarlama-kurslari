@@ -26,6 +26,14 @@ export function CartProvider({ children }) {
   };
 
   const remove = (course_id) => setItems((prev) => prev.filter((i) => i.course_id !== course_id));
+  const addPrivate = (p) => {
+    const price = p.effective_price != null ? p.effective_price : p.price;
+    setItems((prev) => (prev.find((i) => i.course_id === p.private_id) ? prev : [...prev, {
+      course_id: p.private_id, private_id: p.private_id, kind: "private", title: p.title, slug: p.slug,
+      thumbnail: p.image, price, original_price: p.price,
+    }]));
+    trackAddToCart({ id: p.private_id, title: p.title, price, category: "Bire Bir Canlı Eğitim" });
+  };
   const addGroup = (g) => {
     const price = g.effective_price != null ? g.effective_price : g.price;
     setItems((prev) => (prev.find((i) => i.course_id === g.group_id) ? prev : [...prev, {
@@ -39,7 +47,7 @@ export function CartProvider({ children }) {
   const subtotal = items.reduce((s, i) => s + (i.price || 0), 0);
 
   return (
-    <CartContext.Provider value={{ items, add, addGroup, remove, clear, has, subtotal, count: items.length }}>
+    <CartContext.Provider value={{ items, add, addGroup, addPrivate, remove, clear, has, subtotal, count: items.length }}>
       {children}
     </CartContext.Provider>
   );
