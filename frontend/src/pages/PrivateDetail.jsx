@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Loader2, CheckCircle2, Check, ShoppingCart, BellRing, CalendarCheck, PhoneCall, Video, MessageCircleQuestion, Play } from "lucide-react";
+import { Loader2, CheckCircle2, Check, ShoppingCart, BellRing, CalendarCheck, PhoneCall, Video, MessageCircleQuestion, Play, ShieldCheck, Infinity as InfinityIcon, Sparkles, UserRound, CreditCard, Landmark } from "lucide-react";
 import api, { formatPrice, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,22 +51,61 @@ function Waitlist({ p }) {
 
 function BuyBox({ p, inCart, onBuy, onAdd }) {
   const save = p.effective_price < p.price;
+  const pct = save ? Math.round(100 * (1 - p.effective_price / p.price)) : 0;
+  const perLesson = p.lesson_count ? p.effective_price / p.lesson_count : 0;
+  const includes = [
+    { icon: Video, t: `${p.lesson_count} canlı ders`, d: "Google Meet üzerinden, sadece sen ve eğitmen" },
+    { icon: CalendarCheck, t: "Sana uygun gün ve saatler", d: "Program müsaitliğine göre planlanır" },
+    { icon: Sparkles, t: "Sana özel müfredat", d: "İstersen işletmene göre uyarlanır" },
+    { icon: InfinityIcon, t: "Ömür boyu kayıt erişimi", d: "Tüm dersler panelinde kalır" },
+    { icon: MessageCircleQuestion, t: "1 ay soru hakkı", d: "Eğitim sonrası doğrudan destek" },
+  ];
   return (
-    <div className="bg-ink-surface border border-white/10 rounded-2xl p-6 lg:sticky lg:top-24" data-testid="private-buy-box">
-      <div className="flex items-end gap-3">
+    <div className="relative bg-ink-surface border border-white/10 rounded-2xl overflow-hidden lg:sticky lg:top-24" data-testid="private-buy-box">
+      <div className="h-1 bg-gradient-to-r from-gold/0 via-gold to-gold/0" />
+      <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+      <div className="relative p-6">
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gold"><UserRound className="w-3.5 h-3.5" /> Bire Bir · Canlı</span>
+        {save && <span className="text-[11px] font-bold bg-red-500/15 text-red-400 border border-red-500/25 rounded-full px-2.5 py-1" data-testid="private-discount-badge">%{pct} İNDİRİM</span>}
+      </div>
+      <div className="flex items-end gap-3 mt-3">
         <span className="font-heading font-black text-4xl text-gold" data-testid="private-price">{formatPrice(p.effective_price)} ₺</span>
         {save && <span className="text-muted-foreground line-through mb-1">{formatPrice(p.price)} ₺</span>}
       </div>
-      <p className="text-xs text-muted-foreground mt-2">{p.lesson_count} ders · Google Meet</p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs">
+        {save && <span className="text-green-400 font-semibold" data-testid="private-saving">{formatPrice(p.price - p.effective_price)} ₺ tasarruf</span>}
+        {perLesson > 0 && <span className="text-muted-foreground">Ders başı {formatPrice(Math.round(perLesson))} ₺</span>}
+      </div>
       {p.sale_stopped ? <Waitlist p={p} /> : (
         <div className="mt-5 space-y-3">
           <Button onClick={onBuy} className="w-full h-12 bg-gold hover:bg-gold-hover text-ink font-bold" data-testid="private-buy">Hemen Kaydol</Button>
           <Button onClick={onAdd} disabled={inCart} variant="outline" className="w-full h-11 border-white/15" data-testid="private-add-to-cart">{inCart ? <><Check className="w-4 h-4 mr-2" /> Sepette</> : <><ShoppingCart className="w-4 h-4 mr-2" /> Sepete Ekle</>}</Button>
         </div>
       )}
-      <ul className="mt-5 space-y-2 text-xs text-muted-foreground">
-        {["Kontenjan yok, herkes katılabilir", "Ders kayıtlarına ömür boyu erişim", "Eğitim sonrası 1 ay soru hakkı"].map((t) => <li key={t} className="flex items-center gap-2"><CalendarCheck className="w-3.5 h-3.5 text-gold" /> {t}</li>)}
-      </ul>
+      <div className="mt-6 pt-5 border-t border-white/5">
+        <p className="text-xs font-semibold text-foreground mb-3">Bu eğitime neler dahil?</p>
+        <ul className="space-y-3" data-testid="private-includes">
+          {includes.map((it) => (
+            <li key={it.t} className="flex gap-3">
+              <span className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center shrink-0"><it.icon className="w-4 h-4 text-gold" /></span>
+              <div><p className="text-sm font-medium leading-tight">{it.t}</p><p className="text-[11px] text-muted-foreground mt-0.5">{it.d}</p></div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {p.instructor && (
+        <div className="mt-5 flex items-center gap-3 bg-ink rounded-xl p-3" data-testid="private-buybox-instructor">
+          {p.instructor.avatar && <img src={p.instructor.avatar} alt={p.instructor.name} className="w-10 h-10 rounded-full object-cover" />}
+          <div className="min-w-0"><p className="text-[11px] text-muted-foreground">Eğitmenin</p><p className="text-sm font-semibold truncate">{p.instructor.name}</p></div>
+        </div>
+      )}
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-green-400" /> Güvenli ödeme</span>
+        <span className="inline-flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> Kredi kartı</span>
+        <span className="inline-flex items-center gap-1"><Landmark className="w-3.5 h-3.5" /> Havale / EFT</span>
+      </div>
+      </div>
     </div>
   );
 }
