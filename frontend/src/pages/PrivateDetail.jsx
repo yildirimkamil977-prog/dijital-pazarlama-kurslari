@@ -110,6 +110,28 @@ function BuyBox({ p, inCart, onBuy, onAdd }) {
   );
 }
 
+function MobileBar({ p, onBuy }) {
+  const save = p.effective_price < p.price;
+  const pct = save ? Math.round(100 * (1 - p.effective_price / p.price)) : 0;
+  const toBox = () => document.getElementById("private-buy-mobile")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  return (
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-3" data-testid="private-mobile-bar">
+      <div className="flex-1 min-w-0">
+        {p.sale_stopped ? <p className="text-sm font-semibold text-gold" data-testid="private-mobile-full">Kontenjan doldu</p> : (
+          <>
+            {save && <div className="flex items-center gap-2"><span className="text-xs text-muted-foreground line-through whitespace-nowrap">{formatPrice(p.price)} ₺</span><span className="text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/25 rounded-full px-2 py-0.5 whitespace-nowrap" data-testid="private-mobile-discount">%{pct} indirim</span></div>}
+            <span className="font-heading font-black text-xl text-gold whitespace-nowrap leading-tight" data-testid="private-mobile-price">{formatPrice(p.effective_price)} ₺</span>
+          </>
+        )}
+        {(!save || p.sale_stopped) && <p className="text-[11px] text-muted-foreground truncate">{p.lesson_count} canlı ders · Bire bir</p>}
+      </div>
+      {p.sale_stopped
+        ? <Button onClick={toBox} className="bg-gold text-ink font-bold rounded-full px-5 shrink-0" data-testid="private-mobile-notify"><BellRing className="w-4 h-4 mr-1.5" /> Haber Ver</Button>
+        : <Button onClick={onBuy} className="bg-gold hover:bg-gold-hover text-ink font-bold rounded-full px-6 shrink-0" data-testid="private-mobile-buy">Hemen Kaydol</Button>}
+    </div>
+  );
+}
+
 export default function PrivateDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -128,7 +150,7 @@ export default function PrivateDetail() {
   const add = () => { addPrivate(p); toast.success("Sepete eklendi"); };
 
   return (
-    <div data-testid="private-detail-page">
+    <div data-testid="private-detail-page" className="pb-24 lg:pb-0">
       <Seo title={p.title} description={p.description} image={p.image} />
       <section className="max-w-7xl mx-auto px-5 sm:px-8 pt-12 pb-16 grid lg:grid-cols-[1fr_380px] gap-10">
         <div>
@@ -139,7 +161,7 @@ export default function PrivateDetail() {
             {p.image && <img src={optImg(p.image, 1200)} alt={p.title} className="w-full h-full object-cover" />}
             {p.promo_video && <div className="absolute inset-0 bg-ink/40 flex items-center justify-center"><span className="w-16 h-16 rounded-full bg-gold flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Play className="w-7 h-7 text-ink ml-1" fill="currentColor" /></span></div>}
           </div>
-          <div className="lg:hidden mt-8"><BuyBox p={p} inCart={inCart} onBuy={buy} onAdd={add} /></div>
+          <div className="lg:hidden mt-8" id="private-buy-mobile"><BuyBox p={p} inCart={inCart} onBuy={buy} onAdd={add} /></div>
 
           <h2 className="font-heading font-bold text-2xl mt-14 mb-6">Bu eğitimde seni neler bekliyor?</h2>
           <div className="grid sm:grid-cols-2 gap-3" data-testid="private-features">
@@ -182,6 +204,7 @@ export default function PrivateDetail() {
         </div>
         <div className="hidden lg:block"><BuyBox p={p} inCart={inCart} onBuy={buy} onAdd={add} /></div>
       </section>
+      <MobileBar p={p} onBuy={buy} />
       <VideoDialog url={p.promo_video} open={video} onOpenChange={setVideo} title={p.title} testId="private-promo" />
     </div>
   );
