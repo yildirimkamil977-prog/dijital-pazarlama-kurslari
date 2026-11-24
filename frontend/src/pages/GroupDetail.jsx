@@ -303,7 +303,7 @@ export default function GroupDetail() {
       </div>
 
       {/* MOBILE STICKY BAR */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-4" data-testid="group-mobile-bar">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-4" data-testid="group-mobile-bar" data-mobile-bar>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             {hasDiscount && <span className="text-xs text-muted-foreground line-through whitespace-nowrap">{formatPrice(g.price)} ₺</span>}

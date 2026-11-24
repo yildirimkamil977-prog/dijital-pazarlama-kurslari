@@ -115,7 +115,7 @@ function MobileBar({ p, onBuy }) {
   const pct = save ? Math.round(100 * (1 - p.effective_price / p.price)) : 0;
   const toBox = () => document.getElementById("private-buy-mobile")?.scrollIntoView({ behavior: "smooth", block: "center" });
   return (
-    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-3" data-testid="private-mobile-bar">
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center gap-3" data-testid="private-mobile-bar" data-mobile-bar>
       <div className="flex-1 min-w-0">
         {p.sale_stopped ? <p className="text-sm font-semibold text-gold" data-testid="private-mobile-full">Kontenjan doldu</p> : (
           <>

@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { ChatLift } from "@/components/ChatLift";
 import { useSite } from "@/context/SiteContext";
 import { Sparkles } from "lucide-react";
 
@@ -33,6 +34,7 @@ export default function PublicLayout() {
       </main>
       <Footer />
       <WhatsAppButton />
+      <ChatLift />
     </div>
   );
 }

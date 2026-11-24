@@ -334,7 +334,7 @@ export default function CourseDetail() {
 
       {/* MOBILE STICKY BUY BAR */}
       {!course.enrolled && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10" data-testid="mobile-buy-bar">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink/95 backdrop-blur-md border-t border-white/10" data-testid="mobile-buy-bar" data-mobile-bar>
           {upcoming && (
             <div className="flex items-center justify-between gap-2 px-4 py-1.5 bg-gradient-to-r from-gold/20 to-blue-500/10 border-b border-gold/20">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-gold uppercase tracking-wide" data-testid="mobile-upcoming-label"><Clock className="w-3 h-3" /> Yakında · Ön Kayıt</span>
